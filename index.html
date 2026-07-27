@@ -1489,10 +1489,41 @@ body.is-adm .adm-only{display:inline-flex!important}
 </div>
 <script>
 const FB='https://cuidarbem-4af96-default-rtdb.europe-west1.firebasedatabase.app';
-async function fbG(p){try{const r=await fetch(`${FB}/${p}.json`);return r.ok?await r.json():null;}catch{so();return null;}}
-async function fbS(p,d){try{const r=await fetch(`${FB}/${p}.json`,{method:'PUT',body:JSON.stringify(d)});if(r.ok)son();return r.ok;}catch{so();return false;}}
-async function fbP(p,d){try{const r=await fetch(`${FB}/${p}.json`,{method:'POST',body:JSON.stringify(d)});if(r.ok){son();const j=await r.json();return j.name;}return null;}catch{so();return null;}}
-async function fbD(p){try{await fetch(`${FB}/${p}.json`,{method:'DELETE'});son();}catch{so();}}
+
+// ===== AUTENTICAÇÃO ANÓNIMA (segurança) =====
+// A app autentica-se sozinha ao abrir, sem pedir nada ao utilizador.
+// As regras da base de dados passam a exigir esta autenticação, fechando o acesso direto pela internet.
+let _authToken = '';
+const _authReadyPromise = new Promise((resolve) => {
+  const s1 = document.createElement('script');
+  s1.src = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js';
+  s1.onload = function () {
+    const s2 = document.createElement('script');
+    s2.src = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js';
+    s2.onload = async function () {
+      try {
+        if (!firebase.apps.length) firebase.initializeApp(window._fbConfig);
+        window._fbLoaded = true;
+        firebase.auth().onIdTokenChanged(async (user) => {
+          if (user) { try { _authToken = await user.getIdToken(); } catch (e) {} }
+        });
+        const cred = await firebase.auth().signInAnonymously();
+        _authToken = await cred.user.getIdToken();
+      } catch (e) { console.warn('[CuidarBem] Autenticação anónima falhou:', e); }
+      resolve();
+    };
+    s2.onerror = function () { console.warn('[CuidarBem] firebase-auth-compat não carregou'); resolve(); };
+    document.head.appendChild(s2);
+  };
+  s1.onerror = function () { console.warn('[CuidarBem] firebase-app-compat não carregou'); resolve(); };
+  document.head.appendChild(s1);
+});
+function _fbAuthQS(){ return _authToken ? ('?auth=' + _authToken) : ''; }
+
+async function fbG(p){await _authReadyPromise;try{const r=await fetch(`${FB}/${p}.json${_fbAuthQS()}`);return r.ok?await r.json():null;}catch{so();return null;}}
+async function fbS(p,d){await _authReadyPromise;try{const r=await fetch(`${FB}/${p}.json${_fbAuthQS()}`,{method:'PUT',body:JSON.stringify(d)});if(r.ok)son();return r.ok;}catch{so();return false;}}
+async function fbP(p,d){await _authReadyPromise;try{const r=await fetch(`${FB}/${p}.json${_fbAuthQS()}`,{method:'POST',body:JSON.stringify(d)});if(r.ok){son();const j=await r.json();return j.name;}return null;}catch{so();return null;}}
+async function fbD(p){await _authReadyPromise;try{await fetch(`${FB}/${p}.json${_fbAuthQS()}`,{method:'DELETE'});son();}catch{so();}}
 function son(){document.getElementById('syncDot').classList.remove('off');}
 function so(){document.getElementById('syncDot').classList.add('off');}
 

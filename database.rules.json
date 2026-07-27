@@ -1,0 +1,14 @@
+{
+  "rules": {
+    "estado_alertas": {
+      ".read": true,
+      ".write": true
+    },
+    "alertas_log": {
+      ".read": true,
+      ".write": true
+    },
+    ".read": "auth != null",
+    ".write": "auth != null"
+  }
+}
