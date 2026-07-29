@@ -462,6 +462,16 @@ body.is-adm .adm-only{display:inline-flex!important}
   .dpp{font-size:.82rem!important;font-weight:700!important}
   .dpu{font-size:.75rem!important;padding:.2rem 0!important}
 }
+@media print{
+  body > *:not(#mCartao){display:none!important}
+  #mCartao{position:static!important;background:#fff!important;overflow:visible!important;inset:auto!important}
+  #mCartao > div:first-child{display:none!important}
+  #mCartao > div:nth-child(2) > div:first-child{display:none!important}
+  #mCartaoConteudo button{display:none!important}
+  #mCartaoConteudo .card-wrap{max-width:700px!important;width:700px!important;margin:0 auto!important;
+    -webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  @page{size:auto;margin:8mm}
+}
 </style>
 
   <!-- Firebase App (carrega de forma segura — só para Messaging/FCM) -->
@@ -5184,7 +5194,7 @@ async function enviarComandoSW(tipo){
     const nome = ses.nome || 'Equipa';
     const res = ses.admRes || ses.rid || 'r2';
     const uid = nome.replace(/\s+/g,'_').toLowerCase();
-    reg.active.postMessage({tipo, nome, res, uid}, [canal.port2]);
+    reg.active.postMessage({tipo, nome, res, uid, token:_authToken}, [canal.port2]);
   } catch(e){
     console.warn('[CuidarBem] Erro ao enviar comando SW:', e);
   }

@@ -64,7 +64,7 @@ self.addEventListener('message', event => {
 
   if(data.tipo === 'INICIAR'){
     // App envia nome e residência quando faz login e aceita alertas
-    utilizadorInfo = {nome: data.nome, res: data.res, uid: data.uid};
+    utilizadorInfo = {nome: data.nome, res: data.res, uid: data.uid, token: data.token};
     swAtivo = true;
     registarEstadoFirebase(true);
     programarProximoAlerta();
@@ -145,7 +145,8 @@ function programarProximoAlerta(){
     // Regista no Firebase que o alerta foi enviado
     if(utilizadorInfo){
       try {
-        await fetch(`${FB}/alertas_log.json`, {
+        const qs = utilizadorInfo.token ? ('?auth=' + utilizadorInfo.token) : '';
+        await fetch(`${FB}/alertas_log.json${qs}`, {
           method:'POST',
           body: JSON.stringify({
             titulo: proximoAlerta.titulo,
@@ -190,7 +191,8 @@ async function registarEstadoFirebase(ativo){
   if(!utilizadorInfo) return;
   try {
     const uid = utilizadorInfo.uid || utilizadorInfo.nome.replace(/\s+/g,'_').toLowerCase();
-    await fetch(`${FB}/estado_alertas/${uid}.json`, {
+    const qs = utilizadorInfo.token ? ('?auth=' + utilizadorInfo.token) : '';
+    await fetch(`${FB}/estado_alertas/${uid}.json${qs}`, {
       method:'PUT',
       body: JSON.stringify({
         nome: utilizadorInfo.nome,
