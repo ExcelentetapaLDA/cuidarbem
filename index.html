@@ -3055,6 +3055,7 @@ let ocorrencias=[];
 function novoRegTurno(){
   popSel('tRes',false);
   ocorrencias=[];
+  resetElim();
   document.getElementById('tEstado').value='';
   document.getElementById('tPassagem').value='';
   document.getElementById('tPresentes').value=ses.nome&&ses.nome!=='Equipa'?ses.nome:'';
@@ -3113,6 +3114,7 @@ function renderOcList(){
 }
 async function svTurno(){
   const eid=document.getElementById('tEid').value;
+  const elimFinal=elimData.filter(e=>e&&e.utente);
   const obj={
     turno:document.getElementById('tTurno').value,
     res:document.getElementById('tRes').value,
@@ -3121,6 +3123,7 @@ async function svTurno(){
     passagem:document.getElementById('tPassagem').value,
     presentes:document.getElementById('tPresentes').value,
     ocorrencias:[...ocorrencias],
+    eliminacao:elimFinal,
     ts:Date.now(),quem:sesN()
   };
   if(eid){await fbS(`turnos/${eid}`,obj);if(!DB.turnos)DB.turnos={};DB.turnos[eid]=obj;}
@@ -3147,6 +3150,23 @@ async function svTurno(){
     }
   }
 
+  // Descontar material de incontinência do stock e registar consumo por utente
+  for(const e of elimFinal){
+    const qtd=parseInt(e.materialQtd)||0;
+    if(!e.material||qtd<=0)continue;
+    const itemEntry=Object.entries(DB.stock||{}).find(([k,v])=>v.nome===e.material);
+    if(!itemEntry)continue;
+    const [key,item]=itemEntry;
+    item.qty=Math.max(0,(item.qty||0)-qtd);
+    item.ultimoMov={tipo:'sub',qty:qtd,nota:`Consumo — ${e.utente}`,quem:sesN(),ts:Date.now()};
+    await fbS(`stock/${key}`,item);DB.stock[key]=item;
+    await fbP('movimentos_stock',{itemKey:key,itemNome:item.nome,utente:e.utente,tipo:'sub',qty:qtd,res:obj.res,turno:obj.turno,data:obj.data,quem:sesN(),ts:Date.now()});
+    if(item.qty<=item.min&&item.min>0){
+      const al={titulo:`📦 Stock Baixo — ${item.nome}`,res:item.res,pri:'normal',desc:`Apenas ${item.qty} ${item.unit||'unid'} em stock. Mínimo: ${item.min}.`,hora:nowHM(),done:false,ts:Date.now(),quem:sesN()};
+      const k=await fbP('alertas',al);if(k)DB.alertas[k]=al;
+    }
+  }
+
   cm('mTurno');
   if(alertasCriados>0){
     toast(`<strong>📝 Registo guardado!</strong><br>🔔 ${alertasCriados} alerta${alertasCriados>1?'s criados':'criado'}!`);
@@ -3160,6 +3180,7 @@ async function editTurno(key){
   const t=DB.turnos&&DB.turnos[key];if(!t)return;
   popSel('tRes',false);
   ocorrencias=[...(t.ocorrencias||[])];
+  resetElim();
   document.getElementById('tEstado').value=t.estado||'';
   document.getElementById('tPassagem').value=t.passagem||'';
   document.getElementById('tPresentes').value=t.presentes||'';
@@ -3169,6 +3190,21 @@ async function editTurno(key){
   document.getElementById('tEid').value=key;
   document.getElementById('mTurnoT').innerHTML='<i class="ti ti-pencil" style="margin-right:.3rem"></i>Editar Registo de Turno';
   renderOcList();
+  (t.eliminacao||[]).forEach(e=>{
+    addElimUtente();
+    const idx=elimData.length-1;
+    elimData[idx]={...elimData[idx],...e};
+    const div=document.getElementById('elim_'+idx);
+    if(!div)return;
+    const inp=div.querySelector('input[type=text]');if(inp)inp.value=e.utente||'';
+    const selects=div.querySelectorAll('select');
+    if(selects[0])selects[0].value=e.evacuou||'na';
+    if(selects[1])selects[1].value=e.evacTipo||'normal';
+    if(selects[2])selects[2].value=e.diurese||'normal';
+    if(selects[3])selects[3].value=e.material||'';
+    const qtdInp=div.querySelector('input[type=number]');if(qtdInp)qtdInp.value=e.materialQtd||'';
+    toggleEvacTipo(idx,e.evacuou);
+  });
   document.getElementById('mTurno').classList.add('open');
 }
 async function delTurno(key){if(!confirm('Eliminar registo?'))return;await fbD(`turnos/${key}`);if(DB.turnos)delete DB.turnos[key];rAll();}
@@ -4142,10 +4178,11 @@ let elimData = [];
 
 function addElimUtente(){
   const ut = filt(S.utentes);
+  const materiais = Object.entries(DB.stock||{}).filter(([k,v])=>v.cat==='protecao').map(([k,v])=>v.nome);
   const sel = document.getElementById('elimList');
   if(!sel) return;
   const idx = elimData.length;
-  elimData.push({utente:'',evacuou:'na',evacTipo:'normal',diurese:'normal'});
+  elimData.push({utente:'',evacuou:'na',evacTipo:'normal',diurese:'normal',material:'',materialQtd:''});
   
   const div = document.createElement('div');
   div.id = 'elim_'+idx;
@@ -4183,6 +4220,20 @@ function addElimUtente(){
           <option value="reduzida">Reduzida ⚠️</option>
           <option value="ausente">Ausente 🚨</option>
         </select>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:.4rem;margin-top:.4rem;padding-top:.4rem;border-top:1px dashed var(--border)">
+      <div>
+        <div style="font-size:.7rem;font-weight:600;color:var(--gray-500);margin-bottom:.2rem"><i class="ti ti-package" style="margin-right:.2rem"></i>Material usado</div>
+        <select class="fc" style="font-size:.75rem;padding:.3rem" onchange="elimData[${idx}].material=this.value">
+          <option value="">— não registar —</option>
+          ${materiais.map(m=>`<option value="${m}">${m}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <div style="font-size:.7rem;font-weight:600;color:var(--gray-500);margin-bottom:.2rem">Quantidade</div>
+        <input type="number" class="fc" min="0" style="font-size:.75rem;padding:.3rem" placeholder="Ex: 1"
+          oninput="elimData[${idx}].materialQtd=this.value">
       </div>
     </div>`;
   sel.appendChild(div);
