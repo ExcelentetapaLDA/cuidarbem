@@ -872,7 +872,10 @@ body.is-adm .adm-only{display:inline-flex!important}
       <div class="pg" id="pg-stock">
         <div class="ph">
           <div><div class="ph-title">Stock de Material</div><div class="ph-sub" id="stockSub"></div></div>
-          <button class="btn btn-p adm-only" onclick="om('mStock')">+ Novo Item</button>
+          <div style="display:flex;gap:.4rem">
+            <button class="btn btn-g adm-only" onclick="om('mImpCons')"><i class="ti ti-file-import" style="margin-right:.3rem"></i>Importar Consumo Mensal</button>
+            <button class="btn btn-p adm-only" onclick="om('mStock')">+ Novo Item</button>
+          </div>
         </div>
         <div style="display:flex;gap:.4rem;margin-bottom:.95rem;flex-wrap:wrap">
           <button class="btn btn-g btn-s skF active" onclick="skFiltro('all',this)">Tudo</button>
@@ -1485,6 +1488,40 @@ body.is-adm .adm-only{display:inline-flex!important}
     <div class="mf">
       <button class="btn btn-g" onclick="cm('mImportador')">Cancelar</button>
       <button class="btn btn-p" id="impBtnSave" onclick="impGuardar()" style="display:none"><i class="ti ti-device-floppy" style="margin-right:.3rem"></i>Guardar na App</button>
+    </div>
+  </div>
+</div>
+
+<div class="mo" id="mImpCons">
+  <div class="md" style="max-width:560px">
+    <div class="mh"><span class="mht"><i class="ti ti-file-import" style="margin-right:.3rem"></i>Importar Consumo Mensal</span><button class="mc" onclick="cm('mImpCons')">×</button></div>
+    <div class="mb">
+      <div style="background:var(--teal-light);border:1px solid #99F6E4;border-radius:var(--radius);padding:.85rem;margin-bottom:1rem;font-size:.82rem;color:var(--teal)">
+        Carrega a folha de consumo mensal (Nº Cliente, Nome, e colunas por produto/tamanho). A app detecta a residência pelo título da folha ("Casa dos Sonhos" ou "Solar"). Isto fica como <strong>histórico de referência por utente</strong> — não altera o stock actual, é só para as encarregadas terem uma base do mês anterior.
+      </div>
+      <div id="icDropZone" style="border:2.5px dashed #CBD5E1;border-radius:12px;padding:2.5rem;text-align:center;cursor:pointer;background:#F8FAFC;position:relative;transition:all .2s" ondragover="event.preventDefault();this.style.borderColor='#0EA5E9'" ondragleave="this.style.borderColor='#CBD5E1'" ondrop="icHandleDrop(event)">
+        <input type="file" accept=".xlsx,.xls" id="icFileInput" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%" onchange="icHandleFile(this.files[0])">
+        <div style="font-size:2.5rem;margin-bottom:.5rem"><i class="ti ti-folder-open" style="color:var(--gray-400)"></i></div>
+        <div style="font-weight:600;font-size:.9rem;color:#475569">Clica ou arrasta o ficheiro Excel</div>
+        <div style="font-size:.75rem;color:#94A3B8;margin-top:.25rem">Ex: Lista_Utentes_Casa_dos_Sonhos.xlsx</div>
+      </div>
+      <div class="fg" style="margin-top:.85rem"><label class="fl">Mês a que se refere este consumo</label>
+        <select class="fc" id="icMes">
+          <option value="Janeiro">Janeiro</option><option value="Fevereiro">Fevereiro</option><option value="Março">Março</option>
+          <option value="Abril">Abril</option><option value="Maio">Maio</option><option value="Junho">Junho</option>
+          <option value="Julho">Julho</option><option value="Agosto">Agosto</option><option value="Setembro">Setembro</option>
+          <option value="Outubro">Outubro</option><option value="Novembro">Novembro</option><option value="Dezembro">Dezembro</option>
+        </select>
+      </div>
+      <div id="icStatus" style="margin-top:.85rem;padding:.75rem;border-radius:8px;display:none;font-size:.83rem"></div>
+      <div id="icResult" style="display:none;margin-top:1rem">
+        <div style="font-weight:700;font-size:.88rem;color:#1E293B;margin-bottom:.5rem"><i class="ti ti-check" style="margin-right:.3rem;color:#059669"></i>Ficheiro processado</div>
+        <div id="icResultRows" style="max-height:260px;overflow-y:auto"></div>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-g" onclick="cm('mImpCons')">Cancelar</button>
+      <button class="btn btn-t" id="icBtnSave" onclick="icGuardar()" style="display:none"><i class="ti ti-device-floppy" style="margin-right:.3rem"></i>Guardar na App</button>
     </div>
   </div>
 </div>
@@ -3150,23 +3187,6 @@ async function svTurno(){
     }
   }
 
-  // Descontar material de incontinência do stock e registar consumo por utente
-  for(const e of elimFinal){
-    const qtd=parseInt(e.materialQtd)||0;
-    if(!e.material||qtd<=0)continue;
-    const itemEntry=Object.entries(DB.stock||{}).find(([k,v])=>v.nome===e.material);
-    if(!itemEntry)continue;
-    const [key,item]=itemEntry;
-    item.qty=Math.max(0,(item.qty||0)-qtd);
-    item.ultimoMov={tipo:'sub',qty:qtd,nota:`Consumo — ${e.utente}`,quem:sesN(),ts:Date.now()};
-    await fbS(`stock/${key}`,item);DB.stock[key]=item;
-    await fbP('movimentos_stock',{itemKey:key,itemNome:item.nome,utente:e.utente,tipo:'sub',qty:qtd,res:obj.res,turno:obj.turno,data:obj.data,quem:sesN(),ts:Date.now()});
-    if(item.qty<=item.min&&item.min>0){
-      const al={titulo:`📦 Stock Baixo — ${item.nome}`,res:item.res,pri:'normal',desc:`Apenas ${item.qty} ${item.unit||'unid'} em stock. Mínimo: ${item.min}.`,hora:nowHM(),done:false,ts:Date.now(),quem:sesN()};
-      const k=await fbP('alertas',al);if(k)DB.alertas[k]=al;
-    }
-  }
-
   cm('mTurno');
   if(alertasCriados>0){
     toast(`<strong>📝 Registo guardado!</strong><br>🔔 ${alertasCriados} alerta${alertasCriados>1?'s criados':'criado'}!`);
@@ -3201,8 +3221,6 @@ async function editTurno(key){
     if(selects[0])selects[0].value=e.evacuou||'na';
     if(selects[1])selects[1].value=e.evacTipo||'normal';
     if(selects[2])selects[2].value=e.diurese||'normal';
-    if(selects[3])selects[3].value=e.material||'';
-    const qtdInp=div.querySelector('input[type=number]');if(qtdInp)qtdInp.value=e.materialQtd||'';
     toggleEvacTipo(idx,e.evacuou);
   });
   document.getElementById('mTurno').classList.add('open');
@@ -4178,11 +4196,10 @@ let elimData = [];
 
 function addElimUtente(){
   const ut = filt(S.utentes);
-  const materiais = Object.entries(DB.stock||{}).filter(([k,v])=>v.cat==='protecao').map(([k,v])=>v.nome);
   const sel = document.getElementById('elimList');
   if(!sel) return;
   const idx = elimData.length;
-  elimData.push({utente:'',evacuou:'na',evacTipo:'normal',diurese:'normal',material:'',materialQtd:''});
+  elimData.push({utente:'',evacuou:'na',evacTipo:'normal',diurese:'normal'});
   
   const div = document.createElement('div');
   div.id = 'elim_'+idx;
@@ -4220,20 +4237,6 @@ function addElimUtente(){
           <option value="reduzida">Reduzida ⚠️</option>
           <option value="ausente">Ausente 🚨</option>
         </select>
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:2fr 1fr;gap:.4rem;margin-top:.4rem;padding-top:.4rem;border-top:1px dashed var(--border)">
-      <div>
-        <div style="font-size:.7rem;font-weight:600;color:var(--gray-500);margin-bottom:.2rem"><i class="ti ti-package" style="margin-right:.2rem"></i>Material usado</div>
-        <select class="fc" style="font-size:.75rem;padding:.3rem" onchange="elimData[${idx}].material=this.value">
-          <option value="">— não registar —</option>
-          ${materiais.map(m=>`<option value="${m}">${m}</option>`).join('')}
-        </select>
-      </div>
-      <div>
-        <div style="font-size:.7rem;font-weight:600;color:var(--gray-500);margin-bottom:.2rem">Quantidade</div>
-        <input type="number" class="fc" min="0" style="font-size:.75rem;padding:.3rem" placeholder="Ex: 1"
-          oninput="elimData[${idx}].materialQtd=this.value">
       </div>
     </div>`;
   sel.appendChild(div);
@@ -4650,6 +4653,128 @@ async function impGuardar(){
     carregarEscalaAtual();
   }catch(err){
     impSetStatus('❌ Erro ao guardar: '+err.message,'err');
+    btn.disabled=false;btn.innerHTML='<i class="ti ti-refresh" style="margin-right:.3rem"></i>Tentar novamente';
+  }
+}
+
+// ===== IMPORTAR CONSUMO MENSAL (por utente, referência de incontinência) =====
+let icDados=null;
+function icHandleDrop(ev){ev.preventDefault();ev.currentTarget.style.borderColor='#CBD5E1';if(ev.dataTransfer.files[0])icHandleFile(ev.dataTransfer.files[0]);}
+function icHandleFile(file){
+  if(!file)return;
+  if(!file.name.match(/\.xlsx?$/i)){icSetStatus('❌ Ficheiro inválido. Usa um .xlsx','err');return;}
+  icSetStatus('⏳ A ler o ficheiro...','loading');
+  if(!window.XLSX){
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload=()=>icProcessar(file);
+    s.onerror=()=>icSetStatus('❌ Erro ao carregar biblioteca. Verifica a ligação.','err');
+    document.head.appendChild(s);
+  } else icProcessar(file);
+}
+function icSetStatus(msg,type){
+  const el=document.getElementById('icStatus');
+  el.textContent=msg;el.style.display='block';
+  el.style.background=type==='ok'?'#DCFCE7':type==='err'?'#FEE2E2':'#EFF6FF';
+  el.style.color=type==='ok'?'#166534':type==='err'?'#991B1B':'#1D4ED8';
+}
+function icProcessar(file){
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const registos=[];
+      for(const sheetName of wb.SheetNames){
+        const ws=wb.Sheets[sheetName];
+        const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+        if(!raw.length)continue;
+        const titulo=String(raw[0][0]||'').toLowerCase();
+        if(!titulo.includes('sonhos')&&!titulo.includes('solar')&&!titulo.includes('semiaternura')&&!titulo.includes('semeiaternura'))continue;
+        const res=titulo.includes('solar')||titulo.includes('semiaternura')||titulo.includes('semiaternura')?'r1':'r2';
+        // localizar linha de cabeçalho de produtos (a que tem "NOME")
+        let hRow=-1;
+        for(let i=0;i<Math.min(raw.length,6);i++){
+          if(raw[i].some(c=>String(c).trim().toUpperCase()==='NOME')){hRow=i;break;}
+        }
+        if(hRow<0)continue;
+        const header=raw[hRow], subheader=raw[hRow+1]||[];
+        const nomeCol=header.findIndex(c=>String(c).trim().toUpperCase()==='NOME');
+        // colunas de produto: da coluna seguinte ao nome até ao fim
+        const produtoCols=[];
+        let lastLabel='';
+        for(let c=nomeCol+1;c<header.length;c++){
+          const h=String(header[c]||'').trim();
+          const sub=String(subheader[c]||'').trim();
+          if(h)lastLabel=h;
+          if(!lastLabel)continue;
+          const label=sub?`${lastLabel} ${sub}`:lastLabel;
+          produtoCols.push({col:c,label});
+        }
+        for(let i=hRow+2;i<raw.length;i++){
+          const row=raw[i]||[];
+          const nome=String(row[nomeCol]||'').trim();
+          if(!nome||nome.toUpperCase()==='TOTAL')continue;
+          for(const pc of produtoCols){
+            const v=row[pc.col];
+            const qtd=parseInt(v);
+            if(!qtd||qtd<=0)continue;
+            registos.push({utente:nome,produto:pc.label,qtd,res});
+          }
+        }
+      }
+      if(!registos.length){icSetStatus('❌ Não encontrei dados reconhecíveis. Confirma que a folha tem colunas Nº Cliente/NOME e produtos.','err');return;}
+      icDados=registos;
+      const porRes={r1:0,r2:0};registos.forEach(r=>porRes[r.res]++);
+      icSetStatus('✅ Ficheiro lido com sucesso!','ok');
+      document.getElementById('icResultRows').innerHTML=`
+        <div style="font-size:.82rem;color:#334155;padding:.3rem 0">Casa dos Sonhos: <strong>${porRes.r2}</strong> registos</div>
+        <div style="font-size:.82rem;color:#334155;padding:.3rem 0">Solar Villa D'Arruta: <strong>${porRes.r1}</strong> registos</div>`;
+      document.getElementById('icResult').style.display='block';
+      document.getElementById('icBtnSave').style.display='inline-flex';
+    }catch(err){icSetStatus('❌ Erro: '+err.message,'err');}
+  };
+  reader.readAsArrayBuffer(file);
+}
+async function icGuardar(){
+  if(!icDados||!icDados.length)return;
+  const mes=document.getElementById('icMes').value;
+  const mesesIdx={'Janeiro':1,'Fevereiro':2,'Março':3,'Abril':4,'Maio':5,'Junho':6,'Julho':7,'Agosto':8,'Setembro':9,'Outubro':10,'Novembro':11,'Dezembro':12};
+  const dataRef=`2026-${String(mesesIdx[mes]).padStart(2,'0')}-01`;
+  const btn=document.getElementById('icBtnSave');
+  btn.disabled=true;btn.textContent='⏳ A guardar...';
+  icSetStatus('⏳ A guardar histórico de referência...','loading');
+  try{
+    if(!DB.incont)DB.incont={};
+    // agrupar por utente+residencia
+    const porUtente={};
+    for(const r of icDados){
+      const chave=r.utente+'|'+r.res;
+      if(!porUtente[chave])porUtente[chave]={utente:r.utente,res:r.res,fraldas:0,cuecas:0,resguardos:0,detalhe:[]};
+      const g=porUtente[chave];
+      const label=r.produto.toLowerCase();
+      if(label.includes('slip'))g.fraldas+=r.qtd;
+      else if(label.includes('pants'))g.cuecas+=r.qtd;
+      else if(label.includes('resguardo'))g.resguardos+=r.qtd;
+      g.detalhe.push(`${r.produto}: ${r.qtd}`);
+    }
+    const registos=Object.values(porUtente);
+    for(const g of registos){
+      const obj={
+        utente:g.utente,res:g.res,turno:'M',data:dataRef,
+        fraldas:g.fraldas,cuecas:g.cuecas,pensos:0,resguardos:g.resguardos,
+        obs:`📋 Referência importada de ${mes}: ${g.detalhe.join(', ')}`,
+        ts:Date.now(),quem:sesN()
+      };
+      const k=await fbP('incont',obj);
+      if(k)DB.incont[k]=obj;
+    }
+    icSetStatus('✅ Consumo importado como referência!','ok');
+    btn.innerHTML='<i class="ti ti-check" style="margin-right:.3rem"></i>Guardado!';
+    btn.style.background='linear-gradient(135deg,#16A34A,#15803D)';
+    toast(`<strong>📋 Consumo de ${mes} importado!</strong><br>${registos.length} utentes com referência guardada.`);
+    rAll();
+  }catch(err){
+    icSetStatus('❌ Erro ao guardar: '+err.message,'err');
     btn.disabled=false;btn.innerHTML='<i class="ti ti-refresh" style="margin-right:.3rem"></i>Tentar novamente';
   }
 }
