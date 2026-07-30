@@ -910,6 +910,12 @@ body.is-adm .adm-only{display:inline-flex!important}
           <button class="btn btn-g btn-s inF" onclick="inFiltro('mes',this)">Este mês</button>
           <button class="btn btn-g btn-s inF" onclick="inFiltro('all',this)">Todos</button>
         </div>
+        <div class="fg" style="max-width:260px;margin-bottom:.95rem">
+          <label class="fl">Ou escolhe um mês específico</label>
+          <select class="fc" id="incontMesEspecifico" onchange="inFiltroMes(this.value)">
+            <option value="">— nenhum —</option>
+          </select>
+        </div>
         <div id="incontContent"></div>
       </div>
 
@@ -3864,11 +3870,21 @@ function removerEtiqueta(uid, badge){
 
 // ===== INCONTINÊNCIA =====
 let inFA = 'hoje';
+let inFAMes = null;
 
 function inFiltro(tipo, btn){
   inFA = tipo;
+  inFAMes = null;
+  document.getElementById('incontMesEspecifico').value = '';
   document.querySelectorAll('.inF').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+  rIncont();
+}
+function inFiltroMes(valor){
+  if(!valor) return;
+  inFA = 'mesEspecifico';
+  inFAMes = valor; // "AAAA-MM"
+  document.querySelectorAll('.inF').forEach(b=>b.classList.remove('active'));
   rIncont();
 }
 
@@ -4170,6 +4186,21 @@ function rIncont(){
     const mAgo = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
     items = items.filter(x=>x.data>=mAgo);
   }
+  else if(inFA==='mesEspecifico' && inFAMes){
+    items = items.filter(x=>(x.data||'').startsWith(inFAMes));
+  }
+
+  // popular o seletor de mes especifico com os meses que tem dados
+  const mesesDisponiveis = [...new Set(all.map(x=>(x.data||'').slice(0,7)).filter(m=>/^\d{4}-\d{2}$/.test(m)))].sort().reverse();
+  const nomesMes = {'01':'Janeiro','02':'Fevereiro','03':'Março','04':'Abril','05':'Maio','06':'Junho','07':'Julho','08':'Agosto','09':'Setembro','10':'Outubro','11':'Novembro','12':'Dezembro'};
+  const selMes = document.getElementById('incontMesEspecifico');
+  if(selMes){
+    selMes.innerHTML = '<option value="">— nenhum —</option>' + mesesDisponiveis.map(m=>{
+      const [ano,mm] = m.split('-');
+      return `<option value="${m}" ${inFAMes===m?'selected':''}>${nomesMes[mm]} ${ano}</option>`;
+    }).join('');
+  }
+  const periodoLabel = {hoje:'Hoje',semana:'Esta semana',mes:'Este mês',all:'Todos os registos (histórico completo)',mesEspecifico:inFAMes?`${nomesMes[inFAMes.split('-')[1]]} ${inFAMes.split('-')[0]}`:''}[inFA] || '';
 
   // Totals summary
   const totFraldasM = items.reduce((s,x)=>s+(x.fraldasM||0),0);
@@ -4179,7 +4210,11 @@ function rIncont(){
   const totPensos = items.reduce((s,x)=>s+(x.pensos||0),0);
   const totResguardos = items.reduce((s,x)=>s+(x.resguardos||0),0);
   
-  let html = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.5rem;margin-bottom:1.25rem">
+  let html = `<div style="font-size:.78rem;color:var(--gray-500);margin-bottom:.5rem">
+    <i class="ti ti-calendar" style="margin-right:.3rem"></i>Totais de: <strong style="color:var(--gray-700)">${periodoLabel}</strong>
+    ${inFA==='all'?' <span style="color:var(--orange)">· soma tudo desde sempre, pode incluir referências importadas de vários meses</span>':''}
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.5rem;margin-bottom:1.25rem">
     <div style="background:var(--primary-light);border-radius:var(--radius-lg);padding:.85rem;text-align:center">
       <div style="font-size:1.5rem;font-weight:700;color:var(--primary-dark)">${totFraldasM}</div>
       <div style="font-size:.72rem;color:var(--primary-dark);font-weight:600">Fraldas M</div>
@@ -4290,6 +4325,7 @@ function rIncont(){
           <i class="ti ti-chevron-right" style="color:var(--gray-300);font-size:.9rem"></i>
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:.35rem">${chipsHtml || '<span style="color:var(--gray-300);font-size:.75rem">Sem quantidades</span>'}</div>
+        ${g.nRegistos>0?`<div style="font-size:.68rem;color:var(--gray-400);margin-top:.35rem">${g.nRegistos} registo${g.nRegistos>1?'s':''} · toca para ver</div>`:''}
       </div>`;
     });
     html += `</div></div>`;
@@ -5020,7 +5056,7 @@ async function icGuardar(){
     const porUtente={};
     for(const r of icDados){
       const chave=r.utente+'|'+r.res;
-      if(!porUtente[chave])porUtente[chave]={utente:r.utente,res:r.res,fraldasM:0,fraldasL:0,cuecasM:0,cuecasL:0,resguardos:0,detalhe:[]};
+      if(!porUtente[chave])porUtente[chave]={utente:r.utente,res:r.res,fraldasM:0,fraldasL:0,cuecasM:0,cuecasL:0,pensos:0,resguardos:0,detalhe:[]};
       const g=porUtente[chave];
       const label=r.produto.toLowerCase();
       if(label.includes('slip')&&label.includes(' m'))g.fraldasM+=r.qtd;
@@ -5028,13 +5064,14 @@ async function icGuardar(){
       else if(label.includes('pants')&&label.includes(' m'))g.cuecasM+=r.qtd;
       else if(label.includes('pants')&&label.includes(' l'))g.cuecasL+=r.qtd;
       else if(label.includes('resguardo'))g.resguardos+=r.qtd;
+      else if(label.includes('lady'))g.pensos+=r.qtd;
       g.detalhe.push(`${r.produto}: ${r.qtd}`);
     }
     const registos=Object.values(porUtente);
     for(const g of registos){
       const obj={
         utente:g.utente,res:g.res,turno:'M',data:dataRef,
-        fraldasM:g.fraldasM,fraldasL:g.fraldasL,cuecasM:g.cuecasM,cuecasL:g.cuecasL,pensos:0,resguardos:g.resguardos,
+        fraldasM:g.fraldasM,fraldasL:g.fraldasL,cuecasM:g.cuecasM,cuecasL:g.cuecasL,pensos:g.pensos,resguardos:g.resguardos,
         obs:`📋 Referência importada de ${mes}: ${g.detalhe.join(', ')}`,
         ts:Date.now(),quem:sesN()
       };
