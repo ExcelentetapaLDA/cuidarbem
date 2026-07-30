@@ -872,10 +872,7 @@ body.is-adm .adm-only{display:inline-flex!important}
       <div class="pg" id="pg-stock">
         <div class="ph">
           <div><div class="ph-title">Stock de Material</div><div class="ph-sub" id="stockSub"></div></div>
-          <div style="display:flex;gap:.4rem">
-            <button class="btn btn-g adm-only" onclick="om('mImpCons')"><i class="ti ti-file-import" style="margin-right:.3rem"></i>Importar Consumo Mensal</button>
-            <button class="btn btn-p adm-only" onclick="om('mStock')">+ Novo Item</button>
-          </div>
+          <button class="btn btn-p adm-only" onclick="om('mStock')">+ Novo Item</button>
         </div>
         <div style="display:flex;gap:.4rem;margin-bottom:.95rem;flex-wrap:wrap">
           <button class="btn btn-g btn-s skF active" onclick="skFiltro('all',this)">Tudo</button>
@@ -890,7 +887,10 @@ body.is-adm .adm-only{display:inline-flex!important}
       <div class="pg" id="pg-incont">
         <div class="ph">
           <div><div class="ph-title">Registo de Incontinência</div><div class="ph-sub" id="incontSub"></div></div>
-          <button class="btn btn-p" onclick="om('mIncont')">+ Registar Consumo</button>
+          <div style="display:flex;gap:.4rem">
+            <button class="btn btn-g adm-only" onclick="om('mImpCons')"><i class="ti ti-file-import" style="margin-right:.3rem"></i>Importar Consumo Mensal</button>
+            <button class="btn btn-p" onclick="om('mIncont')">+ Registar Consumo</button>
+          </div>
         </div>
         <div style="display:flex;gap:.4rem;margin-bottom:.95rem;flex-wrap:wrap">
           <button class="btn btn-g btn-s inF active" onclick="inFiltro('hoje',this)">Hoje</button>
