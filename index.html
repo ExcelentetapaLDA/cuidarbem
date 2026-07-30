@@ -108,6 +108,16 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#F0F2F8;color:#1E293B
 #app{display:none;flex-direction:column;min-height:100vh}
 #app.on{display:flex}
 .topbar{background:#2DBDAD;border-bottom:none;height:72px;display:flex;align-items:center;padding:0 1.5rem;gap:.75rem;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(45,189,173,.3)}
+@media(max-width:640px){
+  .topbar{flex-wrap:wrap;height:auto;min-height:56px;padding:.5rem .75rem;row-gap:.5rem}
+  #admFilter{order:10;width:100%;justify-content:center;display:flex !important}
+  .tsp{display:none}
+}
+@media(max-width:640px){
+  .topbar{flex-wrap:wrap;height:auto;min-height:56px;padding:.6rem 1rem;row-gap:.5rem}
+  #admFilter{order:10;width:100%;justify-content:center}
+  .ttm{display:none}
+}
 .tl{display:flex;align-items:center;gap:.5rem}
 .tl-ic{display:none}
 .tl-txt{font-size:1.15rem;font-weight:700;color:white}
