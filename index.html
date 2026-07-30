@@ -897,8 +897,10 @@ body.is-adm .adm-only{display:inline-flex!important}
       <div class="pg" id="pg-incont">
         <div class="ph">
           <div><div class="ph-title">Registo de Incontinência</div><div class="ph-sub" id="incontSub"></div></div>
-          <div style="display:flex;gap:.4rem">
+          <div style="display:flex;gap:.4rem;flex-wrap:wrap">
             <button class="btn btn-g adm-only" onclick="om('mImpCons')"><i class="ti ti-file-import" style="margin-right:.3rem"></i>Importar Consumo Mensal</button>
+            <button class="btn btn-g adm-only" onclick="abrirClonarMes()"><i class="ti ti-copy" style="margin-right:.3rem"></i>Clonar Mês Anterior</button>
+            <button class="btn btn-g" onclick="exportarIncontinencia()"><i class="ti ti-download" style="margin-right:.3rem"></i>Exportar</button>
             <button class="btn btn-p" onclick="om('mIncont')">+ Registar Consumo</button>
           </div>
         </div>
@@ -3998,11 +4000,111 @@ function editIncont(key){
   document.getElementById('mIncont').classList.add('open');
 }
 
+function abrirClonarMes(){
+  const hoje = new Date();
+  const mesAtual = hoje.getMonth()+1, anoAtual = hoje.getFullYear();
+  const mesAnterior = mesAtual===1?12:mesAtual-1, anoAnterior = mesAtual===1?anoAtual-1:anoAtual;
+  const nomesMes = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  let html = `<div class="mh"><span class="mht"><i class="ti ti-copy" style="margin-right:.3rem"></i>Clonar Mês Anterior</span><button class="mc" onclick="cm('mClonarMes')">×</button></div>
+  <div class="mb">
+    <div style="background:var(--teal-light);border:1px solid #99F6E4;border-radius:var(--radius);padding:.85rem;margin-bottom:1rem;font-size:.82rem;color:var(--teal)">
+      Copia os totais de consumo de cada utente de um mês para outro, como ponto de partida. Depois é só ajustar o que mudou (toca no utente → editar).
+    </div>
+    <div class="fg"><label class="fl">Mês de origem (a copiar)</label>
+      <select class="fc" id="clonMesOrigem">
+        ${[1,2,3,4,5,6,7,8,9,10,11,12].map(m=>`<option value="${anoAnterior}-${String(m).padStart(2,'0')}" ${m===mesAnterior?'selected':''}>${nomesMes[m]} ${anoAnterior}</option>`).join('')}
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Mês de destino (novo)</label>
+      <select class="fc" id="clonMesDestino">
+        ${[1,2,3,4,5,6,7,8,9,10,11,12].map(m=>`<option value="${anoAtual}-${String(m).padStart(2,'0')}" ${m===mesAtual?'selected':''}>${nomesMes[m]} ${anoAtual}</option>`).join('')}
+      </select>
+    </div>
+    <div id="clonStatus" style="margin-top:.5rem;font-size:.82rem;color:var(--gray-500)"></div>
+  </div>
+  <div class="mf"><button class="btn btn-g" onclick="cm('mClonarMes')">Cancelar</button><button class="btn btn-p" onclick="executarClonarMes()">Clonar</button></div>`;
+  let modal = document.getElementById('mClonarMes');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.className = 'mo'; modal.id = 'mClonarMes';
+    modal.innerHTML = '<div class="md" style="max-width:420px"></div>';
+    document.body.appendChild(modal);
+  }
+  modal.querySelector('.md').innerHTML = html;
+  modal.classList.add('open');
+}
+async function executarClonarMes(){
+  const origem = document.getElementById('clonMesOrigem').value; // "AAAA-MM"
+  const destino = document.getElementById('clonMesDestino').value;
+  const [anoO,mesO] = origem.split('-');
+  const [anoD,mesD] = destino.split('-');
+  const nomesMes = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const all = Object.entries(DB.incont||{}).map(([k,v])=>v);
+  const doMes = all.filter(x=>(x.data||'').startsWith(origem));
+  if(!doMes.length){ document.getElementById('clonStatus').innerHTML = '<span style="color:var(--red)">Não há registos nesse mês de origem.</span>'; return; }
+  // agrupar por utente+res, somar
+  const porUtente = {};
+  doMes.forEach(x=>{
+    const key = x.utente+'|'+x.res;
+    if(!porUtente[key]) porUtente[key] = {utente:x.utente,res:x.res,fraldasM:0,fraldasL:0,cuecasM:0,cuecasL:0,pensos:0,resguardos:0};
+    const g = porUtente[key];
+    g.fraldasM+=x.fraldasM||0; g.fraldasL+=x.fraldasL||0; g.cuecasM+=x.cuecasM||0; g.cuecasL+=x.cuecasL||0; g.pensos+=x.pensos||0; g.resguardos+=x.resguardos||0;
+  });
+  const dataRef = `${anoD}-${mesD}-01`;
+  if(!DB.incont) DB.incont = {};
+  let n=0;
+  for(const g of Object.values(porUtente)){
+    const obj = {utente:g.utente,res:g.res,turno:'M',data:dataRef,
+      fraldasM:g.fraldasM,fraldasL:g.fraldasL,cuecasM:g.cuecasM,cuecasL:g.cuecasL,pensos:g.pensos,resguardos:g.resguardos,
+      obs:`📋 Clonado de ${nomesMes[parseInt(mesO)]} ${anoO} — ajustar conforme necessário`,
+      ts:Date.now(), quem:sesN()};
+    const k = await fbP('incont', obj);
+    if(k){ DB.incont[k] = obj; n++; }
+  }
+  cm('mClonarMes');
+  toast(`<strong>📋 Clonado!</strong><br>${n} utentes copiados de ${nomesMes[parseInt(mesO)]} para ${nomesMes[parseInt(mesD)]}.`);
+  rAll();
+}
+
+function exportarIncontinencia(){
+  const all = Object.entries(DB.incont||{}).map(([k,v])=>({...v,_key:k})).sort((a,b)=>b.ts-a.ts);
+  const today = todayStr();
+  const now = new Date();
+  let items = filt(all);
+  if(inFA==='hoje') items = items.filter(x=>x.data===today);
+  else if(inFA==='semana'){
+    const wAgo = new Date(now - 7*24*60*60*1000).toISOString().slice(0,10);
+    items = items.filter(x=>x.data>=wAgo);
+  } else if(inFA==='mes'){
+    const mAgo = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
+    items = items.filter(x=>x.data>=mAgo);
+  }
+  if(!items.length){ toast('Sem registos para exportar neste período.','err'); return; }
+  const tLabel = {M:'Manhã',T:'Tarde',N:'Noite'};
+  const rows = [['Utente','Residência','Data','Turno','Fraldas M','Fraldas L','Cueca M','Cueca L','Pensos','Resguardos','Observações','Registado por']];
+  items.slice().sort((a,b)=>(a.data||'').localeCompare(b.data||'')).forEach(r=>{
+    rows.push([r.utente,rNome(r.res),r.data||'',tLabel[r.turno]||r.turno||'',r.fraldasM||0,r.fraldasL||0,r.cuecasM||0,r.cuecasL||0,r.pensos||0,r.resguardos||0,r.obs||'',r.quem||'']);
+  });
+  const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `incontinencia_${inFA}_${todayStr()}.csv`;
+  a.click();
+  toast('<strong>⬇ Exportado!</strong>');
+}
+
 function verRegistosUtente(utenteNome, resId){
   const all = Object.entries(DB.incont||{}).map(([k,v])=>({...v,_key:k}));
   const regs = all.filter(x=>x.utente===utenteNome && x.res===resId).sort((a,b)=>b.ts-a.ts);
+  verRegistosPorKeys(regs.map(r=>r._key), utenteNome);
+}
+function verRegistosPorKeys(keys, tituloNome){
+  const all = Object.entries(DB.incont||{}).map(([k,v])=>({...v,_key:k}));
+  const setKeys = new Set(keys||[]);
+  const regs = all.filter(x=>setKeys.has(x._key)).sort((a,b)=>b.ts-a.ts);
   const tLabel = {M:'Manhã',T:'Tarde',N:'Noite'};
-  let html = `<div class="mh"><span class="mht"><i class="ti ti-shirt" style="margin-right:.3rem"></i>${utenteNome}</span><button class="mc" onclick="cm('mIncontDetalhe')">×</button></div><div class="mb">`;
+  let html = `<div class="mh"><span class="mht"><i class="ti ti-shirt" style="margin-right:.3rem"></i>${tituloNome}</span><button class="mc" onclick="cm('mIncontDetalhe')">×</button></div><div class="mb">`;
   if(!regs.length){
     html += '<p style="color:var(--gray-400);text-align:center;padding:1rem">Sem registos.</p>';
   }
@@ -4182,7 +4284,7 @@ function rIncont(){
       if(g.pensos) chips.push({l:'Pensos', v:g.pensos, c:'#EA580C'});
       if(g.resguardos) chips.push({l:'Resguardos', v:g.resguardos, c:'#7C3AED'});
       const chipsHtml = chips.map(c=>`<span style="background:${c.c}18;color:${c.c};font-weight:700;font-size:.72rem;padding:.25rem .55rem;border-radius:20px;white-space:nowrap">${c.v} <span style="font-weight:500">${c.l}</span></span>`).join('');
-      html += `<div onclick="verRegistosUtente('${g.utente.replace(/'/g,"\\'")}','${g.res}')" style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:.65rem .85rem;cursor:pointer">
+      html += `<div onclick="verRegistosPorKeys(${JSON.stringify(g.keys)},'${g.utente.replace(/'/g,"\\'")}')" style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:.65rem .85rem;cursor:pointer">
         <div style="font-weight:600;font-size:.85rem;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">
           ${g.utente}
           <i class="ti ti-chevron-right" style="color:var(--gray-300);font-size:.9rem"></i>
