@@ -4117,10 +4117,17 @@ function rIncont(){
     porUtente[key] = {utente:u.nome.trim(), res:u.res, fraldasM:0,fraldasL:0,cuecasM:0,cuecasL:0,pensos:0,resguardos:0, nRegistos:0, keys:[]};
   });
   // resolve o nome do registo (pode vir abreviado/informal de uma importação) para o utente oficial certo
+  const ALIASES_CONHECIDOS = {
+    'julia': 'Maria Júlia Ramos Duarte Martins Engrácio' // confirmado: é a Engrácio que tem consumos, não a Fonseca
+  };
   function resolverUtente(nomeRegisto, res){
     const exato = utentesAtivos.find(u=>u.res===res && u.nome.trim()===nomeRegisto.trim());
     if(exato) return exato.nome.trim();
     const alvo = normNome(nomeRegisto);
+    if(ALIASES_CONHECIDOS[alvo]){
+      const u = utentesAtivos.find(u=>u.res===res && u.nome.trim()===ALIASES_CONHECIDOS[alvo]);
+      if(u) return u.nome.trim();
+    }
     const palavrasAlvo = alvo.split(/\s+/).filter(p=>p.length>2);
     let melhor=null, melhorScore=0;
     utentesAtivos.filter(u=>u.res===res).forEach(u=>{
