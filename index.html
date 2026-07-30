@@ -900,6 +900,7 @@ body.is-adm .adm-only{display:inline-flex!important}
           <div style="display:flex;gap:.4rem;flex-wrap:wrap">
             <button class="btn btn-g adm-only" onclick="om('mImpCons')"><i class="ti ti-file-import" style="margin-right:.3rem"></i>Importar Consumo Mensal</button>
             <button class="btn btn-g adm-only" onclick="abrirClonarMes()"><i class="ti ti-copy" style="margin-right:.3rem"></i>Clonar Mês Anterior</button>
+            <button class="btn btn-g adm-only" onclick="limparDuplicadosIncont()"><i class="ti ti-trash-x" style="margin-right:.3rem"></i>Limpar Duplicados</button>
             <button class="btn btn-g" onclick="exportarIncontinencia()"><i class="ti ti-download" style="margin-right:.3rem"></i>Exportar</button>
             <button class="btn btn-p" onclick="om('mIncont')">+ Registar Consumo</button>
           </div>
@@ -4016,6 +4017,31 @@ function editIncont(key){
   document.getElementById('mIncont').classList.add('open');
 }
 
+async function limparDuplicadosIncont(){
+  const all = Object.entries(DB.incont||{}).map(([k,v])=>({...v,_key:k}));
+  const grupos = {};
+  all.forEach(x=>{
+    const assinatura = [x.utente,x.res,x.data,x.turno,x.fraldasM||0,x.fraldasL||0,x.cuecasM||0,x.cuecasL||0,x.pensos||0,x.resguardos||0].join('|');
+    if(!grupos[assinatura]) grupos[assinatura] = [];
+    grupos[assinatura].push(x);
+  });
+  const paraApagar = [];
+  Object.values(grupos).forEach(lista=>{
+    if(lista.length>1){
+      lista.sort((a,b)=>a.ts-b.ts); // mantém o mais antigo, apaga o resto
+      paraApagar.push(...lista.slice(1));
+    }
+  });
+  if(!paraApagar.length){ toast('Não encontrei duplicados exatos.'); return; }
+  if(!confirm(`Encontrei ${paraApagar.length} registo(s) duplicado(s) (mesmo utente, data e quantidades). Remover, mantendo só o primeiro de cada?`)) return;
+  for(const x of paraApagar){
+    await fbD(`incont/${x._key}`);
+    if(DB.incont) delete DB.incont[x._key];
+  }
+  toast(`<strong>🧹 Limpo!</strong><br>${paraApagar.length} duplicado(s) removido(s).`);
+  rAll();
+}
+
 function abrirClonarMes(){
   const hoje = new Date();
   const mesAtual = hoje.getMonth()+1, anoAtual = hoje.getFullYear();
@@ -4050,6 +4076,9 @@ function abrirClonarMes(){
   modal.classList.add('open');
 }
 async function executarClonarMes(){
+  const btn = document.querySelector('#mClonarMes .btn-p');
+  if(btn.disabled) return; // já está a processar, ignora toques repetidos
+  btn.disabled = true; const textoOriginal = btn.textContent; btn.textContent = '⏳ A clonar...';
   const origem = document.getElementById('clonMesOrigem').value; // "AAAA-MM"
   const destino = document.getElementById('clonMesDestino').value;
   const [anoO,mesO] = origem.split('-');
@@ -4057,7 +4086,7 @@ async function executarClonarMes(){
   const nomesMes = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   const all = Object.entries(DB.incont||{}).map(([k,v])=>v);
   const doMes = all.filter(x=>(x.data||'').startsWith(origem));
-  if(!doMes.length){ document.getElementById('clonStatus').innerHTML = '<span style="color:var(--red)">Não há registos nesse mês de origem.</span>'; return; }
+  if(!doMes.length){ document.getElementById('clonStatus').innerHTML = '<span style="color:var(--red)">Não há registos nesse mês de origem.</span>'; btn.disabled=false; btn.textContent=textoOriginal; return; }
   // agrupar por utente+res, somar
   const porUtente = {};
   doMes.forEach(x=>{
