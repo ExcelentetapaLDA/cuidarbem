@@ -136,7 +136,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#F0F2F8;color:#1E293B
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 .tbtn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:white;padding:.3rem .7rem;border-radius:8px;font-size:.73rem;font-weight:500;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .2s}
 .tbtn:hover{background:rgba(255,255,255,.25)}
-.app-body{display:flex;flex:1;overflow:hidden}
+.app-body{display:flex;flex:1;overflow:hidden;min-height:0}
 .sidebar{width:220px;flex-shrink:0;background:#ffffff;border-right:1px solid #E2E8F0;padding:.75rem 0;overflow-y:auto}
 .ss{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#CBD5E1;padding:.55rem 1.1rem .22rem;margin-top:.25rem}
 .ni{display:flex;align-items:center;gap:.6rem;padding:.52rem 1.1rem;font-size:.84rem;font-weight:500;color:#475569;cursor:pointer;transition:all .15s;border-left:3px solid transparent;margin:.05rem 0;border-radius:0}
@@ -147,7 +147,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#F0F2F8;color:#1E293B
 .nb{margin-left:auto;background:var(--red);color:white;border-radius:10px;padding:.06rem .38rem;font-size:.62rem;font-weight:700}
 .adm-only{display:none!important}
 body.is-adm .adm-only{display:inline-flex!important}
-.content{flex:1;overflow-y:auto;padding:1.5rem;background:var(--gray-50)}
+.content{flex:1;overflow-y:auto;padding:1.5rem;background:var(--gray-50);min-height:0}
 .pg{display:none}
 .pg.active{display:block;animation:fi .2s ease}
 @keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
