@@ -4054,9 +4054,7 @@ function rIncont(){
   const sub = document.getElementById('incontSub');
   if(sub) sub.textContent = new Date().toLocaleDateString('pt-PT',{weekday:'long',day:'numeric',month:'long'});
   
-  if(!DB.incont){ document.getElementById('incontContent').innerHTML='<div class="empty"><div class="eic">🩱</div><p>Sem registos ainda.</p></div>'; return; }
-  
-  const all = Object.entries(DB.incont).map(([k,v])=>({...v,_key:k})).sort((a,b)=>b.ts-a.ts);
+  const all = Object.entries(DB.incont||{}).map(([k,v])=>({...v,_key:k})).sort((a,b)=>b.ts-a.ts);
   const today = todayStr();
   const now = new Date();
   
@@ -4069,11 +4067,6 @@ function rIncont(){
   else if(inFA==='mes'){
     const mAgo = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
     items = items.filter(x=>x.data>=mAgo);
-  }
-
-  if(!items.length){
-    document.getElementById('incontContent').innerHTML='<div class="empty"><div class="eic">🩱</div><p>Sem registos neste período.</p></div>';
-    return;
   }
 
   // Totals summary
@@ -4112,7 +4105,12 @@ function rIncont(){
   </div>`;
 
   // Agrupar por utente (somando todos os registos do período), depois por piso
+  // Começa com TODOS os utentes (mesmo sem registos), para poderem ser encontrados e preenchidos
   const porUtente = {};
+  filt(S.utentes||[]).forEach(u=>{
+    const key = u.nome.trim() + '|' + u.res;
+    porUtente[key] = {utente:u.nome.trim(), res:u.res, fraldasM:0,fraldasL:0,cuecasM:0,cuecasL:0,pensos:0,resguardos:0, nRegistos:0, keys:[]};
+  });
   items.forEach(x=>{
     const key = x.utente + '|' + x.res;
     if(!porUtente[key]) porUtente[key] = {utente:x.utente, res:x.res, fraldasM:0,fraldasL:0,cuecasM:0,cuecasL:0,pensos:0,resguardos:0, nRegistos:0, keys:[]};
