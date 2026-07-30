@@ -3960,6 +3960,15 @@ async function delIncont(key){
   rAll();
 }
 
+function pisoDoQuarto(q){
+  const n = parseInt(q);
+  if([1,2,3,4,5,6].includes(n)) return 'Piso 3';
+  if([8,9,10,11,12].includes(n)) return 'Piso 4';
+  if([13,14,15,16,17,18].includes(n)) return 'Piso 5';
+  if([19,20,21,22,23,24].includes(n)) return 'Piso 6';
+  return 'Outro / Não definido';
+}
+
 function rIncont(){
   const sub = document.getElementById('incontSub');
   if(sub) sub.textContent = new Date().toLocaleDateString('pt-PT',{weekday:'long',day:'numeric',month:'long'});
@@ -3986,11 +3995,6 @@ function rIncont(){
     return;
   }
 
-  // Group by date
-  const byDate = {};
-  items.forEach(x=>{if(!byDate[x.data])byDate[x.data]=[];byDate[x.data].push(x);});
-  const tLabel = {M:'Manhã',T:'Tarde',N:'Noite'};
-  
   // Totals summary
   const totFraldasM = items.reduce((s,x)=>s+(x.fraldasM||0),0);
   const totFraldasL = items.reduce((s,x)=>s+(x.fraldasL||0),0);
@@ -4026,36 +4030,64 @@ function rIncont(){
     </div>
   </div>`;
 
-  Object.keys(byDate).sort((a,b)=>b.localeCompare(a)).forEach(data=>{
-    const dt = new Date(data+'T12:00:00').toLocaleDateString('pt-PT',{weekday:'long',day:'numeric',month:'long'});
-    const regs = byDate[data];
-    html += `<div style="margin-bottom:1.1rem">
-      <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gray-400);margin-bottom:.5rem;padding:.4rem .7rem;background:var(--gray-50);border-radius:var(--radius);border:1px solid var(--border)">${dt} · ${regs.length} registo${regs.length!==1?'s':''}</div>`;
-    
-    regs.forEach(r=>{
-      const materiais = [];
-      if(r.fraldasM>0) materiais.push(`${r.fraldasM} fralda${r.fraldasM>1?'s':''} M`);
-      if(r.fraldasL>0) materiais.push(`${r.fraldasL} fralda${r.fraldasL>1?'s':''} L`);
-      if(r.cuecasM>0) materiais.push(`${r.cuecasM} cueca${r.cuecasM>1?'s':''} M`);
-      if(r.cuecasL>0) materiais.push(`${r.cuecasL} cueca${r.cuecasL>1?'s':''} L`);
-      if(r.pensos>0) materiais.push(`${r.pensos} penso${r.pensos>1?'s':''}`);
-      if(r.resguardos>0) materiais.push(`${r.resguardos} resguardo${r.resguardos>1?'s':''}`);
-      
-      html += `<div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:.7rem .95rem;display:flex;align-items:center;gap:.75rem;margin-bottom:.35rem">
-        <div style="font-size:1.2rem">🩱</div>
-        <div style="flex:1">
-          <div style="font-weight:600;font-size:.88rem">${r.utente}</div>
-          <div style="font-size:.76rem;color:var(--gray-500);margin-top:.1rem">${materiais.join(' · ')}</div>
-          ${r.obs?`<div style="font-size:.73rem;color:var(--gray-400);font-style:italic;margin-top:.1rem">${r.obs}</div>`:''}
-        </div>
-        <div style="text-align:right;flex-shrink:0">
-          <span class="tag ${rTag(r.res)}">${rNome(r.res)}</span>
-          <div style="font-size:.7rem;color:var(--gray-400);margin-top:.2rem">${tLabel[r.turno]||r.turno} · ${r.quem}</div>
-        </div>
-        ${ses.role==='adm'?`<button class="btn btn-r btn-s" onclick="delIncont('${r._key}')">🗑</button>`:''}
-      </div>`;
+  // Agrupar por utente (somando todos os registos do período), depois por piso
+  const porUtente = {};
+  items.forEach(x=>{
+    const key = x.utente + '|' + x.res;
+    if(!porUtente[key]) porUtente[key] = {utente:x.utente, res:x.res, fraldasM:0,fraldasL:0,cuecasM:0,cuecasL:0,pensos:0,resguardos:0, nRegistos:0, keys:[]};
+    const g = porUtente[key];
+    g.fraldasM += x.fraldasM||0; g.fraldasL += x.fraldasL||0;
+    g.cuecasM += x.cuecasM||0; g.cuecasL += x.cuecasL||0;
+    g.pensos += x.pensos||0; g.resguardos += x.resguardos||0;
+    g.nRegistos++; g.keys.push(x._key);
+  });
+
+  const utentesPorNome = {};
+  (S.utentes||[]).forEach(u=>{ utentesPorNome[u.nome.trim().toLowerCase()] = u; });
+
+  const porPiso = {};
+  Object.values(porUtente).forEach(g=>{
+    const u = utentesPorNome[g.utente.trim().toLowerCase()];
+    const piso = u ? pisoDoQuarto(u.quarto) : 'Outro / Não definido';
+    if(!porPiso[piso]) porPiso[piso] = [];
+    porPiso[piso].push(g);
+  });
+
+  const ordemPisos = ['Piso 3','Piso 4','Piso 5','Piso 6','Outro / Não definido'];
+  const coresPiso = {'Piso 3':'#0EA5E9','Piso 4':'#0D9488','Piso 5':'#C9973A','Piso 6':'#7C3AED','Outro / Não definido':'#94A3B8'};
+
+  ordemPisos.forEach(piso=>{
+    const lista = porPiso[piso];
+    if(!lista || !lista.length) return;
+    lista.sort((a,b)=>a.utente.localeCompare(b.utente));
+    const cor = coresPiso[piso];
+    html += `<div style="margin-bottom:1.4rem">
+      <div style="font-size:.82rem;font-weight:700;color:${cor};margin-bottom:.5rem;padding:.5rem .8rem;background:${cor}15;border-left:4px solid ${cor};border-radius:6px">${piso} <span style="font-weight:400;color:var(--gray-500)">· ${lista.length} utente${lista.length!==1?'s':''}</span></div>
+      <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:.78rem">
+        <thead><tr style="background:var(--gray-50);border-bottom:2px solid var(--border)">
+          <th style="text-align:left;padding:.5rem .6rem;font-weight:700;color:var(--gray-500)">Utente</th>
+          <th style="text-align:center;padding:.5rem .4rem;font-weight:700;color:var(--gray-500)">Fralda M</th>
+          <th style="text-align:center;padding:.5rem .4rem;font-weight:700;color:var(--gray-500)">Fralda L</th>
+          <th style="text-align:center;padding:.5rem .4rem;font-weight:700;color:var(--gray-500)">Cueca M</th>
+          <th style="text-align:center;padding:.5rem .4rem;font-weight:700;color:var(--gray-500)">Cueca L</th>
+          <th style="text-align:center;padding:.5rem .4rem;font-weight:700;color:var(--gray-500)">Pensos</th>
+          <th style="text-align:center;padding:.5rem .4rem;font-weight:700;color:var(--gray-500)">Resguardos</th>
+        </tr></thead>
+        <tbody>`;
+    lista.forEach((g,i)=>{
+      const zebra = i%2===1 ? 'background:var(--gray-50)' : '';
+      html += `<tr style="border-bottom:1px solid var(--border);${zebra}">
+        <td style="padding:.5rem .6rem;font-weight:600">${g.utente}</td>
+        <td style="text-align:center;padding:.5rem .4rem">${g.fraldasM||'—'}</td>
+        <td style="text-align:center;padding:.5rem .4rem">${g.fraldasL||'—'}</td>
+        <td style="text-align:center;padding:.5rem .4rem">${g.cuecasM||'—'}</td>
+        <td style="text-align:center;padding:.5rem .4rem">${g.cuecasL||'—'}</td>
+        <td style="text-align:center;padding:.5rem .4rem">${g.pensos||'—'}</td>
+        <td style="text-align:center;padding:.5rem .4rem">${g.resguardos||'—'}</td>
+      </tr>`;
     });
-    html += '</div>';
+    html += `</tbody></table></div></div>`;
   });
 
   document.getElementById('incontContent').innerHTML = html;
