@@ -4106,14 +4106,36 @@ function rIncont(){
 
   // Agrupar por utente (somando todos os registos do período), depois por piso
   // Começa com TODOS os utentes (mesmo sem registos), para poderem ser encontrados e preenchidos
+  function normNome(s){
+    return (s||'').trim().toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,''); // remove acentos
+  }
+  const utentesAtivos = filt(S.utentes||[]);
   const porUtente = {};
-  filt(S.utentes||[]).forEach(u=>{
+  utentesAtivos.forEach(u=>{
     const key = u.nome.trim() + '|' + u.res;
     porUtente[key] = {utente:u.nome.trim(), res:u.res, fraldasM:0,fraldasL:0,cuecasM:0,cuecasL:0,pensos:0,resguardos:0, nRegistos:0, keys:[]};
   });
+  // resolve o nome do registo (pode vir abreviado/informal de uma importação) para o utente oficial certo
+  function resolverUtente(nomeRegisto, res){
+    const exato = utentesAtivos.find(u=>u.res===res && u.nome.trim()===nomeRegisto.trim());
+    if(exato) return exato.nome.trim();
+    const alvo = normNome(nomeRegisto);
+    const palavrasAlvo = alvo.split(/\s+/).filter(p=>p.length>2);
+    let melhor=null, melhorScore=0;
+    utentesAtivos.filter(u=>u.res===res).forEach(u=>{
+      const nomeU = normNome(u.nome);
+      if(nomeU===alvo){ melhor=u; melhorScore=999; return; }
+      if(nomeU.includes(alvo) || alvo.includes(nomeU)){ if(melhorScore<50){melhor=u;melhorScore=50;} return; }
+      const acertos = palavrasAlvo.filter(p=>nomeU.includes(p)).length;
+      if(palavrasAlvo.length && acertos===palavrasAlvo.length && acertos>melhorScore){ melhor=u; melhorScore=acertos; }
+    });
+    return melhor ? melhor.nome.trim() : nomeRegisto;
+  }
   items.forEach(x=>{
-    const key = x.utente + '|' + x.res;
-    if(!porUtente[key]) porUtente[key] = {utente:x.utente, res:x.res, fraldasM:0,fraldasL:0,cuecasM:0,cuecasL:0,pensos:0,resguardos:0, nRegistos:0, keys:[]};
+    const nomeOficial = resolverUtente(x.utente, x.res);
+    const key = nomeOficial + '|' + x.res;
+    if(!porUtente[key]) porUtente[key] = {utente:nomeOficial, res:x.res, fraldasM:0,fraldasL:0,cuecasM:0,cuecasL:0,pensos:0,resguardos:0, nRegistos:0, keys:[]};
     const g = porUtente[key];
     g.fraldasM += x.fraldasM||0; g.fraldasL += x.fraldasL||0;
     g.cuecasM += x.cuecasM||0; g.cuecasL += x.cuecasL||0;
@@ -4122,7 +4144,7 @@ function rIncont(){
   });
 
   const utentesPorNome = {};
-  (S.utentes||[]).forEach(u=>{ utentesPorNome[u.nome.trim().toLowerCase()] = u; });
+  utentesAtivos.forEach(u=>{ utentesPorNome[u.nome.trim().toLowerCase()] = u; });
 
   const porPiso = {};
   Object.values(porUtente).forEach(g=>{
