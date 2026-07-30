@@ -3960,6 +3960,77 @@ async function delIncont(key){
   rAll();
 }
 
+function editIncont(key){
+  const r = DB.incont && DB.incont[key];
+  if(!r) return;
+  const dl = document.getElementById('utentesDatalist');
+  if(dl){
+    dl.innerHTML = '';
+    filt(S.utentes).forEach(u=>{
+      const o = document.createElement('option');
+      o.value = u.nome;
+      dl.appendChild(o);
+    });
+  }
+  document.getElementById('inRes').value = r.res;
+  document.getElementById('inData').value = r.data;
+  document.getElementById('inTurno').value = r.turno;
+  document.getElementById('inUtente').value = r.utente;
+  document.getElementById('inObs').value = r.obs || '';
+  document.getElementById('inFraldasM').value = r.fraldasM || 0;
+  document.getElementById('inFraldasL').value = r.fraldasL || 0;
+  document.getElementById('inCuecasM').value = r.cuecasM || 0;
+  document.getElementById('inCuecasL').value = r.cuecasL || 0;
+  document.getElementById('inPensos').value = r.pensos || 0;
+  document.getElementById('inResguardos').value = r.resguardos || 0;
+  document.getElementById('inEid').value = key;
+  document.getElementById('mIncontT').innerHTML = '<i class="ti ti-pencil" style="margin-right:.3rem"></i>Editar Consumo';
+  cm('mIncontDetalhe');
+  document.getElementById('mIncont').classList.add('open');
+}
+
+function verRegistosUtente(utenteNome, resId){
+  const all = Object.entries(DB.incont||{}).map(([k,v])=>({...v,_key:k}));
+  const regs = all.filter(x=>x.utente===utenteNome && x.res===resId).sort((a,b)=>b.ts-a.ts);
+  const tLabel = {M:'Manhã',T:'Tarde',N:'Noite'};
+  let html = `<div class="mh"><span class="mht"><i class="ti ti-shirt" style="margin-right:.3rem"></i>${utenteNome}</span><button class="mc" onclick="cm('mIncontDetalhe')">×</button></div><div class="mb">`;
+  if(!regs.length){
+    html += '<p style="color:var(--gray-400);text-align:center;padding:1rem">Sem registos.</p>';
+  }
+  regs.forEach(r=>{
+    const materiais = [];
+    if(r.fraldasM>0) materiais.push(`${r.fraldasM} fralda${r.fraldasM>1?'s':''} M`);
+    if(r.fraldasL>0) materiais.push(`${r.fraldasL} fralda${r.fraldasL>1?'s':''} L`);
+    if(r.cuecasM>0) materiais.push(`${r.cuecasM} cueca${r.cuecasM>1?'s':''} M`);
+    if(r.cuecasL>0) materiais.push(`${r.cuecasL} cueca${r.cuecasL>1?'s':''} L`);
+    if(r.pensos>0) materiais.push(`${r.pensos} penso${r.pensos>1?'s':''}`);
+    if(r.resguardos>0) materiais.push(`${r.resguardos} resguardo${r.resguardos>1?'s':''}`);
+    const dt = r.data && r.data.match(/^\d{4}-\d{2}-\d{2}$/) ? new Date(r.data+'T12:00:00').toLocaleDateString('pt-PT',{day:'numeric',month:'short'}) : r.data;
+    html += `<div style="background:var(--gray-50);border:1px solid var(--border);border-radius:var(--radius);padding:.6rem .8rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center;gap:.5rem">
+      <div>
+        <div style="font-weight:600;font-size:.85rem">${dt} · ${tLabel[r.turno]||r.turno||''}</div>
+        <div style="font-size:.78rem;color:var(--gray-500)">${materiais.join(' · ')||'—'}</div>
+        ${r.obs?`<div style="font-size:.72rem;color:var(--gray-400);font-style:italic">${r.obs}</div>`:''}
+      </div>
+      <div style="display:flex;gap:.3rem;flex-shrink:0">
+        <button class="btn btn-g btn-s" onclick="editIncont('${r._key}')"><i class="ti ti-pencil"></i></button>
+        ${ses.role==='adm'?`<button class="btn btn-r btn-s" onclick="delIncont('${r._key}');cm('mIncontDetalhe')"><i class="ti ti-trash"></i></button>`:''}
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  let modal = document.getElementById('mIncontDetalhe');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.className = 'mo';
+    modal.id = 'mIncontDetalhe';
+    modal.innerHTML = '<div class="md" style="max-width:480px"></div>';
+    document.body.appendChild(modal);
+  }
+  modal.querySelector('.md').innerHTML = html;
+  modal.classList.add('open');
+}
+
 function pisoDoQuarto(q){
   const n = parseInt(q);
   if([1,2,3,4,5,6].includes(n)) return 'Piso 3';
@@ -4063,31 +4134,25 @@ function rIncont(){
     const cor = coresPiso[piso];
     html += `<div style="margin-bottom:1.4rem">
       <div style="font-size:.82rem;font-weight:700;color:${cor};margin-bottom:.5rem;padding:.5rem .8rem;background:${cor}15;border-left:4px solid ${cor};border-radius:6px">${piso} <span style="font-weight:400;color:var(--gray-500)">· ${lista.length} utente${lista.length!==1?'s':''}</span></div>
-      <div style="overflow-x:auto">
-      <table style="width:100%;border-collapse:collapse;font-size:.78rem">
-        <thead><tr style="background:var(--gray-50);border-bottom:2px solid var(--border)">
-          <th style="text-align:left;padding:.5rem .6rem;font-weight:700;color:var(--gray-500)">Utente</th>
-          <th style="text-align:center;padding:.5rem .4rem;font-weight:700;color:var(--gray-500)">Fralda M</th>
-          <th style="text-align:center;padding:.5rem .4rem;font-weight:700;color:var(--gray-500)">Fralda L</th>
-          <th style="text-align:center;padding:.5rem .4rem;font-weight:700;color:var(--gray-500)">Cueca M</th>
-          <th style="text-align:center;padding:.5rem .4rem;font-weight:700;color:var(--gray-500)">Cueca L</th>
-          <th style="text-align:center;padding:.5rem .4rem;font-weight:700;color:var(--gray-500)">Pensos</th>
-          <th style="text-align:center;padding:.5rem .4rem;font-weight:700;color:var(--gray-500)">Resguardos</th>
-        </tr></thead>
-        <tbody>`;
-    lista.forEach((g,i)=>{
-      const zebra = i%2===1 ? 'background:var(--gray-50)' : '';
-      html += `<tr style="border-bottom:1px solid var(--border);${zebra}">
-        <td style="padding:.5rem .6rem;font-weight:600">${g.utente}</td>
-        <td style="text-align:center;padding:.5rem .4rem">${g.fraldasM||'—'}</td>
-        <td style="text-align:center;padding:.5rem .4rem">${g.fraldasL||'—'}</td>
-        <td style="text-align:center;padding:.5rem .4rem">${g.cuecasM||'—'}</td>
-        <td style="text-align:center;padding:.5rem .4rem">${g.cuecasL||'—'}</td>
-        <td style="text-align:center;padding:.5rem .4rem">${g.pensos||'—'}</td>
-        <td style="text-align:center;padding:.5rem .4rem">${g.resguardos||'—'}</td>
-      </tr>`;
+      <div style="display:flex;flex-direction:column;gap:.4rem">`;
+    lista.forEach(g=>{
+      const chips = [];
+      if(g.fraldasM) chips.push({l:'Fralda M', v:g.fraldasM, c:'#0EA5E9'});
+      if(g.fraldasL) chips.push({l:'Fralda L', v:g.fraldasL, c:'#0EA5E9'});
+      if(g.cuecasM) chips.push({l:'Cueca M', v:g.cuecasM, c:'#0D9488'});
+      if(g.cuecasL) chips.push({l:'Cueca L', v:g.cuecasL, c:'#0D9488'});
+      if(g.pensos) chips.push({l:'Pensos', v:g.pensos, c:'#EA580C'});
+      if(g.resguardos) chips.push({l:'Resguardos', v:g.resguardos, c:'#7C3AED'});
+      const chipsHtml = chips.map(c=>`<span style="background:${c.c}18;color:${c.c};font-weight:700;font-size:.72rem;padding:.25rem .55rem;border-radius:20px;white-space:nowrap">${c.v} <span style="font-weight:500">${c.l}</span></span>`).join('');
+      html += `<div onclick="verRegistosUtente('${g.utente.replace(/'/g,"\\'")}','${g.res}')" style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:.65rem .85rem;cursor:pointer">
+        <div style="font-weight:600;font-size:.85rem;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">
+          ${g.utente}
+          <i class="ti ti-chevron-right" style="color:var(--gray-300);font-size:.9rem"></i>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:.35rem">${chipsHtml || '<span style="color:var(--gray-300);font-size:.75rem">Sem quantidades</span>'}</div>
+      </div>`;
     });
-    html += `</tbody></table></div></div>`;
+    html += `</div></div>`;
   });
 
   document.getElementById('incontContent').innerHTML = html;
