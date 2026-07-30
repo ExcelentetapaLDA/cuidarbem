@@ -4128,7 +4128,8 @@ function rIncont(){
       if(nomeU===alvo){ melhor=u; melhorScore=999; return; }
       if(nomeU.includes(alvo) || alvo.includes(nomeU)){ if(melhorScore<50){melhor=u;melhorScore=50;} return; }
       const acertos = palavrasAlvo.filter(p=>nomeU.includes(p)).length;
-      if(palavrasAlvo.length && acertos===palavrasAlvo.length && acertos>melhorScore){ melhor=u; melhorScore=acertos; }
+      const precisa = Math.max(1, Math.ceil(palavrasAlvo.length/2));
+      if(palavrasAlvo.length && acertos>=precisa && acertos>melhorScore){ melhor=u; melhorScore=acertos; }
     });
     return melhor ? melhor.nome.trim() : nomeRegisto;
   }
