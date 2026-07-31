@@ -4022,21 +4022,43 @@ function editIncont(key){
 
 async function limparDuplicadosIncont(){
   const all = Object.entries(DB.incont||{}).map(([k,v])=>({...v,_key:k}));
+  let paraApagar = [];
+
+  // Passo 1: duplicados exatos (mesmo utente/data/quantidades) — ex: duplo toque no botão
   const grupos = {};
   all.forEach(x=>{
     const assinatura = [x.utente,x.res,x.data,x.turno,x.fraldasM||0,x.fraldasL||0,x.cuecasM||0,x.cuecasL||0,x.pensos||0,x.resguardos||0].join('|');
     if(!grupos[assinatura]) grupos[assinatura] = [];
     grupos[assinatura].push(x);
   });
-  const paraApagar = [];
   Object.values(grupos).forEach(lista=>{
     if(lista.length>1){
-      lista.sort((a,b)=>a.ts-b.ts); // mantém o mais antigo, apaga o resto
+      lista.sort((a,b)=>a.ts-b.ts);
       paraApagar.push(...lista.slice(1));
     }
   });
-  if(!paraApagar.length){ toast('Não encontrei duplicados exatos.'); return; }
-  if(!confirm(`Encontrei ${paraApagar.length} registo(s) duplicado(s) (mesmo utente, data e quantidades). Remover, mantendo só o primeiro de cada?`)) return;
+
+  // Passo 2: reimportações — mesma referência (utente/res/data), quantidades diferentes por ter sido corrigida.
+  // Mantém sempre a mais recente (a correção), remove as anteriores.
+  const jaMarcados = new Set(paraApagar.map(x=>x._key));
+  const gruposRef = {};
+  all.forEach(x=>{
+    if(jaMarcados.has(x._key)) return;
+    const ehImportacao = x.obs && (x.obs.includes('Referência importada') || x.obs.includes('Clonado de'));
+    if(!ehImportacao) return;
+    const chave = [x.utente,x.res,x.data].join('|');
+    if(!gruposRef[chave]) gruposRef[chave] = [];
+    gruposRef[chave].push(x);
+  });
+  Object.values(gruposRef).forEach(lista=>{
+    if(lista.length>1){
+      lista.sort((a,b)=>b.ts-a.ts); // mantém o mais recente, apaga o resto
+      paraApagar.push(...lista.slice(1));
+    }
+  });
+
+  if(!paraApagar.length){ toast('Não encontrei duplicados.'); return; }
+  if(!confirm(`Encontrei ${paraApagar.length} registo(s) duplicado(s) ou de reimportação antiga. Remover, mantendo sempre a versão mais recente de cada?`)) return;
   for(const x of paraApagar){
     await fbD(`incont/${x._key}`);
     if(DB.incont) delete DB.incont[x._key];
