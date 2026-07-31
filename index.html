@@ -4151,7 +4151,10 @@ function verRegistosPorKeys(keys, tituloNome){
   const tLabel = {M:'Manhã',T:'Tarde',N:'Noite'};
   let html = `<div class="mh"><span class="mht"><i class="ti ti-shirt" style="margin-right:.3rem"></i>${tituloNome}</span><button class="mc" onclick="cm('mIncontDetalhe')">×</button></div><div class="mb">`;
   if(!regs.length){
-    html += '<p style="color:var(--gray-400);text-align:center;padding:1rem">Sem registos.</p>';
+    html += `<div style="text-align:center;padding:1rem">
+      <p style="color:var(--gray-400);margin-bottom:.85rem">Sem registos ainda.</p>
+      <button class="btn btn-p" onclick="cm('mIncontDetalhe');novoRegistoParaUtente('${tituloNome.replace(/'/g,"\\'")}')"><i class="ti ti-plus" style="margin-right:.3rem"></i>Registar Consumo</button>
+    </div>`;
   }
   regs.forEach(r=>{
     const materiais = [];
@@ -4185,6 +4188,14 @@ function verRegistosPorKeys(keys, tituloNome){
   }
   modal.querySelector('.md').innerHTML = html;
   modal.classList.add('open');
+}
+
+function novoRegistoParaUtente(nome){
+  om('mIncont');
+  setTimeout(()=>{
+    const el = document.getElementById('inUtente');
+    if(el) el.value = nome;
+  }, 30);
 }
 
 function pisoDoQuarto(q){
