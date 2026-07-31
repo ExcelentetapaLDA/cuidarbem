@@ -3939,11 +3939,19 @@ async function svIncont(){
   const eid = document.getElementById('inEid').value;
   if(!DB.incont) DB.incont = {};
   if(eid){
-    await fbS(`incont/${eid}`, obj);
+    const ok = await fbS(`incont/${eid}`, obj);
+    if(!ok){
+      toast('<strong>❌ Erro ao gravar!</strong><br>Não foi possível guardar na base de dados. Verifica a ligação e tenta novamente.','err');
+      return;
+    }
     DB.incont[eid] = obj;
   } else {
     const k = await fbP('incont', obj);
-    if(k) DB.incont[k] = obj;
+    if(!k){
+      toast('<strong>❌ Erro ao gravar!</strong><br>Não foi possível guardar na base de dados. Verifica a ligação e tenta novamente.','err');
+      return;
+    }
+    DB.incont[k] = obj;
   }
   
   // Update stock automatically — procura o item certo por categoria E tamanho
