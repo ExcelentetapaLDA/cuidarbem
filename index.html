@@ -2615,7 +2615,7 @@ function rDist(){
       const colabNomes=colabCustom?colabCustom:e.colab.join(', ');
       const colabLabel=colabCustom?'<span style="font-size:.65rem;background:rgba(255,255,255,.25);border-radius:4px;padding:1px 5px;margin-left:4px;">sub</span>':'';
       const fnH=fn?'<div class="dpsl" style="margin-top:.45rem;margin-bottom:.2rem">Funções do dia</div><div style="font-size:.72rem;color:var(--gray-600);line-height:1.6">'+fn+lencH+(fnNota?'<br><b style="color:#0EA5E9">'+fnNota+'</b>':'')+'</div>':'';
-      const editBtn=ses.role==='adm'?`<button data-posto="${pN}" onclick="_edBtnClick(this)" style="position:absolute;top:8px;right:8px;background:rgba(255,255,255,.25);border:1px solid rgba(255,255,255,.4);color:white;border-radius:6px;padding:3px 8px;font-size:.7rem;font-weight:600;cursor:pointer;font-family:inherit">✏️ Editar</button>`:'';
+      const editBtn=`<button data-posto="${pN}" onclick="_edBtnClick(this)" style="position:absolute;top:8px;right:8px;background:rgba(255,255,255,.25);border:1px solid rgba(255,255,255,.4);color:white;border-radius:6px;padding:3px 8px;font-size:.7rem;font-weight:600;cursor:pointer;font-family:inherit">✏️ Editar</button>`;
       const borda=isMe?'border-color:'+e.info.cor+';border-width:2px':'';
       html+='<div class="dp '+(isMe?'dp-me':'')+'" style="'+borda+'"><div class="dph" style="background:'+e.info.cor+';position:relative"><div class="dpp">'+pN+'</div><div class="dpc">👤 '+colabNomes+colabLabel+'</div>'+editBtn+'</div><div class="dpb">'+utH+fnH+'</div></div>';
     });
