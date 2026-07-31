@@ -632,6 +632,8 @@ body.is-adm .adm-only{display:inline-flex!important}
       <div class="ni" data-p="quedas" onclick="goto('quedas',this)"><i class="ti ti-alert-triangle ni-ic" style="background:#FFF8E1;color:#F59E0B"></i>Quedas & Ocorrências</div>
       <div class="ni" data-p="stock" onclick="goto('stock',this)"><i class="ti ti-box ni-ic" style="background:#E8F4FF;color:#3B82F6"></i>Stock de Material</div>
       <div class="ni" data-p="incont" onclick="goto('incont',this)"><i class="ti ti-shirt ni-ic" style="background:#FCE4EC;color:#E91E63"></i>Incontinência</div>
+      <div class="ni" data-p="internamentos" onclick="goto('internamentos',this)"><i class="ti ti-building-hospital ni-ic" style="background:#FEE2E2;color:#DC2626"></i>Internamentos</div>
+      <div class="ni" data-p="entregas" onclick="goto('entregas',this)"><i class="ti ti-package ni-ic" style="background:#DBEAFE;color:#2563EB"></i>Entregas de Material</div>
       <div class="ni" data-p="relatorios" onclick="goto('relatorios',this)"><i class="ti ti-chart-bar ni-ic" style="background:#E6F7F5;color:#2DBDAD"></i>Relatórios</div>
       <div class="ni" data-p="turno" onclick="goto('turno',this)"><i class="ti ti-notes ni-ic" style="background:#EDF6E5;color:#4CAF50"></i>Registo de Turno</div>
       <div class="ni adm-only" data-p="etiq-gestao" onclick="goto('etiq-gestao',this)"><i class="ti ti-tag ni-ic" style="background:#F3E8FF;color:#9C27B0"></i>Gerir Etiquetas</div>
@@ -918,6 +920,24 @@ body.is-adm .adm-only{display:inline-flex!important}
           </select>
         </div>
         <div id="incontContent"></div>
+      </div>
+
+      <!-- INTERNAMENTOS -->
+      <div class="pg" id="pg-internamentos">
+        <div class="ph">
+          <div><div class="ph-title">Internamentos</div><div class="ph-sub">Registo de idas/estadias hospitalares por utente</div></div>
+          <button class="btn btn-p" onclick="abrirInternamento()">+ Novo Internamento</button>
+        </div>
+        <div id="internamentosContent"></div>
+      </div>
+
+      <!-- ENTREGAS DE MATERIAL -->
+      <div class="pg" id="pg-entregas">
+        <div class="ph">
+          <div><div class="ph-title">Entregas de Material</div><div class="ph-sub">Registo do que a família traz, com assinatura</div></div>
+          <button class="btn btn-p" onclick="abrirEntrega()">+ Nova Entrega</button>
+        </div>
+        <div id="entregasContent"></div>
       </div>
 
       <!-- MODO PAINEL -->
@@ -1443,6 +1463,60 @@ body.is-adm .adm-only{display:inline-flex!important}
   </div>
 </div>
 
+<div class="mo" id="mInternamento">
+  <div class="md" style="max-width:420px">
+    <div class="mh"><span class="mht" id="mInternamentoT"><i class="ti ti-building-hospital" style="margin-right:.3rem"></i>Novo Internamento</span><button class="mc" onclick="cm('mInternamento')">×</button></div>
+    <div class="mb">
+      <div class="fg"><label class="fl">Resid.</label><select class="fc" id="itRes"></select></div>
+      <div class="fg"><label class="fl">Utente</label>
+        <input type="text" class="fc" id="itUtente" placeholder="Nome do utente" list="itUtenteList">
+        <datalist id="itUtenteList"></datalist>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+        <div class="fg"><label class="fl">Data início</label><input type="date" class="fc" id="itInicio"></div>
+        <div class="fg"><label class="fl">Data fim (se já regressou)</label><input type="date" class="fc" id="itFim"></div>
+      </div>
+      <div class="fg"><label class="fl">Motivo / nota</label><textarea class="fc" id="itNota" rows="3" placeholder="Ex: internamento por infeção urinária, hospital X..."></textarea></div>
+      <input type="hidden" id="itEid">
+    </div>
+    <div class="mf"><button class="btn btn-g" onclick="cm('mInternamento')">Cancelar</button><button class="btn btn-p" onclick="svInternamento()">Guardar</button></div>
+  </div>
+</div>
+
+<div class="mo" id="mEntrega">
+  <div class="md" style="max-width:480px">
+    <div class="mh"><span class="mht"><i class="ti ti-package" style="margin-right:.3rem"></i>Nova Entrega de Material</span><button class="mc" onclick="cm('mEntrega')">×</button></div>
+    <div class="mb">
+      <div class="fg"><label class="fl">Resid.</label><select class="fc" id="egRes"></select></div>
+      <div class="fg"><label class="fl">Utente</label>
+        <input type="text" class="fc" id="egUtente" placeholder="Nome do utente" list="egUtenteList">
+        <datalist id="egUtenteList"></datalist>
+      </div>
+      <div class="fg"><label class="fl">Nome de quem entrega (familiar)</label><input type="text" class="fc" id="egFamiliar" placeholder="Nome completo"></div>
+      <div class="fg"><label class="fl">Email do familiar (para enviar cópia)</label><input type="email" class="fc" id="egEmailFamiliar" placeholder="email@exemplo.com"></div>
+
+      <div style="background:var(--gray-50);border-radius:var(--radius);padding:.75rem;margin:.75rem 0">
+        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gray-400);margin-bottom:.6rem">Material entregue</div>
+        <div id="egItensLista"></div>
+        <div style="display:grid;grid-template-columns:2fr 1fr auto;gap:.4rem;align-items:end;margin-top:.4rem">
+          <div class="fg" style="margin:0"><label class="fl">Material</label><input type="text" class="fc" id="egNovoMaterial" placeholder="Ex: Fraldas M, Toalhitas..."></div>
+          <div class="fg" style="margin:0"><label class="fl">Qtd</label><input type="number" class="fc" id="egNovaQtd" min="1" value="1"></div>
+          <button class="btn btn-g btn-s" onclick="adicionarItemEntrega()"><i class="ti ti-plus"></i></button>
+        </div>
+      </div>
+
+      <div class="fg"><label class="fl">Assinatura do familiar</label>
+        <div style="border:1px dashed var(--border);border-radius:var(--radius);background:white">
+          <canvas id="egAssinaturaCanvas" width="440" height="150" style="width:100%;height:150px;touch-action:none;cursor:crosshair"></canvas>
+        </div>
+        <button class="btn btn-g btn-s" style="margin-top:.4rem" onclick="limparAssinatura()"><i class="ti ti-eraser" style="margin-right:.3rem"></i>Limpar assinatura</button>
+      </div>
+      <input type="hidden" id="egEid">
+    </div>
+    <div class="mf"><button class="btn btn-g" onclick="cm('mEntrega')">Cancelar</button><button class="btn btn-p" onclick="svEntrega()">Guardar e Registar</button></div>
+  </div>
+</div>
+
 <!-- MOBILE OVERLAY -->
 <div class="mob-overlay" id="mobOverlay" onclick="closeMobMenu()"></div>
 
@@ -1461,6 +1535,8 @@ body.is-adm .adm-only{display:inline-flex!important}
   <div class="mob-ni" onclick="gotoMob('quedas')"><i class="ti ti-alert-triangle mob-ni-ic"></i>Quedas & Ocorrências</div>
   <div class="mob-ni" onclick="gotoMob('stock')"><i class="ti ti-box mob-ni-ic"></i>Stock de Material</div>
   <div class="mob-ni" onclick="gotoMob('incont')"><i class="ti ti-shirt mob-ni-ic"></i>Incontinência</div>
+  <div class="mob-ni" onclick="gotoMob('internamentos')"><i class="ti ti-building-hospital mob-ni-ic"></i>Internamentos</div>
+  <div class="mob-ni" onclick="gotoMob('entregas')"><i class="ti ti-package mob-ni-ic"></i>Entregas de Material</div>
   <div class="mob-ni" onclick="gotoMob('relatorios')"><i class="ti ti-chart-bar mob-ni-ic"></i>Relatórios</div>
   <div class="mob-ni" onclick="gotoMob('turno')"><i class="ti ti-notes mob-ni-ic"></i>Registo de Turno</div>
   <div id="mobAdmItems">
@@ -1800,6 +1876,8 @@ async function loadFB(){
   const qu=await fbG('quedas');if(qu)DB.quedas=qu;
   const sk=await fbG('stock');if(sk)DB.stock=sk;
   const ic=await fbG('incont');if(ic)DB.incont=ic;
+  const it=await fbG('internamentos');if(it)DB.internamentos=it;
+  const eg=await fbG('entregas');if(eg)DB.entregas=eg;
   // Load utentes badges from Firebase
   const ub=await fbG('utentes_badges');
   if(ub&&Array.isArray(ub)){
@@ -2006,6 +2084,8 @@ function om(id){
   if(id==='mTC')buildTCM();
   if(id==='mQueda'){abrirNovaQueda();return;}
   if(id==='mIncont'){abrirIncont();return;}
+  if(id==='mInternamento'){abrirInternamento();return;}
+  if(id==='mEntrega'){abrirEntrega();return;}
   if(id==='mStock'){popSel('skRes',false);document.getElementById('skEid').value='';document.getElementById('mSkT').innerHTML='<i class="ti ti-package" style="margin-right:.3rem"></i>Novo Item de Stock';document.getElementById('skN').value='';document.getElementById('skQty').value='';document.getElementById('skMin').value='';document.getElementById('skIdeal').value='';document.getElementById('skNota').value='';}
   if(id==='mR'){setTimeout(buildRotUcl,50);}
   document.getElementById(id).classList.add('open');
@@ -4236,6 +4316,264 @@ function novoRegistoParaUtente(nome, res){
   }, 30);
 }
 
+// ===== INTERNAMENTOS =====
+function abrirInternamento(eid){
+  popSel('itRes', false);
+  if(ses.role==='adm' && ses.admRes && ses.admRes!=='all'){
+    document.getElementById('itRes').value = ses.admRes;
+  }
+  const dl = document.getElementById('itUtenteList');
+  if(dl){
+    dl.innerHTML = '';
+    filt(S.utentes).forEach(u=>{
+      const o = document.createElement('option');
+      o.value = u.nome;
+      dl.appendChild(o);
+    });
+  }
+  if(eid && DB.internamentos && DB.internamentos[eid]){
+    const r = DB.internamentos[eid];
+    document.getElementById('itRes').value = r.res;
+    document.getElementById('itUtente').value = r.utente;
+    document.getElementById('itInicio').value = r.inicio||'';
+    document.getElementById('itFim').value = r.fim||'';
+    document.getElementById('itNota').value = r.nota||'';
+    document.getElementById('itEid').value = eid;
+    document.getElementById('mInternamentoT').innerHTML = '<i class="ti ti-pencil" style="margin-right:.3rem"></i>Editar Internamento';
+  } else {
+    document.getElementById('itUtente').value = '';
+    document.getElementById('itInicio').value = todayStr();
+    document.getElementById('itFim').value = '';
+    document.getElementById('itNota').value = '';
+    document.getElementById('itEid').value = '';
+    document.getElementById('mInternamentoT').innerHTML = '<i class="ti ti-building-hospital" style="margin-right:.3rem"></i>Novo Internamento';
+  }
+  document.getElementById('mInternamento').classList.add('open');
+}
+async function svInternamento(){
+  const utente = document.getElementById('itUtente').value.trim();
+  const inicio = document.getElementById('itInicio').value;
+  if(!utente || !inicio){ alert('Indica o utente e a data de início.'); return; }
+  const obj = {
+    utente, res: document.getElementById('itRes').value,
+    inicio, fim: document.getElementById('itFim').value || '',
+    nota: document.getElementById('itNota').value,
+    ts: Date.now(), quem: sesN()
+  };
+  if(!DB.internamentos) DB.internamentos = {};
+  const eid = document.getElementById('itEid').value;
+  if(eid){
+    const ok = await fbS(`internamentos/${eid}`, obj);
+    if(!ok){ toast('<strong>❌ Erro ao gravar!</strong>','err'); return; }
+    DB.internamentos[eid] = obj;
+  } else {
+    const k = await fbP('internamentos', obj);
+    if(!k){ toast('<strong>❌ Erro ao gravar!</strong>','err'); return; }
+    DB.internamentos[k] = obj;
+  }
+  cm('mInternamento');
+  toast(`<strong>🏥 Internamento registado!</strong><br>${utente}`);
+  rAll();
+}
+async function delInternamento(key){
+  if(!confirm('Eliminar este registo de internamento?')) return;
+  await fbD(`internamentos/${key}`);
+  if(DB.internamentos) delete DB.internamentos[key];
+  rAll();
+}
+function rInternamentos(){
+  const all = Object.entries(DB.internamentos||{}).map(([k,v])=>({...v,_key:k}));
+  const items = filt(all).sort((a,b)=>(b.inicio||'').localeCompare(a.inicio||''));
+  if(!items.length){
+    document.getElementById('internamentosContent').innerHTML = '<div class="empty"><div class="eic">🏥</div><p>Sem internamentos registados.</p></div>';
+    return;
+  }
+  let html = '';
+  items.forEach(r=>{
+    const emCurso = !r.fim;
+    const dtI = r.inicio ? new Date(r.inicio+'T12:00:00').toLocaleDateString('pt-PT',{day:'numeric',month:'short',year:'numeric'}) : '?';
+    const dtF = r.fim ? new Date(r.fim+'T12:00:00').toLocaleDateString('pt-PT',{day:'numeric',month:'short',year:'numeric'}) : null;
+    html += `<div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:.75rem 1rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem">
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:.9rem;display:flex;align-items:center;gap:.4rem">
+          ${r.utente}
+          ${emCurso?'<span class="tag" style="background:#FEE2E2;color:#DC2626">Em curso</span>':''}
+        </div>
+        <div style="font-size:.78rem;color:var(--gray-500);margin-top:.2rem">${dtI}${dtF?` → ${dtF}`:' → (ainda internado)'}</div>
+        ${r.nota?`<div style="font-size:.78rem;color:var(--gray-600);margin-top:.3rem">${r.nota}</div>`:''}
+      </div>
+      <div style="display:flex;gap:.3rem;flex-shrink:0">
+        <button class="btn btn-g btn-s" onclick="abrirInternamento('${r._key}')"><i class="ti ti-pencil"></i></button>
+        ${ses.role==='adm'?`<button class="btn btn-r btn-s" onclick="delInternamento('${r._key}')"><i class="ti ti-trash"></i></button>`:''}
+      </div>
+    </div>`;
+  });
+  document.getElementById('internamentosContent').innerHTML = html;
+}
+
+// ===== ENTREGAS DE MATERIAL (com assinatura) =====
+let egItens = [];
+let egCanvasCtx = null, egDesenhando = false, egTemAssinatura = false;
+
+function abrirEntrega(){
+  popSel('egRes', false);
+  if(ses.role==='adm' && ses.admRes && ses.admRes!=='all'){
+    document.getElementById('egRes').value = ses.admRes;
+  }
+  const dl = document.getElementById('egUtenteList');
+  if(dl){
+    dl.innerHTML = '';
+    filt(S.utentes).forEach(u=>{
+      const o = document.createElement('option');
+      o.value = u.nome;
+      dl.appendChild(o);
+    });
+  }
+  document.getElementById('egUtente').value = '';
+  document.getElementById('egFamiliar').value = '';
+  document.getElementById('egEmailFamiliar').value = '';
+  document.getElementById('egNovoMaterial').value = '';
+  document.getElementById('egNovaQtd').value = '1';
+  document.getElementById('egEid').value = '';
+  egItens = [];
+  renderItensEntrega();
+  document.getElementById('mEntrega').classList.add('open');
+  setTimeout(iniciarCanvasAssinatura, 60);
+}
+
+function iniciarCanvasAssinatura(){
+  const canvas = document.getElementById('egAssinaturaCanvas');
+  if(!canvas) return;
+  // ajustar resolução ao tamanho real do ecrã
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width; canvas.height = rect.height;
+  egCanvasCtx = canvas.getContext('2d');
+  egCanvasCtx.strokeStyle = '#0F172A';
+  egCanvasCtx.lineWidth = 2;
+  egCanvasCtx.lineCap = 'round';
+  egTemAssinatura = false;
+
+  function pos(e){
+    const r = canvas.getBoundingClientRect();
+    const cx = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+    const cy = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
+    return {x:cx, y:cy};
+  }
+  function iniciar(e){ e.preventDefault(); egDesenhando = true; const p = pos(e); egCanvasCtx.beginPath(); egCanvasCtx.moveTo(p.x,p.y); }
+  function mover(e){ if(!egDesenhando) return; e.preventDefault(); const p = pos(e); egCanvasCtx.lineTo(p.x,p.y); egCanvasCtx.stroke(); egTemAssinatura = true; }
+  function soltar(){ egDesenhando = false; }
+
+  canvas.onmousedown = iniciar; canvas.onmousemove = mover; canvas.onmouseup = soltar; canvas.onmouseleave = soltar;
+  canvas.ontouchstart = iniciar; canvas.ontouchmove = mover; canvas.ontouchend = soltar;
+}
+function limparAssinatura(){
+  const canvas = document.getElementById('egAssinaturaCanvas');
+  if(egCanvasCtx && canvas) egCanvasCtx.clearRect(0,0,canvas.width,canvas.height);
+  egTemAssinatura = false;
+}
+
+function adicionarItemEntrega(){
+  const material = document.getElementById('egNovoMaterial').value.trim();
+  const qtd = parseInt(document.getElementById('egNovaQtd').value) || 0;
+  if(!material || qtd<=0){ alert('Indica o material e a quantidade.'); return; }
+  egItens.push({material, qtd});
+  document.getElementById('egNovoMaterial').value = '';
+  document.getElementById('egNovaQtd').value = '1';
+  renderItensEntrega();
+}
+function removerItemEntrega(idx){
+  egItens.splice(idx,1);
+  renderItensEntrega();
+}
+function renderItensEntrega(){
+  const el = document.getElementById('egItensLista');
+  if(!egItens.length){ el.innerHTML = '<div style="font-size:.78rem;color:var(--gray-400)">Ainda sem itens adicionados.</div>'; return; }
+  el.innerHTML = egItens.map((it,idx)=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;background:white;border:1px solid var(--border);border-radius:8px;padding:.4rem .6rem;margin-bottom:.3rem;font-size:.82rem">
+      <span><strong>${it.qtd}×</strong> ${it.material}</span>
+      <button onclick="removerItemEntrega(${idx})" style="background:none;border:none;color:var(--red);cursor:pointer"><i class="ti ti-x"></i></button>
+    </div>`).join('');
+}
+
+async function svEntrega(){
+  const utente = document.getElementById('egUtente').value.trim();
+  const familiar = document.getElementById('egFamiliar').value.trim();
+  const emailFamiliar = document.getElementById('egEmailFamiliar').value.trim();
+  if(!utente){ alert('Indica o utente.'); return; }
+  if(!familiar){ alert('Indica o nome de quem entrega.'); return; }
+  if(!egItens.length){ alert('Adiciona pelo menos um item de material.'); return; }
+  if(!egTemAssinatura){ alert('Falta a assinatura do familiar.'); return; }
+
+  const canvas = document.getElementById('egAssinaturaCanvas');
+  const assinaturaDataUrl = canvas.toDataURL('image/png');
+
+  const obj = {
+    utente, res: document.getElementById('egRes').value,
+    familiar, emailFamiliar,
+    itens: egItens.slice(),
+    assinatura: assinaturaDataUrl,
+    data: todayStr(), ts: Date.now(), quem: sesN()
+  };
+  if(!DB.entregas) DB.entregas = {};
+  const k = await fbP('entregas', obj);
+  if(!k){ toast('<strong>❌ Erro ao gravar!</strong>','err'); return; }
+  DB.entregas[k] = obj;
+
+  cm('mEntrega');
+  toast(`<strong>📦 Entrega registada!</strong><br>${utente}`);
+  rAll();
+
+  // Envio de email: sem backend de envio automático configurado, abre o cliente de email já preenchido
+  enviarEmailEntrega(obj);
+}
+
+function enviarEmailEntrega(obj){
+  const nomesMes = {'01':'Janeiro','02':'Fevereiro','03':'Março','04':'Abril','05':'Maio','06':'Junho','07':'Julho','08':'Agosto','09':'Setembro','10':'Outubro','11':'Novembro','12':'Dezembro'};
+  const dataLegivel = obj.data;
+  const listaItens = obj.itens.map(it=>`- ${it.qtd}x ${it.material}`).join('\n');
+  const corpo = `Confirmação de entrega de material\n\nUtente: ${obj.utente}\nEntregue por: ${obj.familiar}\nData: ${dataLegivel}\n\nMaterial entregue:\n${listaItens}\n\nAssinado digitalmente no CuidarBem.\n\n${rNome(obj.res)}`;
+  const destinatarios = [obj.emailFamiliar].filter(Boolean).join(',');
+  const mailto = `mailto:${encodeURIComponent(destinatarios)}?subject=${encodeURIComponent('Entrega de material — '+obj.utente)}&body=${encodeURIComponent(corpo)}`;
+  if(confirm('Registo guardado. Queres abrir agora o teu email para enviar a confirmação ao familiar?')){
+    window.open(mailto, '_blank');
+  }
+}
+
+async function delEntrega(key){
+  if(!confirm('Eliminar este registo de entrega?')) return;
+  await fbD(`entregas/${key}`);
+  if(DB.entregas) delete DB.entregas[key];
+  rAll();
+}
+
+function rEntregas(){
+  const all = Object.entries(DB.entregas||{}).map(([k,v])=>({...v,_key:k}));
+  const items = filt(all).sort((a,b)=>b.ts-a.ts);
+  if(!items.length){
+    document.getElementById('entregasContent').innerHTML = '<div class="empty"><div class="eic">📦</div><p>Sem entregas registadas.</p></div>';
+    return;
+  }
+  let html = '';
+  items.forEach(r=>{
+    const dt = r.data ? new Date(r.data+'T12:00:00').toLocaleDateString('pt-PT',{day:'numeric',month:'short',year:'numeric'}) : '';
+    const itensTxt = (r.itens||[]).map(it=>`${it.qtd}× ${it.material}`).join(' · ');
+    html += `<div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:.75rem 1rem;margin-bottom:.5rem">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem">
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:.9rem">${r.utente}</div>
+          <div style="font-size:.78rem;color:var(--gray-500)">${dt} · entregue por ${r.familiar}</div>
+          <div style="font-size:.8rem;color:var(--gray-600);margin-top:.3rem">${itensTxt}</div>
+        </div>
+        <div style="display:flex;gap:.4rem;align-items:center;flex-shrink:0">
+          ${r.assinatura?`<img src="${r.assinatura}" style="height:40px;border:1px solid var(--border);border-radius:6px;background:white" title="Assinatura">`:''}
+          ${ses.role==='adm'?`<button class="btn btn-r btn-s" onclick="delEntrega('${r._key}')"><i class="ti ti-trash"></i></button>`:''}
+        </div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('entregasContent').innerHTML = html;
+}
+
 function pisoDoQuarto(q){
   // mantido como recurso de fallback para utentes sem campo 'piso' definido
   const n = parseInt(q);
@@ -4661,6 +4999,8 @@ function rAll(){
   if(act.id==='pg-quedas')rQuedas();
   if(act.id==='pg-stock')rStock();
   if(act.id==='pg-incont')rIncont();
+  if(act.id==='pg-internamentos')rInternamentos();
+  if(act.id==='pg-entregas')rEntregas();
   if(act.id==='pg-painel'){startPainel();}else{stopPainel();}
 }
 
