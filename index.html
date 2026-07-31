@@ -1511,7 +1511,7 @@ body.is-adm .adm-only{display:inline-flex!important}
     <div class="mb">
       <div class="fg"><label class="fl">Resid.</label><select class="fc" id="egRes"></select></div>
       <div class="fg"><label class="fl">Utente</label>
-        <input type="text" class="fc" id="egUtente" placeholder="Nome do utente" list="egUtenteList">
+        <input type="text" class="fc" id="egUtente" placeholder="Nome do utente" list="egUtenteList" onchange="preencherContactoFamiliar(this.value)">
         <datalist id="egUtenteList"></datalist>
       </div>
       <div class="fg"><label class="fl">Nome de quem entrega (familiar)</label><input type="text" class="fc" id="egFamiliar" placeholder="Nome completo"></div>
@@ -1709,50 +1709,50 @@ let S={
   ],
   aPin:'0000',
   utentes:[
-    {id:1,nome:'António Conceição D´Almeida',quarto:'15',res:'r2',piso:'Piso ?',idade:'',notas:'',badges:[],av:'av-s',em:'👴'},
-    {id:3,nome:'Elisabete Maria Bandeira de Oliveira Ruas da Silva',quarto:'3',res:'r2',piso:'Piso 3',idade:69,notas:'',badges:[],av:'av-s',em:'👵'},
-    {id:4,nome:'Gracilda da Luz Ribeiro Monteiro',quarto:'2',res:'r2',piso:'Piso 3',idade:90,notas:'',badges:[],av:'av-b',em:'👵'},
-    {id:5,nome:'Ildo Gamboa Matos',quarto:'6',res:'r2',piso:'Piso 3',idade:90,notas:'',badges:[],av:'av-t',em:'👴'},
-    {id:6,nome:'Joaquina Henriques Rodrigues Esteves',quarto:'2',res:'r2',piso:'Piso 3',idade:'',notas:'',badges:[],av:'av-g',em:'👵'},
-    {id:7,nome:'Mª. Arlete Santos Carmo',quarto:'5',res:'r2',piso:'Piso 3',idade:88,notas:'',badges:[],av:'av-s',em:'👵'},
-    {id:8,nome:'Maria Alzira Cardoso Crispim',quarto:'1',res:'r2',piso:'Piso 3',idade:89,notas:'',badges:[],av:'av-b',em:'👵'},
-    {id:9,nome:'Maria Claudina da Conceição da Nave Almeida',quarto:'3',res:'r2',piso:'Piso 3',idade:96,notas:'',badges:[],av:'av-b',em:'👵'},
-    {id:10,nome:'Maria de Lurdes de Jesus Santos Pereira',quarto:'5',res:'r2',piso:'Piso 3',idade:82,notas:'',badges:[],av:'av-s',em:'👵'},
-    {id:11,nome:'Maria José da Fonseca',quarto:'3',res:'r2',piso:'Piso 3',idade:95,notas:'',badges:[],av:'av-b',em:'👵'},
-    {id:12,nome:'Maria Violeta D´Almeida Lage de Mendonça',quarto:'4',res:'r2',piso:'Piso 3',idade:99,notas:'',badges:[],av:'av-s',em:'👵'},
-    {id:13,nome:'Adelina Rodrigues Garcia',quarto:'9',res:'r2',piso:'Piso 4',idade:70,notas:'',badges:[],av:'av-t',em:'👵'},
-    {id:14,nome:'António Sequeira Cabrita',quarto:'7',res:'r2',piso:'Piso 4',idade:'',notas:'',badges:[],av:'av-g',em:'👴'},
-    {id:15,nome:'Donzília de Sousa Carvalho',quarto:'10',res:'r2',piso:'Piso 4',idade:85,notas:'',badges:[],av:'av-t',em:'👵'},
-    {id:16,nome:'Maria de Fátima Borges Lourenço',quarto:'11',res:'r2',piso:'Piso 4',idade:71,notas:'',badges:[],av:'av-t',em:'👵'},
-    {id:17,nome:'Maria Fernanda de Meneses Sande Freire',quarto:'9',res:'r2',piso:'Piso 4',idade:91,notas:'',badges:[],av:'av-t',em:'👵'},
-    {id:18,nome:'Maria Fernanda Verdú Catalão de Sousa',quarto:'11',res:'r2',piso:'Piso 4',idade:87,notas:'',badges:[],av:'av-s',em:'👵'},
+    {id:1,nome:'António Conceição D´Almeida',quarto:'15',res:'r2',piso:'Piso ?',idade:'',nomeResponsavel:'Cíntia Karina da Silva Frederico Tavares (Sobrinha)',telResponsavel:'967494233',emailResponsavel:'orientadoseguiados@gmail.com',notas:'',badges:[],av:'av-s',em:'👴'},
+    {id:3,nome:'Elisabete Maria Bandeira de Oliveira Ruas da Silva',quarto:'3',res:'r2',piso:'Piso 3',idade:69,nomeResponsavel:'Carlos Alberto Trigo da Silva (Marido)',telResponsavel:'965124301',emailResponsavel:'ctrigosilva@gmail.com',notas:'',badges:[],av:'av-s',em:'👵'},
+    {id:4,nome:'Gracilda da Luz Ribeiro Monteiro',quarto:'2',res:'r2',piso:'Piso 3',idade:90,nomeResponsavel:'Isabel Maria Ribeiro Monteiro Mira (Filha)',telResponsavel:'962819579',emailResponsavel:'isabel.mmira@gmail.com',notas:'',badges:[],av:'av-b',em:'👵'},
+    {id:5,nome:'Ildo Gamboa Matos',quarto:'6',res:'r2',piso:'Piso 3',idade:90,nomeResponsavel:'Susana Alexandre Borja Matos (Filha)',telResponsavel:'964065034',emailResponsavel:'susanaborjamatos@gmail.com',notas:'',badges:[],av:'av-t',em:'👴'},
+    {id:6,nome:'Joaquina Henriques Rodrigues Esteves',quarto:'2',res:'r2',piso:'Piso 3',idade:'',nomeResponsavel:'Maria Paula Rodrigues Esteves Reis (Filha)',telResponsavel:'969093637',emailResponsavel:'paula.e.reis@gmail.com',notas:'',badges:[],av:'av-g',em:'👵'},
+    {id:7,nome:'Mª. Arlete Santos Carmo',quarto:'5',res:'r2',piso:'Piso 3',idade:88,nomeResponsavel:'Heldér Luiz do Carmo Vieira dos Santos (Filho)',telResponsavel:'914845338',emailResponsavel:'helluis@gmail.com',notas:'',badges:[],av:'av-s',em:'👵'},
+    {id:8,nome:'Maria Alzira Cardoso Crispim',quarto:'1',res:'r2',piso:'Piso 3',idade:89,nomeResponsavel:'Rui Noel de Carvalho Crispim (Sobrinho)',telResponsavel:'965864007',emailResponsavel:'patricia.bravo@outlook.pt',notas:'',badges:[],av:'av-b',em:'👵'},
+    {id:9,nome:'Maria Claudina da Conceição da Nave Almeida',quarto:'3',res:'r2',piso:'Piso 3',idade:96,nomeResponsavel:'Rosa Maria da Nave Almeida Marques Amaral (Filha)',telResponsavel:'966361131',emailResponsavel:'rosa.romini@gmail.com',notas:'',badges:[],av:'av-b',em:'👵'},
+    {id:10,nome:'Maria de Lurdes de Jesus Santos Pereira',quarto:'5',res:'r2',piso:'Piso 3',idade:82,nomeResponsavel:'Manuel Paulo Santos da Costa (Sobrinho)',telResponsavel:'964334931',emailResponsavel:'manuelpscosta@sapo.pt',notas:'',badges:[],av:'av-s',em:'👵'},
+    {id:11,nome:'Maria José da Fonseca',quarto:'3',res:'r2',piso:'Piso 3',idade:95,nomeResponsavel:'Ana Cristina da Fonseca Teixeira (Neta)',telResponsavel:'918985301',emailResponsavel:'afonsecateixeira@gmail.com',notas:'',badges:[],av:'av-b',em:'👵'},
+    {id:12,nome:'Maria Violeta D´Almeida Lage de Mendonça',quarto:'4',res:'r2',piso:'Piso 3',idade:99,nomeResponsavel:'João Mendonça (filho)',telResponsavel:'917260171',emailResponsavel:'arrudajoao@live.com.pt',notas:'',badges:[],av:'av-s',em:'👵'},
+    {id:13,nome:'Adelina Rodrigues Garcia',quarto:'9',res:'r2',piso:'Piso 4',idade:70,nomeResponsavel:'Edite Paula Garcia Vicente (Filha)',telResponsavel:'914555225',emailResponsavel:'editevicente@hotmail.com',notas:'',badges:[],av:'av-t',em:'👵'},
+    {id:14,nome:'António Sequeira Cabrita',quarto:'7',res:'r2',piso:'Piso 4',idade:'',nomeResponsavel:'Paulo Jorge Sequeira Cabrita (Filho)',telResponsavel:'919222475',emailResponsavel:'paulocabrita28@gmail.com',notas:'',badges:[],av:'av-g',em:'👴'},
+    {id:15,nome:'Donzília de Sousa Carvalho',quarto:'10',res:'r2',piso:'Piso 4',idade:85,nomeResponsavel:'Filipa Cristina Carvalho Mineiro (Filha)',telResponsavel:'933136529',emailResponsavel:'filipamineiro@gmail.com',notas:'',badges:[],av:'av-t',em:'👵'},
+    {id:16,nome:'Maria de Fátima Borges Lourenço',quarto:'11',res:'r2',piso:'Piso 4',idade:71,nomeResponsavel:'Paula Sofia Lourenço Pires (filha)',telResponsavel:'962646992',emailResponsavel:'paulaspires77@gmail.com',notas:'',badges:[],av:'av-t',em:'👵'},
+    {id:17,nome:'Maria Fernanda de Meneses Sande Freire',quarto:'9',res:'r2',piso:'Piso 4',idade:91,nomeResponsavel:'Maria Fernanda Ceia Casquilho Valério Maduro (Prima)',telResponsavel:'966518585',emailResponsavel:'madurofernanda@hotmail.com',notas:'',badges:[],av:'av-t',em:'👵'},
+    {id:18,nome:'Maria Fernanda Verdú Catalão de Sousa',quarto:'11',res:'r2',piso:'Piso 4',idade:87,nomeResponsavel:'Eva Maria Verdú Catalão de Sousa (Filha)',telResponsavel:'962518383',emailResponsavel:'evaverdu2@gmail.com',notas:'',badges:[],av:'av-s',em:'👵'},
     {id:19,nome:'Maria Júlia da Cruz Fonseca',quarto:'8',res:'r2',piso:'Piso 4',idade:'',notas:'',badges:[],av:'av-b',em:'👵'},
-    {id:21,nome:'Maria Odete Martins da Cunha Matos',quarto:'10',res:'r2',piso:'Piso 4',idade:93,notas:'',badges:[],av:'av-s',em:'👵'},
-    {id:22,nome:'Maria Peres Guerreiro Martinho',quarto:'12',res:'r2',piso:'Piso 4',idade:86,notas:'',badges:[],av:'av-g',em:'👵'},
-    {id:23,nome:'Neide Boriero Martins',quarto:'12',res:'r2',piso:'Piso 4',idade:85,notas:'',badges:[],av:'av-b',em:'👵'},
-    {id:24,nome:'Olinda Aurora Pinto Duarte Oliveira',quarto:'9',res:'r2',piso:'Piso 4',idade:87,notas:'',badges:[],av:'av-t',em:'👵'},
-    {id:25,nome:'Adriano dos Santos Ribeiro',quarto:'15',res:'r2',piso:'Piso 5',idade:81,notas:'',badges:[],av:'av-s',em:'👴'},
-    {id:26,nome:'Amélia Freire dos Santos',quarto:'17',res:'r2',piso:'Piso 5',idade:90,notas:'',badges:[],av:'av-b',em:'👵'},
-    {id:27,nome:'Diamantino Sequeira Dias',quarto:'13',res:'r2',piso:'Piso 5',idade:68,notas:'',badges:[],av:'av-b',em:'👴'},
-    {id:28,nome:'Leonel Alexandre Ribeiro Moreira Gonçalves',quarto:'15',res:'r2',piso:'Piso 5',idade:66,notas:'',badges:[],av:'av-s',em:'👴'},
-    {id:29,nome:'M. Martins Nunes',quarto:'17',res:'r2',piso:'Piso 5',idade:86,notas:'',badges:[],av:'av-g',em:'👵'},
-    {id:30,nome:'Mª de Lourdes Aldim da Cunha Silva Araújo',quarto:'16',res:'r2',piso:'Piso 5',idade:98,notas:'',badges:[],av:'av-b',em:'👵'},
-    {id:31,nome:'Maria Amélia Fernandes Alvares',quarto:'14',res:'r2',piso:'Piso 5',idade:89,notas:'',badges:[],av:'av-t',em:'👵'},
-    {id:32,nome:'Maria Emília Lopes Simões dos Santos',quarto:'16',res:'r2',piso:'Piso 5',idade:82,notas:'',badges:[],av:'av-b',em:'👵'},
-    {id:33,nome:'Maria Fernanda Carvalho Cordeiro Ferreira',quarto:'18',res:'r2',piso:'Piso 5',idade:'',notas:'',badges:[],av:'av-s',em:'👵'},
-    {id:34,nome:'Maria Júlia Ramos Duarte Martins Engrácio',quarto:'14',res:'r2',piso:'Piso 5',idade:87,notas:'',badges:[],av:'av-s',em:'👵'},
-    {id:35,nome:'Maria Luísa Oliveira Monteiro de Andrade',quarto:'18',res:'r2',piso:'Piso 5',idade:82,notas:'',badges:[],av:'av-g',em:'👵'},
-    {id:36,nome:'Carlos Alberto Couras',quarto:'19',res:'r2',piso:'Piso 6',idade:89,notas:'',badges:[],av:'av-s',em:'👴'},
-    {id:37,nome:'Cecília José Figueira de Brito',quarto:'21',res:'r2',piso:'Piso 6',idade:79,notas:'',badges:[],av:'av-g',em:'👵'},
-    {id:38,nome:'Ermelinda Antunes da Nave Cândido',quarto:'21',res:'r2',piso:'Piso 6',idade:94,notas:'',badges:[],av:'av-g',em:'👵'},
-    {id:39,nome:'Fernanda Resende de Almeida',quarto:'20',res:'r2',piso:'Piso 6',idade:'',notas:'',badges:[],av:'av-b',em:'👵'},
-    {id:40,nome:'Maria Cândida Felícia Potra Florêncio',quarto:'22',res:'r2',piso:'Piso 6',idade:90,notas:'',badges:[],av:'av-g',em:'👵'},
-    {id:41,nome:'Maria Deolinda Marques Tróia',quarto:'24',res:'r2',piso:'Piso 6',idade:89,notas:'',badges:[],av:'av-g',em:'👵'},
-    {id:42,nome:'Maria Eugénia Antunes',quarto:'20',res:'r2',piso:'Piso 6',idade:'',notas:'',badges:[],av:'av-g',em:'👵'},
-    {id:43,nome:'Maria Jacinta Lopes Barros',quarto:'24',res:'r2',piso:'Piso 6',idade:89,notas:'',badges:[],av:'av-g',em:'👵'},
-    {id:44,nome:'Maria José de Matos Ferreira',quarto:'23',res:'r2',piso:'Piso 6',idade:80,notas:'',badges:[],av:'av-t',em:'👵'},
-    {id:45,nome:'Maria Odete de Freitas Mota e Cunha',quarto:'22',res:'r2',piso:'Piso 6',idade:81,notas:'',badges:[],av:'av-t',em:'👵'},
-    {id:46,nome:'Maria Rosa Rodrigues Lisboa',quarto:'8',res:'r2',piso:'Piso 6',idade:80,notas:'',badges:[],av:'av-t',em:'👵'},
+    {id:21,nome:'Maria Odete Martins da Cunha Matos',quarto:'10',res:'r2',piso:'Piso 4',idade:93,nomeResponsavel:'Ana Paula Guia (filha)',telResponsavel:'913475778',emailResponsavel:'ana.p.guia@gmail.com',notas:'',badges:[],av:'av-s',em:'👵'},
+    {id:22,nome:'Maria Peres Guerreiro Martinho',quarto:'12',res:'r2',piso:'Piso 4',idade:86,nomeResponsavel:'António Peres Guerreiro dos Santos (filho)',telResponsavel:'917251500',emailResponsavel:'aperes@dne.pt',notas:'',badges:[],av:'av-g',em:'👵'},
+    {id:23,nome:'Neide Boriero Martins',quarto:'12',res:'r2',piso:'Piso 4',idade:85,nomeResponsavel:'Raul Martins (filho)',telResponsavel:'917461177',emailResponsavel:'luarbrasil@hotmail.com',notas:'',badges:[],av:'av-b',em:'👵'},
+    {id:24,nome:'Olinda Aurora Pinto Duarte Oliveira',quarto:'9',res:'r2',piso:'Piso 4',idade:87,nomeResponsavel:'Ana Neves (Neta)',telResponsavel:'913041121',emailResponsavel:'ananeves218@hotmail.com',notas:'',badges:[],av:'av-t',em:'👵'},
+    {id:25,nome:'Adriano dos Santos Ribeiro',quarto:'15',res:'r2',piso:'Piso 5',idade:81,nomeResponsavel:'Carlos Ribeiro (filho)',telResponsavel:'919467155',emailResponsavel:'carlos.ribeiro3@sapo.pt',notas:'',badges:[],av:'av-s',em:'👴'},
+    {id:26,nome:'Amélia Freire dos Santos',quarto:'17',res:'r2',piso:'Piso 5',idade:90,nomeResponsavel:'Ana Cristina da Fonseca Teixeira (Sobrinha-neta)',telResponsavel:'918985301',emailResponsavel:'afonsecateixeira@gmail.com',notas:'',badges:[],av:'av-b',em:'👵'},
+    {id:27,nome:'Diamantino Sequeira Dias',quarto:'13',res:'r2',piso:'Piso 5',idade:68,nomeResponsavel:'Susana Isabel Antunes Dias (Filha)',telResponsavel:'934030195',emailResponsavel:'susana.antunes.dias@gmail.com',notas:'',badges:[],av:'av-b',em:'👴'},
+    {id:28,nome:'Leonel Alexandre Ribeiro Moreira Gonçalves',quarto:'15',res:'r2',piso:'Piso 5',idade:66,nomeResponsavel:'Joana Gonçalves (Filha)',telResponsavel:'963980694',emailResponsavel:'joanafgoncalves12@gmail.com',notas:'',badges:[],av:'av-s',em:'👴'},
+    {id:29,nome:'M. Martins Nunes',quarto:'17',res:'r2',piso:'Piso 5',idade:86,nomeResponsavel:'Mário Nunes Costa Carvalho (Filho)',telResponsavel:'914746107',emailResponsavel:'mariocarvalho7@hotmail.com',notas:'',badges:[],av:'av-g',em:'👵'},
+    {id:30,nome:'Mª de Lourdes Aldim da Cunha Silva Araújo',quarto:'16',res:'r2',piso:'Piso 5',idade:98,nomeResponsavel:'Mª Alexandra Vicente (sobrinha)',telResponsavel:'919254805',emailResponsavel:'avicente48@gmail.com',notas:'',badges:[],av:'av-b',em:'👵'},
+    {id:31,nome:'Maria Amélia Fernandes Alvares',quarto:'14',res:'r2',piso:'Piso 5',idade:89,nomeResponsavel:'Jorge Henriques Fernandes Alvares (filho)',telResponsavel:'917204212',emailResponsavel:'jorgealvares1963@gmail.com',notas:'',badges:[],av:'av-t',em:'👵'},
+    {id:32,nome:'Maria Emília Lopes Simões dos Santos',quarto:'16',res:'r2',piso:'Piso 5',idade:82,nomeResponsavel:'Carlos Francisco Simões dos Santos (Filho)',telResponsavel:'912247431',emailResponsavel:'c.francisco.s@gmail.com',notas:'',badges:[],av:'av-b',em:'👵'},
+    {id:33,nome:'Maria Fernanda Carvalho Cordeiro Ferreira',quarto:'18',res:'r2',piso:'Piso 5',idade:'',nomeResponsavel:'Victor Manuel Sebastião Ferreira (Marido)',telResponsavel:'936625551',emailResponsavel:'isabel.ferreira.nove@gmail.com',notas:'',badges:[],av:'av-s',em:'👵'},
+    {id:34,nome:'Maria Júlia Ramos Duarte Martins Engrácio',quarto:'14',res:'r2',piso:'Piso 5',idade:87,nomeResponsavel:'Vitor Ângelo Ramos Martins Engrácio (filho)',telResponsavel:'964011510',emailResponsavel:'vitor.engracia@engracias.pt',notas:'',badges:[],av:'av-s',em:'👵'},
+    {id:35,nome:'Maria Luísa Oliveira Monteiro de Andrade',quarto:'18',res:'r2',piso:'Piso 5',idade:82,nomeResponsavel:'Mª João Pereira (filha)',telResponsavel:'962837137',emailResponsavel:'mjsimoespereira@sapo.pt',notas:'',badges:[],av:'av-g',em:'👵'},
+    {id:36,nome:'Carlos Alberto Couras',quarto:'19',res:'r2',piso:'Piso 6',idade:89,nomeResponsavel:'João Couras (filho)',telResponsavel:'963164114',emailResponsavel:'joao.couras@pt.clara.net',notas:'',badges:[],av:'av-s',em:'👴'},
+    {id:37,nome:'Cecília José Figueira de Brito',quarto:'21',res:'r2',piso:'Piso 6',idade:79,nomeResponsavel:'Elsa de Fátima Figueira Martins de Brito (Filha)',telResponsavel:'917220047',emailResponsavel:'efbrito@gmail.com',notas:'',badges:[],av:'av-g',em:'👵'},
+    {id:38,nome:'Ermelinda Antunes da Nave Cândido',quarto:'21',res:'r2',piso:'Piso 6',idade:94,nomeResponsavel:'Paula Cristina da Nave Marques C. Ferrão Carlos (Filha)',telResponsavel:'917807318',emailResponsavel:'paula.nave.carlos@gmail.com',notas:'',badges:[],av:'av-g',em:'👵'},
+    {id:39,nome:'Fernanda Resende de Almeida',quarto:'20',res:'r2',piso:'Piso 6',idade:'',nomeResponsavel:'Maria de Lurdes Resende Almeida Alves (Irmã)',telResponsavel:'936574277',emailResponsavel:'luisamrbatista@gmail.com',notas:'',badges:[],av:'av-b',em:'👵'},
+    {id:40,nome:'Maria Cândida Felícia Potra Florêncio',quarto:'22',res:'r2',piso:'Piso 6',idade:90,nomeResponsavel:'Maria Castelo (Cunhada)',telResponsavel:'919220443',emailResponsavel:'digitocerto2@gmail.com',notas:'',badges:[],av:'av-g',em:'👵'},
+    {id:41,nome:'Maria Deolinda Marques Tróia',quarto:'24',res:'r2',piso:'Piso 6',idade:89,nomeResponsavel:'Pedro Miguel Tróia Ramos (Filho)',telResponsavel:'916186605',emailResponsavel:'pedro.troia.ramos@gmail.com',notas:'',badges:[],av:'av-g',em:'👵'},
+    {id:42,nome:'Maria Eugénia Antunes',quarto:'20',res:'r2',piso:'Piso 6',idade:'',nomeResponsavel:'Anabela Antunes Silva Rebocho (Filha)',telResponsavel:'969535105',emailResponsavel:'a.rebocho@hotmail.com',notas:'',badges:[],av:'av-g',em:'👵'},
+    {id:43,nome:'Maria Jacinta Lopes Barros',quarto:'24',res:'r2',piso:'Piso 6',idade:89,nomeResponsavel:'Ana Paula Lopes Barros de O. Henriques (Filha)',telResponsavel:'914872625',emailResponsavel:'anabarros700@gmail.com',notas:'',badges:[],av:'av-g',em:'👵'},
+    {id:44,nome:'Maria José de Matos Ferreira',quarto:'23',res:'r2',piso:'Piso 6',idade:80,nomeResponsavel:'José Bernardino de Matos Cortez Seabra (filho)',telResponsavel:'933253868',emailResponsavel:'jseabra@edu.ulisboa.pt',notas:'',badges:[],av:'av-t',em:'👵'},
+    {id:45,nome:'Maria Odete de Freitas Mota e Cunha',quarto:'22',res:'r2',piso:'Piso 6',idade:81,nomeResponsavel:'Patrícia Cristina Mota e Cunha Rodil Silva Antunes (Filha)',telResponsavel:'918283761',emailResponsavel:'patriciarodil4@hotmail.com',notas:'',badges:[],av:'av-t',em:'👵'},
+    {id:46,nome:'Maria Rosa Rodrigues Lisboa',quarto:'8',res:'r2',piso:'Piso 6',idade:80,nomeResponsavel:'Maria Madalena (filha)',telResponsavel:'912549777',emailResponsavel:'mmrteixeira13@gmail.com',notas:'',badges:[],av:'av-t',em:'👵'},
     {id:48,nome:'Adília Marques Fernandes',quarto:'21',res:'r1',setor:'Ala A',idade:91,notas:'',badges:[],av:'av-g',em:'👵'},
     {id:49,nome:'Albina Marques Jorge Ferreira',quarto:'1',res:'r1',setor:'Ala A',idade:88,notas:'',badges:[],av:'av-t',em:'👵'},
     {id:50,nome:'Aurinda Fernandes Chaves Barroso',quarto:'5',res:'r1',setor:'Ala A',idade:84,notas:'',badges:[],av:'av-b',em:'👵'},
@@ -4515,6 +4515,14 @@ function rInternamentos(){
 let egItens = [];
 let egCanvasCtx = null, egDesenhando = false, egTemAssinatura = false;
 
+function preencherContactoFamiliar(nome){
+  nome = (nome||'').trim().toLowerCase();
+  const u = (S.utentes||[]).find(x=>x.nome.trim().toLowerCase()===nome);
+  if(u){
+    if(u.nomeResponsavel) document.getElementById('egFamiliar').value = u.nomeResponsavel;
+    if(u.emailResponsavel) document.getElementById('egEmailFamiliar').value = u.emailResponsavel;
+  }
+}
 function abrirEntrega(){
   popSel('egRes', false);
   if(ses.role==='adm' && ses.admRes && ses.admRes!=='all'){
