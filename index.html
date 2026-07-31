@@ -900,7 +900,6 @@ body.is-adm .adm-only{display:inline-flex!important}
       <div class="pg" id="pg-incont">
         <div class="regtabs" style="display:flex;gap:.4rem;margin-bottom:1rem;border-bottom:1px solid var(--border)">
           <button class="regtab active" onclick="goto('incont',document.querySelector('[data-p=incont]'))">🩱 Incontinência</button>
-          <button class="regtab" onclick="goto('internamentos',document.querySelector('[data-p=incont]'))">🏥 Internamentos</button>
           <button class="regtab" onclick="goto('entregas',document.querySelector('[data-p=incont]'))">📦 Entregas de Material</button>
         </div>
         <div class="ph">
@@ -928,25 +927,10 @@ body.is-adm .adm-only{display:inline-flex!important}
         <div id="incontContent"></div>
       </div>
 
-      <!-- INTERNAMENTOS -->
-      <div class="pg" id="pg-internamentos">
-        <div class="regtabs" style="display:flex;gap:.4rem;margin-bottom:1rem;border-bottom:1px solid var(--border)">
-          <button class="regtab" onclick="goto('incont',document.querySelector('[data-p=incont]'))">🩱 Incontinência</button>
-          <button class="regtab active" onclick="goto('internamentos',document.querySelector('[data-p=incont]'))">🏥 Internamentos</button>
-          <button class="regtab" onclick="goto('entregas',document.querySelector('[data-p=incont]'))">📦 Entregas de Material</button>
-        </div>
-        <div class="ph">
-          <div><div class="ph-title">Internamentos</div><div class="ph-sub">Registo de idas/estadias hospitalares por utente</div></div>
-          <button class="btn btn-p" onclick="abrirInternamento()">+ Novo Internamento</button>
-        </div>
-        <div id="internamentosContent"></div>
-      </div>
-
       <!-- ENTREGAS DE MATERIAL -->
       <div class="pg" id="pg-entregas">
         <div class="regtabs" style="display:flex;gap:.4rem;margin-bottom:1rem;border-bottom:1px solid var(--border)">
           <button class="regtab" onclick="goto('incont',document.querySelector('[data-p=incont]'))">🩱 Incontinência</button>
-          <button class="regtab" onclick="goto('internamentos',document.querySelector('[data-p=incont]'))">🏥 Internamentos</button>
           <button class="regtab active" onclick="goto('entregas',document.querySelector('[data-p=incont]'))">📦 Entregas de Material</button>
         </div>
         <div class="ph">
@@ -1148,6 +1132,16 @@ body.is-adm .adm-only{display:inline-flex!important}
       <div class="fr"><div class="fg"><label class="fl">Nome</label><input type="text" class="fc" id="uN"></div><div class="fg"><label class="fl">Quarto</label><input type="text" class="fc" id="uQ"></div></div>
       <div class="fr"><div class="fg"><label class="fl">Residência</label><select class="fc" id="uR"></select></div><div class="fg"><label class="fl">Idade</label><input type="number" class="fc" id="uI"></div></div>
       <div class="fg"><label class="fl">Notas</label><textarea class="fc fta" id="uNo"></textarea></div>
+      <div class="fg" style="background:var(--gray-50);border-radius:var(--radius);padding:.75rem">
+        <label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;font-weight:600;cursor:pointer">
+          <input type="checkbox" id="uInternado" onchange="document.getElementById('uInternadoData').style.display=this.checked?'block':'none'" style="width:auto">
+          🏥 Utente internado
+        </label>
+        <div id="uInternadoData" style="display:none;margin-top:.5rem">
+          <label class="fl">Desde</label>
+          <input type="date" class="fc" id="uInternadoDesde">
+        </div>
+      </div>
       <div class="fg"><label class="fl">Etiquetas Clínicas</label><div style="display:flex;gap:.38rem;flex-wrap:wrap;margin-top:.22rem" id="bSel">
         <label style="display:flex;align-items:center;gap:.28rem;font-size:.8rem;cursor:pointer"><input type="checkbox" value="um"> <i class="ti ti-pill" style="margin-right:.2rem;color:#92400E"></i>Medicação</label>
         <label style="display:flex;align-items:center;gap:.28rem;font-size:.8rem;cursor:pointer"><input type="checkbox" value="uf"> <i class="ti ti-run" style="margin-right:.2rem;color:#155E75"></i>Fisioterapia</label>
@@ -1903,6 +1897,8 @@ async function loadFB(){
         if(saved.insulinaMoments)u.insulinaMoments=saved.insulinaMoments;
         if(saved.insulinaNota)u.insulinaNota=saved.insulinaNota;
         if(saved.notas)u.notas=saved.notas;
+        if(saved.internado!==undefined)u.internado=saved.internado;
+        if(saved.internadoDesde)u.internadoDesde=saved.internadoDesde;
       }
     });
   }
@@ -2222,6 +2218,9 @@ function editU(uid){
   document.getElementById('uN').value=u.nome;document.getElementById('uQ').value=u.quarto;
   document.getElementById('uR').value=u.res;document.getElementById('uI').value=u.idade;
   document.getElementById('uNo').value=u.notas||'';document.getElementById('uEid').value=uid;
+  document.getElementById('uInternado').checked=!!u.internado;
+  document.getElementById('uInternadoDesde').value=u.internadoDesde||'';
+  document.getElementById('uInternadoData').style.display=u.internado?'block':'none';
   document.querySelectorAll('#bSel input').forEach(cb=>cb.checked=(u.badges||[]).includes(cb.value));
   const te=document.getElementById('uTagsExtra');if(te)te.value=(u.tagsExtra||[]).join(', ');
   document.querySelectorAll('input[name=ins]').forEach(cb=>cb.checked=(u.insulinaMoments||[]).includes(cb.value));
@@ -2243,13 +2242,15 @@ function svUtente(){
   const tagsExtra=(document.getElementById('uTagsExtra')?document.getElementById('uTagsExtra').value:'').split(',').map(t=>t.trim()).filter(t=>t.length>0);
   const insulinaMoments=[...document.querySelectorAll('input[name=ins]:checked')].map(cb=>cb.value);
   const insulinaNota=document.getElementById('uInsulinaNota')?document.getElementById('uInsulinaNota').value:'';
+  const internado=document.getElementById('uInternado').checked;
+  const internadoDesde=internado?document.getElementById('uInternadoDesde').value:'';
   const eid=parseInt(document.getElementById('uEid').value)||0;
   const avs=['av-b','av-t','av-g','av-a'];
-  if(eid){const u=S.utentes.find(x=>x.id==eid);if(u)Object.assign(u,{nome:n,quarto:document.getElementById('uQ').value,res:document.getElementById('uR').value,idade:document.getElementById('uI').value,notas:document.getElementById('uNo').value,badges,insulinaMoments,insulinaNota,tagsExtra});}
-  else S.utentes.push({id:Date.now(),nome:n,quarto:document.getElementById('uQ').value,res:document.getElementById('uR').value,idade:document.getElementById('uI').value||'',notas:document.getElementById('uNo').value,badges,em:'👤',av:avs[Math.floor(Math.random()*4)]});
+  if(eid){const u=S.utentes.find(x=>x.id==eid);if(u)Object.assign(u,{nome:n,quarto:document.getElementById('uQ').value,res:document.getElementById('uR').value,idade:document.getElementById('uI').value,notas:document.getElementById('uNo').value,badges,insulinaMoments,insulinaNota,tagsExtra,internado,internadoDesde});}
+  else S.utentes.push({id:Date.now(),nome:n,quarto:document.getElementById('uQ').value,res:document.getElementById('uR').value,idade:document.getElementById('uI').value||'',notas:document.getElementById('uNo').value,badges,internado,internadoDesde,em:'👤',av:avs[Math.floor(Math.random()*4)]});
   cm('mU');document.getElementById('uEid').value='';document.getElementById('mUt').innerHTML='<i class="ti ti-user-plus" style="margin-right:.3rem"></i>Novo Utente';
   // Save utentes badges to Firebase
-  fbS('utentes_badges', S.utentes.map(u=>({id:u.id,badges:u.badges||[],tagsExtra:u.tagsExtra||[],insulinaMoments:u.insulinaMoments||[],insulinaNota:u.insulinaNota||'',notas:u.notas||''})));
+  fbS('utentes_badges', S.utentes.map(u=>({id:u.id,badges:u.badges||[],tagsExtra:u.tagsExtra||[],insulinaMoments:u.insulinaMoments||[],insulinaNota:u.insulinaNota||'',notas:u.notas||'',internado:u.internado||false,internadoDesde:u.internadoDesde||''})));
   toast(`<strong>👥 Utente guardado!</strong><br>${n}`);rAll();
 }
 function delU(uid){if(!confirm('Eliminar utente?'))return;S.utentes=S.utentes.filter(x=>x.id!=uid);rAll();}
@@ -2789,6 +2790,7 @@ function rUtentes(){
       :`<div class="uavw"><div class="uav ${u.av||'av-b'}">${u.em}</div><label class="ucam" title="Adicionar foto">📷<input type="file" accept="image/*" onchange="uploadFoto(${u.id},this)"></label></div>`;
     return`<div class="uc" data-uid="${u.id}" onclick="selecionarUtente(${u.id})">
       <div class="uch">${avH}<div><div class="un">${u.nome}</div><div class="us">Q.${u.quarto} · ${rNome(u.res)} · ${u.idade||'?'} anos</div></div></div>
+      ${u.internado?`<div class="uno" style="background:#FEE2E2;color:#DC2626;font-weight:600">🏥 Internado${u.internadoDesde?` desde ${new Date(u.internadoDesde+'T12:00:00').toLocaleDateString('pt-PT',{day:'numeric',month:'short'})}`:''}</div>`:''}
       ${u.notas?`<div class="uno">${u.notas}</div>`:''}
       <div class="ubg">
         ${(u.badges||[]).map(b=>`<span class="ub ${b}">${bLbl[b]||b}</span>`).join('')}
@@ -4775,7 +4777,7 @@ function rIncont(){
       const chavesJs = '[' + g.keys.map(k=>"'"+String(k).replace(/'/g,"\\'")+"'").join(',') + ']';
       html += `<div onclick="verRegistosPorKeys(${chavesJs},'${g.utente.replace(/'/g,"\\'")}','${g.res}')" style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:.65rem .85rem;cursor:pointer">
         <div style="font-weight:600;font-size:.85rem;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">
-          ${g.utente}
+          <span>${g.utente}${(utentesPorNome[g.utente.trim().toLowerCase()]||{}).internado?' <span style="background:#FEE2E2;color:#DC2626;font-size:.65rem;font-weight:700;padding:.1rem .4rem;border-radius:10px;vertical-align:middle">🏥 Internado</span>':''}</span>
           <i class="ti ti-chevron-right" style="color:var(--gray-300);font-size:.9rem"></i>
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:.35rem">${chipsHtml || '<span style="color:var(--gray-300);font-size:.75rem">Sem quantidades</span>'}</div>
