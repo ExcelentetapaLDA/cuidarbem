@@ -4762,6 +4762,12 @@ function rIncont(){
 
   const utentesPorNome = {};
   utentesAtivos.forEach(u=>{ utentesPorNome[u.nome.trim().toLowerCase()] = u; });
+  const internamentosPorNome2 = {};
+  Object.values(DB.internamentos||{}).forEach(it=>{
+    if(it.fim) return;
+    const chave = (it.utente||'').trim().toLowerCase();
+    if(!internamentosPorNome2[chave] || it.inicio>internamentosPorNome2[chave].inicio) internamentosPorNome2[chave] = it;
+  });
 
   const porPiso = {};
   Object.values(porUtente).forEach(g=>{
@@ -4794,7 +4800,7 @@ function rIncont(){
       const chavesJs = '[' + g.keys.map(k=>"'"+String(k).replace(/'/g,"\\'")+"'").join(',') + ']';
       html += `<div onclick="verRegistosPorKeys(${chavesJs},'${g.utente.replace(/'/g,"\\'")}','${g.res}')" style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:.65rem .85rem;cursor:pointer">
         <div style="font-weight:600;font-size:.85rem;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">
-          <span>${g.utente}${(utentesPorNome[g.utente.trim().toLowerCase()]||{}).internado?' <span style="background:#FEE2E2;color:#DC2626;font-size:.65rem;font-weight:700;padding:.1rem .4rem;border-radius:10px;vertical-align:middle">🏥 Internado</span>':''}</span>
+          <span>${g.utente}${internamentosPorNome2[g.utente.trim().toLowerCase()]?' <span style="background:#FEE2E2;color:#DC2626;font-size:.65rem;font-weight:700;padding:.1rem .4rem;border-radius:10px;vertical-align:middle">🏥 Internado</span>':''}</span>
           <i class="ti ti-chevron-right" style="color:var(--gray-300);font-size:.9rem"></i>
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:.35rem">${chipsHtml || '<span style="color:var(--gray-300);font-size:.75rem">Sem quantidades</span>'}</div>
