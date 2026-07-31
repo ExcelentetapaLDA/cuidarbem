@@ -152,6 +152,9 @@ body.is-adm .adm-only{display:inline-flex!important}
 .pg.active{display:block;animation:fi .2s ease}
 @keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem;flex-wrap:wrap;gap:.5rem}
+.regtab{background:none;border:none;border-bottom:2.5px solid transparent;padding:.6rem .3rem;margin-right:1.2rem;font-size:.85rem;font-weight:600;color:var(--gray-400);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s}
+.regtab:hover{color:var(--gray-600)}
+.regtab.active{color:var(--teal);border-bottom-color:var(--teal)}
 .ph-title{font-size:1.25rem;font-weight:700;color:var(--gray-900)}
 .ph-sub{font-size:.76rem;color:var(--gray-500);font-weight:400;margin-top:.1rem}
 
@@ -631,9 +634,7 @@ body.is-adm .adm-only{display:inline-flex!important}
       <div class="ni adm-only" data-p="equipa" onclick="goto('equipa',this)"><i class="ti ti-user ni-ic" style="background:#F3E8FF;color:#9C27B0"></i>Colaboradores</div>
       <div class="ni" data-p="quedas" onclick="goto('quedas',this)"><i class="ti ti-alert-triangle ni-ic" style="background:#FFF8E1;color:#F59E0B"></i>Quedas & Ocorrências</div>
       <div class="ni" data-p="stock" onclick="goto('stock',this)"><i class="ti ti-box ni-ic" style="background:#E8F4FF;color:#3B82F6"></i>Stock de Material</div>
-      <div class="ni" data-p="incont" onclick="goto('incont',this)"><i class="ti ti-shirt ni-ic" style="background:#FCE4EC;color:#E91E63"></i>Incontinência</div>
-      <div class="ni" data-p="internamentos" onclick="goto('internamentos',this)"><i class="ti ti-building-hospital ni-ic" style="background:#FEE2E2;color:#DC2626"></i>Internamentos</div>
-      <div class="ni" data-p="entregas" onclick="goto('entregas',this)"><i class="ti ti-package ni-ic" style="background:#DBEAFE;color:#2563EB"></i>Entregas de Material</div>
+      <div class="ni" data-p="incont" onclick="goto('incont',this)"><i class="ti ti-shirt ni-ic" style="background:#FCE4EC;color:#E91E63"></i>Registos do Utente</div>
       <div class="ni" data-p="relatorios" onclick="goto('relatorios',this)"><i class="ti ti-chart-bar ni-ic" style="background:#E6F7F5;color:#2DBDAD"></i>Relatórios</div>
       <div class="ni" data-p="turno" onclick="goto('turno',this)"><i class="ti ti-notes ni-ic" style="background:#EDF6E5;color:#4CAF50"></i>Registo de Turno</div>
       <div class="ni adm-only" data-p="etiq-gestao" onclick="goto('etiq-gestao',this)"><i class="ti ti-tag ni-ic" style="background:#F3E8FF;color:#9C27B0"></i>Gerir Etiquetas</div>
@@ -897,6 +898,11 @@ body.is-adm .adm-only{display:inline-flex!important}
 
       <!-- INCONTINÊNCIA -->
       <div class="pg" id="pg-incont">
+        <div class="regtabs" style="display:flex;gap:.4rem;margin-bottom:1rem;border-bottom:1px solid var(--border)">
+          <button class="regtab active" onclick="goto('incont',document.querySelector('[data-p=incont]'))">🩱 Incontinência</button>
+          <button class="regtab" onclick="goto('internamentos',document.querySelector('[data-p=incont]'))">🏥 Internamentos</button>
+          <button class="regtab" onclick="goto('entregas',document.querySelector('[data-p=incont]'))">📦 Entregas de Material</button>
+        </div>
         <div class="ph">
           <div><div class="ph-title">Registo de Incontinência</div><div class="ph-sub" id="incontSub"></div></div>
           <div style="display:flex;gap:.4rem;flex-wrap:wrap">
@@ -924,6 +930,11 @@ body.is-adm .adm-only{display:inline-flex!important}
 
       <!-- INTERNAMENTOS -->
       <div class="pg" id="pg-internamentos">
+        <div class="regtabs" style="display:flex;gap:.4rem;margin-bottom:1rem;border-bottom:1px solid var(--border)">
+          <button class="regtab" onclick="goto('incont',document.querySelector('[data-p=incont]'))">🩱 Incontinência</button>
+          <button class="regtab active" onclick="goto('internamentos',document.querySelector('[data-p=incont]'))">🏥 Internamentos</button>
+          <button class="regtab" onclick="goto('entregas',document.querySelector('[data-p=incont]'))">📦 Entregas de Material</button>
+        </div>
         <div class="ph">
           <div><div class="ph-title">Internamentos</div><div class="ph-sub">Registo de idas/estadias hospitalares por utente</div></div>
           <button class="btn btn-p" onclick="abrirInternamento()">+ Novo Internamento</button>
@@ -933,6 +944,11 @@ body.is-adm .adm-only{display:inline-flex!important}
 
       <!-- ENTREGAS DE MATERIAL -->
       <div class="pg" id="pg-entregas">
+        <div class="regtabs" style="display:flex;gap:.4rem;margin-bottom:1rem;border-bottom:1px solid var(--border)">
+          <button class="regtab" onclick="goto('incont',document.querySelector('[data-p=incont]'))">🩱 Incontinência</button>
+          <button class="regtab" onclick="goto('internamentos',document.querySelector('[data-p=incont]'))">🏥 Internamentos</button>
+          <button class="regtab active" onclick="goto('entregas',document.querySelector('[data-p=incont]'))">📦 Entregas de Material</button>
+        </div>
         <div class="ph">
           <div><div class="ph-title">Entregas de Material</div><div class="ph-sub">Registo do que a família traz, com assinatura</div></div>
           <button class="btn btn-p" onclick="abrirEntrega()">+ Nova Entrega</button>
@@ -1534,9 +1550,7 @@ body.is-adm .adm-only{display:inline-flex!important}
   <div class="mob-ni" onclick="gotoMob('utentes')"><i class="ti ti-users mob-ni-ic"></i>Utentes</div>
   <div class="mob-ni" onclick="gotoMob('quedas')"><i class="ti ti-alert-triangle mob-ni-ic"></i>Quedas & Ocorrências</div>
   <div class="mob-ni" onclick="gotoMob('stock')"><i class="ti ti-box mob-ni-ic"></i>Stock de Material</div>
-  <div class="mob-ni" onclick="gotoMob('incont')"><i class="ti ti-shirt mob-ni-ic"></i>Incontinência</div>
-  <div class="mob-ni" onclick="gotoMob('internamentos')"><i class="ti ti-building-hospital mob-ni-ic"></i>Internamentos</div>
-  <div class="mob-ni" onclick="gotoMob('entregas')"><i class="ti ti-package mob-ni-ic"></i>Entregas de Material</div>
+  <div class="mob-ni" onclick="gotoMob('incont')"><i class="ti ti-shirt mob-ni-ic"></i>Registos do Utente</div>
   <div class="mob-ni" onclick="gotoMob('relatorios')"><i class="ti ti-chart-bar mob-ni-ic"></i>Relatórios</div>
   <div class="mob-ni" onclick="gotoMob('turno')"><i class="ti ti-notes mob-ni-ic"></i>Registo de Turno</div>
   <div id="mobAdmItems">
