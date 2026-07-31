@@ -3994,6 +3994,7 @@ async function delIncont(key){
 function editIncont(key){
   const r = DB.incont && DB.incont[key];
   if(!r) return;
+  popSel('inRes', false);
   const dl = document.getElementById('utentesDatalist');
   if(dl){
     dl.innerHTML = '';
