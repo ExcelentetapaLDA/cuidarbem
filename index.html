@@ -1427,7 +1427,7 @@ body.is-adm .adm-only{display:inline-flex!important}
         </div>
       </div>
       <div class="fg"><label class="fl">Utente</label>
-        <input type="text" class="fc" id="inUtente" placeholder="Nome do utente" list="inUtenteList">
+        <input type="text" class="fc" id="inUtente" placeholder="Nome do utente" list="inUtenteList" onchange="carregarInternamentoDoUtente(this.value)">
         <datalist id="inUtenteList"></datalist>
       </div>
       <div style="background:var(--gray-50);border-radius:var(--radius);padding:.75rem;margin-bottom:.5rem">
@@ -1467,6 +1467,18 @@ body.is-adm .adm-only{display:inline-flex!important}
       </div>
       <div class="fg"><label class="fl">Observações</label><input type="text" class="fc" id="inObs" placeholder="Ex: Episódio de diarreia, pele irritada..."></div>
       <div class="fg"><label class="fl">Data</label><input type="date" class="fc" id="inData"></div>
+
+      <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:var(--radius);padding:.75rem;margin-top:.5rem">
+        <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;font-weight:600;color:#991B1B;cursor:pointer">
+          <input type="checkbox" id="inInternado" onchange="toggleInInternado()" style="width:auto">
+          🏥 Esteve/está internado(a)
+        </label>
+        <div id="inInternadoDatas" style="display:none;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.6rem">
+          <div class="fg" style="margin:0"><label class="fl">Data início</label><input type="date" class="fc" id="inIntInicio"></div>
+          <div class="fg" style="margin:0"><label class="fl">Data fim (se já regressou)</label><input type="date" class="fc" id="inIntFim"></div>
+        </div>
+      </div>
+      <input type="hidden" id="inIntEid">
       <input type="hidden" id="inEid">
     </div>
     <div class="mf"><button class="btn btn-g" onclick="cm('mIncont')">Cancelar</button><button class="btn btn-p" onclick="svIncont()">Guardar</button></div>
@@ -4022,6 +4034,33 @@ function abrirIncont(){
   document.getElementById('mIncont').classList.add('open');
 }
 
+function toggleInInternado(){
+  const on = document.getElementById('inInternado').checked;
+  document.getElementById('inInternadoDatas').style.display = on ? 'grid' : 'none';
+}
+function carregarInternamentoDoUtente(nome){
+  nome = (nome||'').trim();
+  document.getElementById('inInternado').checked = false;
+  document.getElementById('inIntInicio').value = '';
+  document.getElementById('inIntFim').value = '';
+  document.getElementById('inIntEid').value = '';
+  toggleInInternado();
+  if(!nome || !DB.internamentos) return;
+  const chave = nome.toLowerCase();
+  let encontrado = null, key = null;
+  Object.entries(DB.internamentos).forEach(([k,it])=>{
+    if((it.utente||'').trim().toLowerCase()!==chave) return;
+    if(!encontrado || it.inicio>encontrado.inicio){ encontrado = it; key = k; }
+  });
+  if(encontrado){
+    document.getElementById('inInternado').checked = true;
+    document.getElementById('inIntInicio').value = encontrado.inicio||'';
+    document.getElementById('inIntFim').value = encontrado.fim||'';
+    document.getElementById('inIntEid').value = key;
+    toggleInInternado();
+  }
+}
+
 async function svIncont(){
   const utente = document.getElementById('inUtente').value.trim();
   if(!utente){alert('Indica o nome do utente.');return;}
@@ -4093,6 +4132,31 @@ async function svIncont(){
     }
   }
   
+  // Guardar nota de internamento, se marcada
+  const internadoOn = document.getElementById('inInternado').checked;
+  const intEid = document.getElementById('inIntEid').value;
+  if(internadoOn){
+    const intInicio = document.getElementById('inIntInicio').value || todayStr();
+    const intObj = {
+      utente, res: obj.res,
+      inicio: intInicio, fim: document.getElementById('inIntFim').value || '',
+      nota: 'Registado a partir do Registo de Incontinência',
+      ts: Date.now(), quem: sesN()
+    };
+    if(!DB.internamentos) DB.internamentos = {};
+    if(intEid){
+      await fbS(`internamentos/${intEid}`, intObj);
+      DB.internamentos[intEid] = intObj;
+    } else {
+      const ik = await fbP('internamentos', intObj);
+      if(ik) DB.internamentos[ik] = intObj;
+    }
+  } else if(intEid){
+    // desmarcado — apaga o internamento que existia
+    await fbD(`internamentos/${intEid}`);
+    if(DB.internamentos) delete DB.internamentos[intEid];
+  }
+
   cm('mIncont');
   toast(`<strong>🩱 Registo guardado!</strong><br>${utente}`);
   rAll();
@@ -4130,6 +4194,7 @@ function editIncont(key){
   document.getElementById('inPensos').value = r.pensos || 0;
   document.getElementById('inResguardos').value = r.resguardos || 0;
   document.getElementById('inEid').value = key;
+  carregarInternamentoDoUtente(r.utente);
   document.getElementById('mIncontT').innerHTML = '<i class="ti ti-pencil" style="margin-right:.3rem"></i>Editar Consumo';
   cm('mIncontDetalhe');
   document.getElementById('mIncont').classList.add('open');
@@ -4339,6 +4404,7 @@ function novoRegistoParaUtente(nome, res){
       const elRes = document.getElementById('inRes');
       if(elRes) elRes.value = res;
     }
+    carregarInternamentoDoUtente(nome);
   }, 30);
 }
 
