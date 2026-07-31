@@ -4653,7 +4653,7 @@ async function enviarEmailEntrega(obj){
   }
   try{
     const r = await fetch('https://faturasai-production.up.railway.app/api/enviar-email-generico', {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST', headers:{'Content-Type':'text/plain'},
       body: JSON.stringify({
         secret: 'cbem_2026_entregas_x7q',
         to: obj.emailFamiliar,
