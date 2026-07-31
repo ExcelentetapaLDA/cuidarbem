@@ -4527,15 +4527,38 @@ async function svEntrega(){
   enviarEmailEntrega(obj);
 }
 
-function enviarEmailEntrega(obj){
-  const nomesMes = {'01':'Janeiro','02':'Fevereiro','03':'Março','04':'Abril','05':'Maio','06':'Junho','07':'Julho','08':'Agosto','09':'Setembro','10':'Outubro','11':'Novembro','12':'Dezembro'};
-  const dataLegivel = obj.data;
-  const listaItens = obj.itens.map(it=>`- ${it.qtd}x ${it.material}`).join('\n');
-  const corpo = `Confirmação de entrega de material\n\nUtente: ${obj.utente}\nEntregue por: ${obj.familiar}\nData: ${dataLegivel}\n\nMaterial entregue:\n${listaItens}\n\nAssinado digitalmente no CuidarBem.\n\n${rNome(obj.res)}`;
-  const destinatarios = [obj.emailFamiliar].filter(Boolean).join(',');
-  const mailto = `mailto:${encodeURIComponent(destinatarios)}?subject=${encodeURIComponent('Entrega de material — '+obj.utente)}&body=${encodeURIComponent(corpo)}`;
-  if(confirm('Registo guardado. Queres abrir agora o teu email para enviar a confirmação ao familiar?')){
-    window.open(mailto, '_blank');
+async function enviarEmailEntrega(obj){
+  const listaItens = obj.itens.map(it=>`<li>${it.qtd}× ${it.material}</li>`).join('');
+  const html = `<div style="font-family:Arial,sans-serif;font-size:14px;color:#333;max-width:560px">
+    <h2 style="color:#2563EB">📦 Confirmação de entrega de material</h2>
+    <p><strong>Utente:</strong> ${obj.utente}<br>
+    <strong>Entregue por:</strong> ${obj.familiar}<br>
+    <strong>Data:</strong> ${obj.data}<br>
+    <strong>Residência:</strong> ${rNome(obj.res)}</p>
+    <p><strong>Material entregue:</strong></p>
+    <ul>${listaItens}</ul>
+    <p style="color:#888;font-size:12px">Assinado digitalmente pelo familiar no CuidarBem.</p>
+    <img src="${obj.assinatura}" style="height:60px;border:1px solid #eee;border-radius:6px">
+  </div>`;
+  if(!obj.emailFamiliar){
+    toast('Registo guardado, mas sem email do familiar não foi possível enviar a confirmação.');
+    return;
+  }
+  try{
+    const r = await fetch('https://faturasai-production.up.railway.app/api/enviar-email-generico', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        secret: 'cbem_2026_entregas_x7q',
+        to: obj.emailFamiliar,
+        cc: 'suse.carvalho@casadossonhos-residencias.com',
+        subject: `Entrega de material — ${obj.utente}`,
+        html
+      })
+    });
+    if(r.ok) toast('<strong>📧 Email de confirmação enviado!</strong>');
+    else toast('<strong>⚠️ Registo guardado, mas o email falhou ao enviar.</strong>','err');
+  } catch(e){
+    toast('<strong>⚠️ Registo guardado, mas não consegui enviar o email (ligação).</strong>','err');
   }
 }
 
