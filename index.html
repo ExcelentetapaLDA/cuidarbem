@@ -3891,6 +3891,9 @@ function inFiltroMes(valor){
 
 function abrirIncont(){
   popSel('inRes', false);
+  if(ses.role==='adm' && ses.admRes && ses.admRes!=='all'){
+    document.getElementById('inRes').value = ses.admRes;
+  }
   // Populate utente datalist
   const dl = document.getElementById('inUtenteList');
   if(dl){
@@ -4142,9 +4145,9 @@ function exportarIncontinencia(){
 function verRegistosUtente(utenteNome, resId){
   const all = Object.entries(DB.incont||{}).map(([k,v])=>({...v,_key:k}));
   const regs = all.filter(x=>x.utente===utenteNome && x.res===resId).sort((a,b)=>b.ts-a.ts);
-  verRegistosPorKeys(regs.map(r=>r._key), utenteNome);
+  verRegistosPorKeys(regs.map(r=>r._key), utenteNome, resId);
 }
-function verRegistosPorKeys(keys, tituloNome){
+function verRegistosPorKeys(keys, tituloNome, res){
   const all = Object.entries(DB.incont||{}).map(([k,v])=>({...v,_key:k}));
   const setKeys = new Set(keys||[]);
   const regs = all.filter(x=>setKeys.has(x._key)).sort((a,b)=>b.ts-a.ts);
@@ -4153,7 +4156,7 @@ function verRegistosPorKeys(keys, tituloNome){
   if(!regs.length){
     html += `<div style="text-align:center;padding:1rem">
       <p style="color:var(--gray-400);margin-bottom:.85rem">Sem registos ainda.</p>
-      <button class="btn btn-p" onclick="cm('mIncontDetalhe');novoRegistoParaUtente('${tituloNome.replace(/'/g,"\\'")}')"><i class="ti ti-plus" style="margin-right:.3rem"></i>Registar Consumo</button>
+      <button class="btn btn-p" onclick="cm('mIncontDetalhe');novoRegistoParaUtente('${tituloNome.replace(/'/g,"\\'")}','${res||''}')"><i class="ti ti-plus" style="margin-right:.3rem"></i>Registar Consumo</button>
     </div>`;
   }
   regs.forEach(r=>{
@@ -4190,11 +4193,15 @@ function verRegistosPorKeys(keys, tituloNome){
   modal.classList.add('open');
 }
 
-function novoRegistoParaUtente(nome){
+function novoRegistoParaUtente(nome, res){
   om('mIncont');
   setTimeout(()=>{
     const el = document.getElementById('inUtente');
     if(el) el.value = nome;
+    if(res){
+      const elRes = document.getElementById('inRes');
+      if(elRes) elRes.value = res;
+    }
   }, 30);
 }
 
@@ -4360,7 +4367,7 @@ function rIncont(){
       if(g.resguardos) chips.push({l:'Resguardos', v:g.resguardos, c:'#7C3AED'});
       const chipsHtml = chips.map(c=>`<span style="background:${c.c}18;color:${c.c};font-weight:700;font-size:.72rem;padding:.25rem .55rem;border-radius:20px;white-space:nowrap">${c.v} <span style="font-weight:500">${c.l}</span></span>`).join('');
       const chavesJs = '[' + g.keys.map(k=>"'"+String(k).replace(/'/g,"\\'")+"'").join(',') + ']';
-      html += `<div onclick="verRegistosPorKeys(${chavesJs},'${g.utente.replace(/'/g,"\\'")}')" style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:.65rem .85rem;cursor:pointer">
+      html += `<div onclick="verRegistosPorKeys(${chavesJs},'${g.utente.replace(/'/g,"\\'")}','${g.res}')" style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:.65rem .85rem;cursor:pointer">
         <div style="font-weight:600;font-size:.85rem;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">
           ${g.utente}
           <i class="ti ti-chevron-right" style="color:var(--gray-300);font-size:.9rem"></i>
