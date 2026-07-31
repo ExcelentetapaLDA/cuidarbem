@@ -4659,6 +4659,7 @@ async function enviarEmailEntrega(obj){
         to: obj.emailFamiliar,
         cc: 'suse.carvalho@casadossonhos-residencias.com',
         subject: `Entrega de material — ${obj.utente}`,
+        empresa: obj.res==='r1' ? 'sva' : 'cds',
         html
       })
     });
