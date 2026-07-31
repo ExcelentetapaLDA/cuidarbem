@@ -4839,13 +4839,24 @@ function rIncont(){
   const porPiso = {};
   Object.values(porUtente).forEach(g=>{
     const u = utentesPorNome[g.utente.trim().toLowerCase()];
-    const piso = u ? (u.piso && u.piso!=='Piso ?' ? u.piso : pisoDoQuarto(u.quarto)) : 'Outro / Não definido';
+    let piso;
+    if(u && u.res==='r1'){
+      piso = u.setor || 'Outro / Não definido';
+    } else {
+      piso = u ? (u.piso && u.piso!=='Piso ?' ? u.piso : pisoDoQuarto(u.quarto)) : 'Outro / Não definido';
+    }
     if(!porPiso[piso]) porPiso[piso] = [];
     porPiso[piso].push(g);
   });
 
-  const ordemPisos = ['Piso 3','Piso 4','Piso 5','Piso 6','Outro / Não definido'];
-  const coresPiso = {'Piso 3':'#0EA5E9','Piso 4':'#0D9488','Piso 5':'#C9973A','Piso 6':'#7C3AED','Outro / Não definido':'#94A3B8'};
+  const ordemPisos = ['Piso 3','Piso 4','Piso 5','Piso 6',
+    'Ala A','Ala B','Ala C','Ala D',
+    'Villa Alentejo','Villa Algarve','Villa Alto Douro','Villa Beiras','Villa Ribatejo',
+    'Outro / Não definido'];
+  const coresPiso = {'Piso 3':'#0EA5E9','Piso 4':'#0D9488','Piso 5':'#C9973A','Piso 6':'#7C3AED',
+    'Ala A':'#0EA5E9','Ala B':'#0D9488','Ala C':'#C9973A','Ala D':'#7C3AED',
+    'Villa Alentejo':'#DB2777','Villa Algarve':'#059669','Villa Alto Douro':'#B45309','Villa Beiras':'#4F46E5','Villa Ribatejo':'#DC2626',
+    'Outro / Não definido':'#94A3B8'};
 
   ordemPisos.forEach(piso=>{
     const lista = porPiso[piso];
