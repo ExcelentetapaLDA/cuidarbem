@@ -2784,13 +2784,22 @@ function rUtentes(){
   if(utResFA)ut=ut.filter(u=>u.res===utResFA);
   if(utFA!=='all')ut=ut.filter(u=>(u.badges||[]).includes(utFA));
   const isAdm=ses.role==='adm';
+  const internamentosPorNome = {};
+  Object.values(DB.internamentos||{}).forEach(it=>{
+    if(it.fim) return; // só interessa quem está internado agora (sem data de fim)
+    const chave = (it.utente||'').trim().toLowerCase();
+    if(!internamentosPorNome[chave] || it.inicio>internamentosPorNome[chave].inicio){
+      internamentosPorNome[chave] = it;
+    }
+  });
   document.getElementById('lUt').innerHTML=ut.map(u=>{
+    const intAtivo = internamentosPorNome[u.nome.trim().toLowerCase()];
     const avH=u.foto
       ?`<div class="uavw"><img class="uphoto" src="${u.foto}" alt="${u.nome}"><label class="ucam" title="Alterar foto">📷<input type="file" accept="image/*" onchange="uploadFoto(${u.id},this)"></label></div>`
       :`<div class="uavw"><div class="uav ${u.av||'av-b'}">${u.em}</div><label class="ucam" title="Adicionar foto">📷<input type="file" accept="image/*" onchange="uploadFoto(${u.id},this)"></label></div>`;
     return`<div class="uc" data-uid="${u.id}" onclick="selecionarUtente(${u.id})">
       <div class="uch">${avH}<div><div class="un">${u.nome}</div><div class="us">Q.${u.quarto} · ${rNome(u.res)} · ${u.idade||'?'} anos</div></div></div>
-      ${u.internado?`<div class="uno" style="background:#FEE2E2;color:#DC2626;font-weight:600">🏥 Internado${u.internadoDesde?` desde ${new Date(u.internadoDesde+'T12:00:00').toLocaleDateString('pt-PT',{day:'numeric',month:'short'})}`:''}</div>`:''}
+      ${intAtivo?`<div class="uno" style="background:#FEE2E2;color:#DC2626;font-weight:600">🏥 Internado desde ${new Date(intAtivo.inicio+'T12:00:00').toLocaleDateString('pt-PT',{day:'numeric',month:'short'})}${intAtivo.nota?` — ${intAtivo.nota}`:''}</div>`:u.internado?`<div class="uno" style="background:#FEE2E2;color:#DC2626;font-weight:600">🏥 Internado${u.internadoDesde?` desde ${new Date(u.internadoDesde+'T12:00:00').toLocaleDateString('pt-PT',{day:'numeric',month:'short'})}`:''}</div>`:''}
       ${u.notas?`<div class="uno">${u.notas}</div>`:''}
       <div class="ubg">
         ${(u.badges||[]).map(b=>`<span class="ub ${b}">${bLbl[b]||b}</span>`).join('')}
@@ -2798,6 +2807,7 @@ function rUtentes(){
       </div>
       <div style="display:flex;gap:.32rem;margin-top:.62rem">
       <button class="btn btn-g btn-s" style="flex:1" onclick="abrirProcesso(${u.id})"><i class="ti ti-folder-open" style="margin-right:.3rem"></i>Processo</button>
+      <button class="btn btn-g btn-s" onclick="event.stopPropagation();novoInternamentoParaUtente('${u.nome.replace(/'/g,"\\'")}','${u.res}')" title="Registar internamento"><i class="ti ti-building-hospital"></i></button>
       ${isAdm?`<button class="btn btn-g btn-s" onclick="editU(${u.id})"><i class="ti ti-pencil"></i></button><button class="btn btn-r btn-s" onclick="delU(${u.id})">🗑</button>`:''}
     </div>
     </div>`;
@@ -4333,6 +4343,13 @@ function novoRegistoParaUtente(nome, res){
 }
 
 // ===== INTERNAMENTOS =====
+function novoInternamentoParaUtente(nome, res){
+  om('mInternamento');
+  setTimeout(()=>{
+    document.getElementById('itUtente').value = nome;
+    if(res) document.getElementById('itRes').value = res;
+  }, 30);
+}
 function abrirInternamento(eid){
   popSel('itRes', false);
   if(ses.role==='adm' && ses.admRes && ses.admRes!=='all'){
