@@ -4645,8 +4645,7 @@ async function enviarEmailEntrega(obj){
     <strong>Residência:</strong> ${rNome(obj.res)}</p>
     <p><strong>Material entregue:</strong></p>
     <ul>${listaItens}</ul>
-    <p style="color:#888;font-size:12px">Assinado digitalmente pelo familiar no CuidarBem.</p>
-    <img src="${obj.assinatura}" style="height:60px;border:1px solid #eee;border-radius:6px">
+    <p style="color:#888;font-size:12px">Assinado digitalmente pelo familiar no CuidarBem (consulte a app para ver a assinatura).</p>
   </div>`;
   if(!obj.emailFamiliar){
     toast('Registo guardado, mas sem email do familiar não foi possível enviar a confirmação.');
@@ -4663,10 +4662,17 @@ async function enviarEmailEntrega(obj){
         html
       })
     });
-    if(r.ok) toast('<strong>📧 Email de confirmação enviado!</strong>');
-    else toast('<strong>⚠️ Registo guardado, mas o email falhou ao enviar.</strong>','err');
+    if(r.ok){
+      toast('<strong>📧 Email de confirmação enviado!</strong>');
+    } else {
+      let detalhe = '';
+      try{ detalhe = (await r.json()).detail || ''; }catch(e){}
+      console.error('Falha ao enviar email:', r.status, detalhe);
+      toast(`<strong>⚠️ Registo guardado, mas o email falhou.</strong><br>Erro ${r.status}${detalhe?': '+detalhe:''}`,'err');
+    }
   } catch(e){
-    toast('<strong>⚠️ Registo guardado, mas não consegui enviar o email (ligação).</strong>','err');
+    console.error('Erro de ligação ao enviar email:', e);
+    toast(`<strong>⚠️ Registo guardado, mas não consegui enviar o email.</strong><br>${e.message||'Erro de ligação'}`,'err');
   }
 }
 
