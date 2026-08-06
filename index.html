@@ -4604,6 +4604,15 @@ function renderItensEntrega(){
 }
 
 async function svEntrega(){
+  const pendMaterial = document.getElementById('egNovoMaterial').value.trim();
+  const pendQtd = parseInt(document.getElementById('egNovaQtd').value) || 0;
+  if(pendMaterial && pendQtd > 0){
+    egItens.push({material: pendMaterial, qtd: pendQtd});
+    document.getElementById('egNovoMaterial').value = '';
+    document.getElementById('egNovaQtd').value = '1';
+    renderItensEntrega();
+  }
+
   const utente = document.getElementById('egUtente').value.trim();
   const familiar = document.getElementById('egFamiliar').value.trim();
   const emailFamiliar = document.getElementById('egEmailFamiliar').value.trim();
