@@ -5024,7 +5024,7 @@ function abrirRestricaoEst(){
 }
 function renderRestricoesLista(){
   const el = document.getElementById('estRestricoesLista');
-  const all = Object.entries(DB.esteticaRestricoes||{}).map(([k,v])=>({...v,_key:k})).sort((a,b)=>a.utente.localeCompare(b.utente));
+  const all = filt(Object.entries(DB.esteticaRestricoes||{}).map(([k,v])=>({...v,_key:k}))).sort((a,b)=>a.utente.localeCompare(b.utente));
   el.innerHTML = all.length ? all.map(r=>`
     <div style="display:flex;justify-content:space-between;align-items:center;background:var(--gray-50);border:1px solid var(--border);border-radius:8px;padding:.4rem .6rem;margin-bottom:.3rem;font-size:.8rem">
       <span><strong>${r.utente}</strong> — ${r.restricao}</span>
