@@ -4925,18 +4925,24 @@ async function delEntrega(key){
 function restricoesDoUtente(nome){
   return Object.entries(DB.esteticaRestricoes||{}).map(([k,v])=>({...v,_key:k})).filter(r=>r.utente===nome);
 }
+function nomeCurto(nome){
+  const partes = (nome||'').trim().split(/\s+/).filter(Boolean);
+  if(partes.length<=2) return partes.join(' ');
+  return partes[0] + ' ' + partes[partes.length-1];
+}
 function preencherEstUtenteList(){
   const dl = document.getElementById('estUtenteList');
   if(!dl) return;
   dl.innerHTML = '';
   filt(S.utentes).forEach(u=>{
     const o = document.createElement('option');
-    o.value = u.nome;
+    o.value = nomeCurto(u.nome);
     dl.appendChild(o);
   });
 }
 function acharUtentePorNome(nome){
-  return (S.utentes||[]).find(x=>x.nome.trim().toLowerCase()===(nome||'').trim().toLowerCase());
+  const alvo = (nome||'').trim().toLowerCase();
+  return (S.utentes||[]).find(x=>nomeCurto(x.nome).toLowerCase()===alvo || x.nome.trim().toLowerCase()===alvo);
 }
 
 // --- Novo Registo ---
@@ -5117,7 +5123,7 @@ async function resolverNecessidadeEst(key){
 // --- Render principal ---
 function rEstetica(){
   // Pendentes (necessidades por resolver)
-  const pend = Object.entries(DB.esteticaPendentes||{}).map(([k,v])=>({...v,_key:k})).filter(p=>!p.resolvido).sort((a,b)=>b.ts-a.ts);
+  const pend = filt(Object.entries(DB.esteticaPendentes||{}).map(([k,v])=>({...v,_key:k}))).filter(p=>!p.resolvido).sort((a,b)=>b.ts-a.ts);
   const pendEl = document.getElementById('estPendentesContent');
   if(pend.length){
     pendEl.innerHTML = `<div style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:var(--radius-lg);padding:.75rem 1rem">
@@ -5130,7 +5136,7 @@ function rEstetica(){
   } else { pendEl.innerHTML = ''; }
 
   // Restrições ativas (resumo)
-  const rx = Object.entries(DB.esteticaRestricoes||{}).map(([k,v])=>({...v,_key:k})).sort((a,b)=>a.utente.localeCompare(b.utente));
+  const rx = filt(Object.entries(DB.esteticaRestricoes||{}).map(([k,v])=>({...v,_key:k}))).sort((a,b)=>a.utente.localeCompare(b.utente));
   const rxEl = document.getElementById('estRestricoesContent');
   if(rx.length){
     rxEl.innerHTML = `<div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:var(--radius-lg);padding:.75rem 1rem">
