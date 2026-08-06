@@ -5561,15 +5561,20 @@ function distNavegar(dir){
 // ===== ELIMINAÇÃO =====
 let elimData = [];
 
+function pisoOuAla(u){
+  if(!u) return 'Outro / Não definido';
+  if(u.res==='r1') return u.setor || 'Outro / Não definido';
+  return (u.piso && u.piso!=='Piso ?') ? u.piso : pisoDoQuarto(u.quarto);
+}
 function pisosDisponiveis(){
   const ut = filt(S.utentes);
   const set = new Set();
-  ut.forEach(u=>set.add((u.piso && u.piso!=='Piso ?') ? u.piso : pisoDoQuarto(u.quarto)));
+  ut.forEach(u=>set.add(pisoOuAla(u)));
   return [...set].sort();
 }
 
 function utentesDoPiso(piso){
-  return filt(S.utentes).filter(u=>((u.piso && u.piso!=='Piso ?') ? u.piso : pisoDoQuarto(u.quarto))===piso)
+  return filt(S.utentes).filter(u=>pisoOuAla(u)===piso)
     .sort((a,b)=>(parseInt(a.quarto)||999)-(parseInt(b.quarto)||999));
 }
 
