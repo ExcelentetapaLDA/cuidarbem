@@ -635,6 +635,7 @@ body.is-adm .adm-only{display:inline-flex!important}
       <div class="ni" data-p="quedas" onclick="goto('quedas',this)"><i class="ti ti-alert-triangle ni-ic" style="background:#FFF8E1;color:#F59E0B"></i>Quedas & Ocorrências</div>
       <div class="ni" data-p="stock" onclick="goto('stock',this)"><i class="ti ti-box ni-ic" style="background:#E8F4FF;color:#3B82F6"></i>Stock de Material</div>
       <div class="ni" data-p="incont" onclick="goto('incont',this)"><i class="ti ti-shirt ni-ic" style="background:#FCE4EC;color:#E91E63"></i>Incontinência</div>
+      <div class="ni" data-p="estetica" onclick="goto('estetica',this)"><i class="ti ti-scissors ni-ic" style="background:#F3E8FF;color:#9C27B0"></i>Cabeleireiro & Estética</div>
       <div class="ni" data-p="relatorios" onclick="goto('relatorios',this)"><i class="ti ti-chart-bar ni-ic" style="background:#E6F7F5;color:#2DBDAD"></i>Relatórios</div>
       <div class="ni" data-p="turno" onclick="goto('turno',this)"><i class="ti ti-notes ni-ic" style="background:#EDF6E5;color:#4CAF50"></i>Registo de Turno</div>
       <div class="ni adm-only" data-p="etiq-gestao" onclick="goto('etiq-gestao',this)"><i class="ti ti-tag ni-ic" style="background:#F3E8FF;color:#9C27B0"></i>Gerir Etiquetas</div>
@@ -941,6 +942,21 @@ body.is-adm .adm-only{display:inline-flex!important}
           </div>
         </div>
         <div id="entregasContent"></div>
+      </div>
+
+      <!-- CABELEIREIRO & ESTÉTICA -->
+      <div class="pg" id="pg-estetica">
+        <div class="ph">
+          <div><div class="ph-title">Cabeleireiro & Estética</div><div class="ph-sub">Registo de serviços, alertas de agendamento e restrições por utente</div></div>
+          <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+            <button class="btn btn-g" onclick="abrirRestricaoEst()"><i class="ti ti-alert-triangle" style="margin-right:.3rem"></i>Restrições</button>
+            <button class="btn btn-g" onclick="abrirNecessidadeEst()"><i class="ti ti-bell" style="margin-right:.3rem"></i>Precisa de Agendar</button>
+            <button class="btn btn-p" onclick="abrirRegistoEst()">+ Novo Registo</button>
+          </div>
+        </div>
+        <div id="estPendentesContent" style="margin-bottom:1rem"></div>
+        <div id="estRestricoesContent" style="margin-bottom:1rem"></div>
+        <div id="estRegistosContent"></div>
       </div>
 
       <!-- MODO PAINEL -->
@@ -1567,6 +1583,85 @@ body.is-adm .adm-only{display:inline-flex!important}
   </div>
 </div>
 
+<div class="mo" id="mEstetica">
+  <div class="md" style="max-width:480px">
+    <div class="mh"><span class="mht"><i class="ti ti-scissors" style="margin-right:.3rem"></i>Novo Registo — Cabeleireiro/Estética</span><button class="mc" onclick="cm('mEstetica')">×</button></div>
+    <div class="mb">
+      <div class="fg"><label class="fl">Resid.</label><select class="fc" id="estRes"></select></div>
+      <div class="fg"><label class="fl">Piso/Ala</label>
+        <select class="fc" id="estPiso" onchange="estSelPiso(this.value)"><option value="">Selecionar piso/ala...</option></select>
+      </div>
+      <div id="estUtentesPiso" style="display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.5rem"></div>
+      <div id="estAvisoRestricao" style="display:none;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;padding:.6rem;margin-bottom:.6rem;font-size:.8rem;color:#991B1B"></div>
+      <input type="hidden" id="estUtente">
+      <div class="fg"><label class="fl">Serviço(s) realizado(s)</label>
+        <div id="estServicoChecks" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.2rem">
+          <label style="display:flex;align-items:center;gap:.25rem;font-size:.78rem;border:1px solid var(--border);border-radius:8px;padding:.3rem .55rem;cursor:pointer"><input type="checkbox" class="estSvChk" value="Corte mulher" onchange="toggleEstOutro()"> Corte mulher</label>
+          <label style="display:flex;align-items:center;gap:.25rem;font-size:.78rem;border:1px solid var(--border);border-radius:8px;padding:.3rem .55rem;cursor:pointer"><input type="checkbox" class="estSvChk" value="Brushing" onchange="toggleEstOutro()"> Brushing</label>
+          <label style="display:flex;align-items:center;gap:.25rem;font-size:.78rem;border:1px solid var(--border);border-radius:8px;padding:.3rem .55rem;cursor:pointer"><input type="checkbox" class="estSvChk" value="Corte e brushing" onchange="toggleEstOutro()"> Corte e brushing</label>
+          <label style="display:flex;align-items:center;gap:.25rem;font-size:.78rem;border:1px solid var(--border);border-radius:8px;padding:.3rem .55rem;cursor:pointer"><input type="checkbox" class="estSvChk" value="Corte + brushing + coloração" onchange="toggleEstOutro()"> Corte + brushing + coloração</label>
+          <label style="display:flex;align-items:center;gap:.25rem;font-size:.78rem;border:1px solid var(--border);border-radius:8px;padding:.3rem .55rem;cursor:pointer"><input type="checkbox" class="estSvChk" value="Coloração + brushing" onchange="toggleEstOutro()"> Coloração + brushing</label>
+          <label style="display:flex;align-items:center;gap:.25rem;font-size:.78rem;border:1px solid var(--border);border-radius:8px;padding:.3rem .55rem;cursor:pointer"><input type="checkbox" class="estSvChk" value="Madeixas" onchange="toggleEstOutro()"> Madeixas</label>
+          <label style="display:flex;align-items:center;gap:.25rem;font-size:.78rem;border:1px solid var(--border);border-radius:8px;padding:.3rem .55rem;cursor:pointer"><input type="checkbox" class="estSvChk" value="Ondulação" onchange="toggleEstOutro()"> Ondulação</label>
+          <label style="display:flex;align-items:center;gap:.25rem;font-size:.78rem;border:1px solid var(--border);border-radius:8px;padding:.3rem .55rem;cursor:pointer"><input type="checkbox" class="estSvChk" value="Corte masculino" onchange="toggleEstOutro()"> Corte masculino</label>
+          <label style="display:flex;align-items:center;gap:.25rem;font-size:.78rem;border:1px solid var(--border);border-radius:8px;padding:.3rem .55rem;cursor:pointer"><input type="checkbox" class="estSvChk" value="Manicure" onchange="toggleEstOutro()"> Manicure</label>
+          <label style="display:flex;align-items:center;gap:.25rem;font-size:.78rem;border:1px solid var(--border);border-radius:8px;padding:.3rem .55rem;cursor:pointer"><input type="checkbox" class="estSvChk" value="Pedicure" onchange="toggleEstOutro()"> Pedicure</label>
+          <label style="display:flex;align-items:center;gap:.25rem;font-size:.78rem;border:1px solid var(--border);border-radius:8px;padding:.3rem .55rem;cursor:pointer"><input type="checkbox" class="estSvChk" value="Depilação buço" onchange="toggleEstOutro()"> Depilação buço</label>
+          <label style="display:flex;align-items:center;gap:.25rem;font-size:.78rem;border:1px solid var(--border);border-radius:8px;padding:.3rem .55rem;cursor:pointer"><input type="checkbox" class="estSvChk" value="Depilação sobrancelha" onchange="toggleEstOutro()"> Depilação sobrancelha</label>
+          <label style="display:flex;align-items:center;gap:.25rem;font-size:.78rem;border:1px solid var(--border);border-radius:8px;padding:.3rem .55rem;cursor:pointer"><input type="checkbox" class="estSvChk" value="Depilação queixo" onchange="toggleEstOutro()"> Depilação queixo</label>
+          <label style="display:flex;align-items:center;gap:.25rem;font-size:.78rem;border:1px solid var(--border);border-radius:8px;padding:.3rem .55rem;cursor:pointer"><input type="checkbox" class="estSvChk" value="Outro" onchange="toggleEstOutro()"> Outro</label>
+        </div>
+      </div>
+      <div class="fg" id="estServicoOutroWrap" style="display:none"><label class="fl">Especificar "Outro"</label><input type="text" class="fc" id="estServicoOutro" placeholder="Ex: Massagem, Tratamento capilar..."></div>
+      <div class="fg"><label class="fl">Profissional</label><input type="text" class="fc" id="estProfissional" placeholder="Nome da cabeleireira/esteticista"></div>
+      <div class="fg"><label class="fl">Data</label><input type="date" class="fc" id="estData"></div>
+      <div class="fg"><label class="fl">Notas (opcional)</label><input type="text" class="fc" id="estNotas" placeholder="Ex: pediu corte curto, gostou do resultado..."></div>
+    </div>
+    <div class="mf"><button class="btn btn-g" onclick="cm('mEstetica')">Cancelar</button><button class="btn btn-p" onclick="svEstetica()">Guardar Registo</button></div>
+  </div>
+</div>
+
+<div class="mo" id="mRestricaoEst">
+  <div class="md" style="max-width:460px">
+    <div class="mh"><span class="mht"><i class="ti ti-alert-triangle" style="margin-right:.3rem"></i>Restrições de Cabeleireiro/Estética</span><button class="mc" onclick="cm('mRestricaoEst')">×</button></div>
+    <div class="mb">
+      <div style="font-size:.8rem;color:var(--gray-500);margin-bottom:.6rem">Regista aqui restrições ou cuidados especiais (alergias a produtos, recusa de certos serviços, etc.). Aparecem como aviso ao criar um novo registo para o utente.</div>
+      <div id="estRestricoesLista" style="margin-bottom:.8rem"></div>
+      <div class="fg"><label class="fl">Piso/Ala</label>
+        <select class="fc" id="estRxPiso" onchange="estRxSelPiso(this.value)"><option value="">Selecionar piso/ala...</option></select>
+      </div>
+      <div id="estRxUtentesPiso" style="display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.5rem"></div>
+      <input type="hidden" id="estRxUtente"><input type="hidden" id="estRxRes">
+      <div class="fg"><label class="fl">Restrição / cuidado especial</label><input type="text" class="fc" id="estRxTexto" placeholder="Ex: Alergia a tintas · Não usar tesoura"></div>
+    </div>
+    <div class="mf"><button class="btn btn-g" onclick="cm('mRestricaoEst')">Fechar</button><button class="btn btn-p" onclick="svRestricaoEst()">Guardar Restrição</button></div>
+  </div>
+</div>
+
+<div class="mo" id="mNecessidadeEst">
+  <div class="md" style="max-width:460px">
+    <div class="mh"><span class="mht"><i class="ti ti-bell" style="margin-right:.3rem"></i>Marcar Necessidade de Serviço</span><button class="mc" onclick="cm('mNecessidadeEst')">×</button></div>
+    <div class="mb">
+      <div style="font-size:.8rem;color:var(--gray-500);margin-bottom:.6rem">Sinaliza que um utente precisa de ter um serviço agendado (ex: cabelo já muito comprido). Fica visível na lista até seres marcado como resolvido.</div>
+      <div class="fg"><label class="fl">Piso/Ala</label>
+        <select class="fc" id="estNcPiso" onchange="estNcSelPiso(this.value)"><option value="">Selecionar piso/ala...</option></select>
+      </div>
+      <div id="estNcUtentesPiso" style="display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.5rem"></div>
+      <input type="hidden" id="estNcUtente"><input type="hidden" id="estNcRes">
+      <div class="fg"><label class="fl">Serviço necessário</label>
+        <select class="fc" id="estNcServico">
+          <option>Corte mulher</option><option>Brushing</option><option>Corte e brushing</option>
+          <option>Corte + brushing + coloração</option><option>Coloração + brushing</option><option>Madeixas</option>
+          <option>Ondulação</option><option>Corte masculino</option><option>Manicure</option><option>Pedicure</option>
+          <option>Depilação buço</option><option>Depilação sobrancelha</option><option>Depilação queixo</option><option>Outro</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Nota (opcional)</label><input type="text" class="fc" id="estNcNota" placeholder="Ex: cabelo já muito comprido"></div>
+    </div>
+    <div class="mf"><button class="btn btn-g" onclick="cm('mNecessidadeEst')">Cancelar</button><button class="btn btn-p" onclick="svNecessidadeEst()">Marcar</button></div>
+  </div>
+</div>
+
 <!-- MOBILE OVERLAY -->
 <div class="mob-overlay" id="mobOverlay" onclick="closeMobMenu()"></div>
 
@@ -1585,6 +1680,7 @@ body.is-adm .adm-only{display:inline-flex!important}
   <div class="mob-ni" onclick="gotoMob('quedas')"><i class="ti ti-alert-triangle mob-ni-ic"></i>Quedas & Ocorrências</div>
   <div class="mob-ni" onclick="gotoMob('stock')"><i class="ti ti-box mob-ni-ic"></i>Stock de Material</div>
   <div class="mob-ni" onclick="gotoMob('incont')"><i class="ti ti-shirt mob-ni-ic"></i>Incontinência</div>
+  <div class="mob-ni" onclick="gotoMob('estetica')"><i class="ti ti-scissors mob-ni-ic"></i>Cabeleireiro & Estética</div>
   <div class="mob-ni" onclick="gotoMob('relatorios')"><i class="ti ti-chart-bar mob-ni-ic"></i>Relatórios</div>
   <div class="mob-ni" onclick="gotoMob('turno')"><i class="ti ti-notes mob-ni-ic"></i>Registo de Turno</div>
   <div id="mobAdmItems">
@@ -1927,6 +2023,9 @@ async function loadFB(){
   const ic=await fbG('incont');if(ic)DB.incont=ic;
   const it=await fbG('internamentos');if(it)DB.internamentos=it;
   const eg=await fbG('entregas');if(eg)DB.entregas=eg;
+  const es=await fbG('estetica');if(es)DB.estetica=es;
+  const erx=await fbG('estetica_restricoes');if(erx)DB.esteticaRestricoes=erx;
+  const epd=await fbG('estetica_pendentes');if(epd)DB.esteticaPendentes=epd;
   // Load utentes badges from Firebase
   const ub=await fbG('utentes_badges');
   if(ub&&Array.isArray(ub)){
@@ -4824,6 +4923,273 @@ async function delEntrega(key){
   rAll();
 }
 
+// ===== CABELEIREIRO & ESTÉTICA =====
+function restricoesDoUtente(nome){
+  return Object.entries(DB.esteticaRestricoes||{}).map(([k,v])=>({...v,_key:k})).filter(r=>r.utente===nome);
+}
+
+// --- Novo Registo ---
+function abrirRegistoEst(){
+  popSel('estRes', false);
+  if(ses.role==='adm' && ses.admRes && ses.admRes!=='all'){
+    document.getElementById('estRes').value = ses.admRes;
+  }
+  const pisoSel = document.getElementById('estPiso');
+  pisoSel.innerHTML = '<option value="">Selecionar piso/ala...</option>' + pisosDisponiveis().map(p=>`<option value="${p}">${p}</option>`).join('');
+  document.getElementById('estUtentesPiso').innerHTML = '';
+  document.getElementById('estAvisoRestricao').style.display = 'none';
+  document.getElementById('estUtente').value = '';
+  document.querySelectorAll('.estSvChk').forEach(c=>c.checked=false);
+  document.getElementById('estServicoOutroWrap').style.display = 'none';
+  document.getElementById('estServicoOutro').value = '';
+  document.getElementById('estProfissional').value = '';
+  document.getElementById('estNotas').value = '';
+  document.getElementById('estData').value = todayStr();
+  document.getElementById('mEstetica').classList.add('open');
+}
+function toggleEstOutro(){
+  const outro = document.querySelector('.estSvChk[value="Outro"]');
+  document.getElementById('estServicoOutroWrap').style.display = (outro && outro.checked) ? 'block' : 'none';
+}
+function estSelPiso(piso){
+  document.getElementById('estUtente').value = '';
+  document.getElementById('estAvisoRestricao').style.display = 'none';
+  const cont = document.getElementById('estUtentesPiso');
+  if(!piso){ cont.innerHTML = ''; return; }
+  const lista = utentesDoPiso(piso);
+  cont.innerHTML = lista.length ? lista.map(u=>`
+    <button type="button" class="estUtBtn" onclick="estSelUtente('${u.nome.replace(/'/g,"\\'")}','${u.res}',this)"
+      style="border:1px solid var(--border);background:white;border-radius:8px;padding:.35rem .6rem;font-size:.78rem;cursor:pointer">
+      ${u.nome} <span style="color:var(--gray-400)">· Q.${u.quarto}</span>
+    </button>`).join('') : '<div style="font-size:.75rem;color:var(--gray-400)">Sem utentes neste piso.</div>';
+}
+function estSelUtente(nome, res, btn){
+  document.getElementById('estUtente').value = nome;
+  document.getElementById('estRes').value = res;
+  const cont = document.getElementById('estUtentesPiso');
+  cont.querySelectorAll('.estUtBtn').forEach(b=>{
+    const on = b===btn;
+    b.style.background = on ? 'var(--teal)' : 'white';
+    b.style.color = on ? 'white' : 'inherit';
+    b.style.borderColor = on ? 'var(--teal)' : 'var(--border)';
+  });
+  const rx = restricoesDoUtente(nome);
+  const avEl = document.getElementById('estAvisoRestricao');
+  if(rx.length){
+    avEl.style.display = 'block';
+    avEl.innerHTML = `<strong>⚠️ Restrição registada:</strong><br>${rx.map(r=>r.restricao).join('<br>')}`;
+  } else {
+    avEl.style.display = 'none';
+  }
+}
+async function svEstetica(){
+  const utente = document.getElementById('estUtente').value;
+  const res = document.getElementById('estRes').value;
+  let servicos = [...document.querySelectorAll('.estSvChk:checked')].map(c=>c.value);
+  const outroTxt = document.getElementById('estServicoOutro').value.trim();
+  servicos = servicos.map(s => s==='Outro' && outroTxt ? outroTxt : s);
+  const profissional = document.getElementById('estProfissional').value.trim();
+  const data = document.getElementById('estData').value || todayStr();
+  const notas = document.getElementById('estNotas').value.trim();
+  if(!utente){ alert('Seleciona o utente (piso/ala e depois o nome).'); return; }
+  if(!servicos.length){ alert('Seleciona pelo menos um serviço realizado.'); return; }
+  if(!profissional){ alert('Indica o nome da/do profissional.'); return; }
+  const obj = {utente, res, servicos, profissional, data, notas, ts: Date.now(), quem: sesN()};
+  if(!DB.estetica) DB.estetica = {};
+  const k = await fbP('estetica', obj);
+  if(!k){ toast('<strong>❌ Erro ao gravar!</strong>','err'); return; }
+  DB.estetica[k] = obj;
+  cm('mEstetica');
+  toast(`<strong>💇 Registo guardado!</strong><br>${utente} — ${servicos.join(', ')}`);
+  // Resolve automaticamente pendências dos mesmos serviços para este utente
+  Object.entries(DB.esteticaPendentes||{}).forEach(([k2,v])=>{
+    if(v.utente===utente && servicos.includes(v.servico) && !v.resolvido){
+      fbS(`estetica_pendentes/${k2}`, {...v, resolvido:true});
+      DB.esteticaPendentes[k2] = {...v, resolvido:true};
+    }
+  });
+  rEstetica();
+}
+async function delEstetica(key){
+  if(!confirm('Eliminar este registo?')) return;
+  await fbD(`estetica/${key}`);
+  if(DB.estetica) delete DB.estetica[key];
+  rEstetica();
+}
+
+// --- Restrições ---
+function abrirRestricaoEst(){
+  const pisoSel = document.getElementById('estRxPiso');
+  pisoSel.innerHTML = '<option value="">Selecionar piso/ala...</option>' + pisosDisponiveis().map(p=>`<option value="${p}">${p}</option>`).join('');
+  document.getElementById('estRxUtentesPiso').innerHTML = '';
+  document.getElementById('estRxUtente').value = '';
+  document.getElementById('estRxRes').value = '';
+  document.getElementById('estRxTexto').value = '';
+  renderRestricoesLista();
+  document.getElementById('mRestricaoEst').classList.add('open');
+}
+function renderRestricoesLista(){
+  const el = document.getElementById('estRestricoesLista');
+  const all = Object.entries(DB.esteticaRestricoes||{}).map(([k,v])=>({...v,_key:k})).sort((a,b)=>a.utente.localeCompare(b.utente));
+  el.innerHTML = all.length ? all.map(r=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;background:var(--gray-50);border:1px solid var(--border);border-radius:8px;padding:.4rem .6rem;margin-bottom:.3rem;font-size:.8rem">
+      <span><strong>${r.utente}</strong> — ${r.restricao}</span>
+      <button onclick="delRestricaoEst('${r._key}')" style="background:none;border:none;color:var(--red);cursor:pointer"><i class="ti ti-x"></i></button>
+    </div>`).join('') : '<div style="font-size:.78rem;color:var(--gray-400)">Sem restrições registadas.</div>';
+}
+function estRxSelPiso(piso){
+  const cont = document.getElementById('estRxUtentesPiso');
+  document.getElementById('estRxUtente').value = '';
+  if(!piso){ cont.innerHTML = ''; return; }
+  const lista = utentesDoPiso(piso);
+  cont.innerHTML = lista.length ? lista.map(u=>`
+    <button type="button" class="estRxUtBtn" onclick="estRxSelUtente('${u.nome.replace(/'/g,"\\'")}','${u.res}',this)"
+      style="border:1px solid var(--border);background:white;border-radius:8px;padding:.35rem .6rem;font-size:.78rem;cursor:pointer">
+      ${u.nome} <span style="color:var(--gray-400)">· Q.${u.quarto}</span>
+    </button>`).join('') : '<div style="font-size:.75rem;color:var(--gray-400)">Sem utentes neste piso.</div>';
+}
+function estRxSelUtente(nome, res, btn){
+  document.getElementById('estRxUtente').value = nome;
+  document.getElementById('estRxRes').value = res;
+  const cont = document.getElementById('estRxUtentesPiso');
+  cont.querySelectorAll('.estRxUtBtn').forEach(b=>{
+    const on = b===btn;
+    b.style.background = on ? 'var(--teal)' : 'white';
+    b.style.color = on ? 'white' : 'inherit';
+    b.style.borderColor = on ? 'var(--teal)' : 'var(--border)';
+  });
+}
+async function svRestricaoEst(){
+  const utente = document.getElementById('estRxUtente').value;
+  const res = document.getElementById('estRxRes').value;
+  const restricao = document.getElementById('estRxTexto').value.trim();
+  if(!utente){ alert('Seleciona o utente (piso/ala e depois o nome).'); return; }
+  if(!restricao){ alert('Escreve a restrição.'); return; }
+  const obj = {utente, res, restricao, ts: Date.now(), quem: sesN()};
+  if(!DB.esteticaRestricoes) DB.esteticaRestricoes = {};
+  const k = await fbP('estetica_restricoes', obj);
+  if(!k){ toast('<strong>❌ Erro ao gravar!</strong>','err'); return; }
+  DB.esteticaRestricoes[k] = obj;
+  document.getElementById('estRxTexto').value = '';
+  document.getElementById('estRxUtente').value = '';
+  renderRestricoesLista();
+  toast('<strong>⚠️ Restrição guardada!</strong>');
+  rEstetica();
+}
+async function delRestricaoEst(key){
+  if(!confirm('Remover esta restrição?')) return;
+  await fbD(`estetica_restricoes/${key}`);
+  if(DB.esteticaRestricoes) delete DB.esteticaRestricoes[key];
+  renderRestricoesLista();
+  rEstetica();
+}
+
+// --- Necessidade de Agendar ---
+function abrirNecessidadeEst(){
+  const pisoSel = document.getElementById('estNcPiso');
+  pisoSel.innerHTML = '<option value="">Selecionar piso/ala...</option>' + pisosDisponiveis().map(p=>`<option value="${p}">${p}</option>`).join('');
+  document.getElementById('estNcUtentesPiso').innerHTML = '';
+  document.getElementById('estNcUtente').value = '';
+  document.getElementById('estNcRes').value = '';
+  document.getElementById('estNcNota').value = '';
+  document.getElementById('mNecessidadeEst').classList.add('open');
+}
+function estNcSelPiso(piso){
+  const cont = document.getElementById('estNcUtentesPiso');
+  document.getElementById('estNcUtente').value = '';
+  if(!piso){ cont.innerHTML = ''; return; }
+  const lista = utentesDoPiso(piso);
+  cont.innerHTML = lista.length ? lista.map(u=>`
+    <button type="button" class="estNcUtBtn" onclick="estNcSelUtente('${u.nome.replace(/'/g,"\\'")}','${u.res}',this)"
+      style="border:1px solid var(--border);background:white;border-radius:8px;padding:.35rem .6rem;font-size:.78rem;cursor:pointer">
+      ${u.nome} <span style="color:var(--gray-400)">· Q.${u.quarto}</span>
+    </button>`).join('') : '<div style="font-size:.75rem;color:var(--gray-400)">Sem utentes neste piso.</div>';
+}
+function estNcSelUtente(nome, res, btn){
+  document.getElementById('estNcUtente').value = nome;
+  document.getElementById('estNcRes').value = res;
+  const cont = document.getElementById('estNcUtentesPiso');
+  cont.querySelectorAll('.estNcUtBtn').forEach(b=>{
+    const on = b===btn;
+    b.style.background = on ? 'var(--teal)' : 'white';
+    b.style.color = on ? 'white' : 'inherit';
+    b.style.borderColor = on ? 'var(--teal)' : 'var(--border)';
+  });
+}
+async function svNecessidadeEst(){
+  const utente = document.getElementById('estNcUtente').value;
+  const res = document.getElementById('estNcRes').value;
+  const servico = document.getElementById('estNcServico').value;
+  const nota = document.getElementById('estNcNota').value.trim();
+  if(!utente){ alert('Seleciona o utente (piso/ala e depois o nome).'); return; }
+  const obj = {utente, res, servico, nota, resolvido:false, ts: Date.now(), quem: sesN()};
+  if(!DB.esteticaPendentes) DB.esteticaPendentes = {};
+  const k = await fbP('estetica_pendentes', obj);
+  if(!k){ toast('<strong>❌ Erro ao gravar!</strong>','err'); return; }
+  DB.esteticaPendentes[k] = obj;
+  cm('mNecessidadeEst');
+  toast('<strong>🔔 Necessidade marcada!</strong>');
+  rEstetica();
+}
+async function resolverNecessidadeEst(key){
+  const v = (DB.esteticaPendentes||{})[key];
+  if(!v) return;
+  await fbS(`estetica_pendentes/${key}`, {...v, resolvido:true});
+  DB.esteticaPendentes[key] = {...v, resolvido:true};
+  rEstetica();
+}
+
+// --- Render principal ---
+function rEstetica(){
+  // Pendentes (necessidades por resolver)
+  const pend = Object.entries(DB.esteticaPendentes||{}).map(([k,v])=>({...v,_key:k})).filter(p=>!p.resolvido).sort((a,b)=>b.ts-a.ts);
+  const pendEl = document.getElementById('estPendentesContent');
+  if(pend.length){
+    pendEl.innerHTML = `<div style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:var(--radius-lg);padding:.75rem 1rem">
+      <div style="font-weight:700;font-size:.85rem;color:#9A3412;margin-bottom:.5rem">🔔 Precisam de ser agendados (${pend.length})</div>
+      ${pend.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;background:white;border-radius:8px;padding:.4rem .6rem;margin-bottom:.3rem;font-size:.82rem">
+        <span><strong>${p.utente}</strong> — ${p.servico}${p.nota?` · <em>${p.nota}</em>`:''}</span>
+        <button class="btn btn-g btn-s" onclick="resolverNecessidadeEst('${p._key}')"><i class="ti ti-check"></i></button>
+      </div>`).join('')}
+    </div>`;
+  } else { pendEl.innerHTML = ''; }
+
+  // Restrições ativas (resumo)
+  const rx = Object.entries(DB.esteticaRestricoes||{}).map(([k,v])=>({...v,_key:k})).sort((a,b)=>a.utente.localeCompare(b.utente));
+  const rxEl = document.getElementById('estRestricoesContent');
+  if(rx.length){
+    rxEl.innerHTML = `<div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:var(--radius-lg);padding:.75rem 1rem">
+      <div style="font-weight:700;font-size:.85rem;color:#991B1B;margin-bottom:.5rem">⚠️ Restrições ativas (${rx.length})</div>
+      ${rx.map(r=>`<div style="font-size:.8rem;color:#7F1D1D;margin-bottom:.15rem"><strong>${r.utente}</strong> — ${r.restricao}</div>`).join('')}
+    </div>`;
+  } else { rxEl.innerHTML = ''; }
+
+  // Registos
+  const all = Object.entries(DB.estetica||{}).map(([k,v])=>({...v,_key:k}));
+  const items = filt(all).sort((a,b)=>b.ts-a.ts);
+  const regEl = document.getElementById('estRegistosContent');
+  if(!items.length){
+    regEl.innerHTML = '<div class="empty"><div class="eic">💇</div><p>Sem registos de cabeleireiro/estética.</p></div>';
+    return;
+  }
+  let html = '';
+  items.forEach(r=>{
+    const dt = r.data ? new Date(r.data+'T12:00:00').toLocaleDateString('pt-PT',{day:'numeric',month:'short',year:'numeric'}) : '';
+    html += `<div style="background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:.75rem 1rem;margin-bottom:.5rem">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem">
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:.9rem">${r.utente} <span class="tag ${rTag(r.res)}">${rNome(r.res)}</span></div>
+          <div style="font-size:.78rem;color:var(--gray-500)">${dt} · ${(r.servicos||[r.servico]).filter(Boolean).join(', ')} · por ${r.profissional}</div>
+          ${r.notas?`<div style="font-size:.8rem;color:var(--gray-600);margin-top:.3rem"><em>${r.notas}</em></div>`:''}
+          <div style="font-size:.7rem;color:var(--gray-400);margin-top:.2rem">Registado por ${r.quem}</div>
+        </div>
+        ${ses.role==='adm'?`<button class="btn btn-r btn-s" onclick="delEstetica('${r._key}')"><i class="ti ti-trash"></i></button>`:''}
+      </div>
+    </div>`;
+  });
+  regEl.innerHTML = html;
+}
+
 function rEntregas(){
   const all = Object.entries(DB.entregas||{}).map(([k,v])=>({...v,_key:k}));
   const items = filt(all).sort((a,b)=>b.ts-a.ts);
@@ -5333,6 +5699,7 @@ function rAll(){
   if(act.id==='pg-incont')rIncont();
   if(act.id==='pg-internamentos')rInternamentos();
   if(act.id==='pg-entregas')rEntregas();
+  if(act.id==='pg-estetica')rEstetica();
   if(act.id==='pg-painel'){startPainel();}else{stopPainel();}
 }
 
