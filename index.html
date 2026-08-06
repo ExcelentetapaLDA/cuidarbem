@@ -1588,12 +1588,11 @@ body.is-adm .adm-only{display:inline-flex!important}
     <div class="mh"><span class="mht"><i class="ti ti-scissors" style="margin-right:.3rem"></i>Novo Registo — Cabeleireiro/Estética</span><button class="mc" onclick="cm('mEstetica')">×</button></div>
     <div class="mb">
       <div class="fg"><label class="fl">Resid.</label><select class="fc" id="estRes"></select></div>
-      <div class="fg"><label class="fl">Piso/Ala</label>
-        <select class="fc" id="estPiso" onchange="estSelPiso(this.value)"><option value="">Selecionar piso/ala...</option></select>
+      <div class="fg"><label class="fl">Utente</label>
+        <input type="text" class="fc" id="estUtente" placeholder="Nome do utente" list="estUtenteList" oninput="estUtenteInput(this.value)">
+        <datalist id="estUtenteList"></datalist>
       </div>
-      <div id="estUtentesPiso" style="display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.5rem"></div>
       <div id="estAvisoRestricao" style="display:none;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;padding:.6rem;margin-bottom:.6rem;font-size:.8rem;color:#991B1B"></div>
-      <input type="hidden" id="estUtente">
       <div class="fg"><label class="fl">Serviço(s) realizado(s)</label>
         <div id="estServicoChecks" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.2rem">
           <label style="display:flex;align-items:center;gap:.25rem;font-size:.78rem;border:1px solid var(--border);border-radius:8px;padding:.3rem .55rem;cursor:pointer"><input type="checkbox" class="estSvChk" value="Corte mulher" onchange="toggleEstOutro()"> Corte mulher</label>
@@ -1627,11 +1626,10 @@ body.is-adm .adm-only{display:inline-flex!important}
     <div class="mb">
       <div style="font-size:.8rem;color:var(--gray-500);margin-bottom:.6rem">Regista aqui restrições ou cuidados especiais (alergias a produtos, recusa de certos serviços, etc.). Aparecem como aviso ao criar um novo registo para o utente.</div>
       <div id="estRestricoesLista" style="margin-bottom:.8rem"></div>
-      <div class="fg"><label class="fl">Piso/Ala</label>
-        <select class="fc" id="estRxPiso" onchange="estRxSelPiso(this.value)"><option value="">Selecionar piso/ala...</option></select>
+      <div class="fg"><label class="fl">Utente</label>
+        <input type="text" class="fc" id="estRxUtente" placeholder="Nome do utente" list="estUtenteList" oninput="estRxUtenteInput(this.value)">
+        <input type="hidden" id="estRxRes">
       </div>
-      <div id="estRxUtentesPiso" style="display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.5rem"></div>
-      <input type="hidden" id="estRxUtente"><input type="hidden" id="estRxRes">
       <div class="fg"><label class="fl">Restrição / cuidado especial</label><input type="text" class="fc" id="estRxTexto" placeholder="Ex: Alergia a tintas · Não usar tesoura"></div>
       <button class="btn btn-d btn-s adm-only" style="display:none;margin-top:.4rem" onclick="seedRestricoesCDS()"><i class="ti ti-download" style="margin-right:.3rem"></i>Importar lista Casa dos Sonhos (uma vez)</button>
     </div>
@@ -1644,11 +1642,10 @@ body.is-adm .adm-only{display:inline-flex!important}
     <div class="mh"><span class="mht"><i class="ti ti-bell" style="margin-right:.3rem"></i>Marcar Necessidade de Serviço</span><button class="mc" onclick="cm('mNecessidadeEst')">×</button></div>
     <div class="mb">
       <div style="font-size:.8rem;color:var(--gray-500);margin-bottom:.6rem">Sinaliza que um utente precisa de ter um serviço agendado (ex: cabelo já muito comprido). Fica visível na lista até seres marcado como resolvido.</div>
-      <div class="fg"><label class="fl">Piso/Ala</label>
-        <select class="fc" id="estNcPiso" onchange="estNcSelPiso(this.value)"><option value="">Selecionar piso/ala...</option></select>
+      <div class="fg"><label class="fl">Utente</label>
+        <input type="text" class="fc" id="estNcUtente" placeholder="Nome do utente" list="estUtenteList" oninput="estNcUtenteInput(this.value)">
+        <input type="hidden" id="estNcRes">
       </div>
-      <div id="estNcUtentesPiso" style="display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.5rem"></div>
-      <input type="hidden" id="estNcUtente"><input type="hidden" id="estNcRes">
       <div class="fg"><label class="fl">Serviço necessário</label>
         <select class="fc" id="estNcServico">
           <option>Corte mulher</option><option>Brushing</option><option>Corte e brushing</option>
@@ -4928,6 +4925,19 @@ async function delEntrega(key){
 function restricoesDoUtente(nome){
   return Object.entries(DB.esteticaRestricoes||{}).map(([k,v])=>({...v,_key:k})).filter(r=>r.utente===nome);
 }
+function preencherEstUtenteList(){
+  const dl = document.getElementById('estUtenteList');
+  if(!dl) return;
+  dl.innerHTML = '';
+  filt(S.utentes).forEach(u=>{
+    const o = document.createElement('option');
+    o.value = u.nome;
+    dl.appendChild(o);
+  });
+}
+function acharUtentePorNome(nome){
+  return (S.utentes||[]).find(x=>x.nome.trim().toLowerCase()===(nome||'').trim().toLowerCase());
+}
 
 // --- Novo Registo ---
 function abrirRegistoEst(){
@@ -4935,9 +4945,7 @@ function abrirRegistoEst(){
   if(ses.role==='adm' && ses.admRes && ses.admRes!=='all'){
     document.getElementById('estRes').value = ses.admRes;
   }
-  const pisoSel = document.getElementById('estPiso');
-  pisoSel.innerHTML = '<option value="">Selecionar piso/ala...</option>' + pisosDisponiveis().map(p=>`<option value="${p}">${p}</option>`).join('');
-  document.getElementById('estUtentesPiso').innerHTML = '';
+  preencherEstUtenteList();
   document.getElementById('estAvisoRestricao').style.display = 'none';
   document.getElementById('estUtente').value = '';
   document.querySelectorAll('.estSvChk').forEach(c=>c.checked=false);
@@ -4952,30 +4960,11 @@ function toggleEstOutro(){
   const outro = document.querySelector('.estSvChk[value="Outro"]');
   document.getElementById('estServicoOutroWrap').style.display = (outro && outro.checked) ? 'block' : 'none';
 }
-function estSelPiso(piso){
-  document.getElementById('estUtente').value = '';
-  document.getElementById('estAvisoRestricao').style.display = 'none';
-  const cont = document.getElementById('estUtentesPiso');
-  if(!piso){ cont.innerHTML = ''; return; }
-  const lista = utentesDoPiso(piso);
-  cont.innerHTML = lista.length ? lista.map(u=>`
-    <button type="button" class="estUtBtn" onclick="estSelUtente('${u.nome.replace(/'/g,"\\'")}','${u.res}',this)"
-      style="border:1px solid var(--border);background:white;border-radius:8px;padding:.35rem .6rem;font-size:.78rem;cursor:pointer">
-      ${u.nome} <span style="color:var(--gray-400)">· Q.${u.quarto}</span>
-    </button>`).join('') : '<div style="font-size:.75rem;color:var(--gray-400)">Sem utentes neste piso.</div>';
-}
-function estSelUtente(nome, res, btn){
-  document.getElementById('estUtente').value = nome;
-  document.getElementById('estRes').value = res;
-  const cont = document.getElementById('estUtentesPiso');
-  cont.querySelectorAll('.estUtBtn').forEach(b=>{
-    const on = b===btn;
-    b.style.background = on ? 'var(--teal)' : 'white';
-    b.style.color = on ? 'white' : 'inherit';
-    b.style.borderColor = on ? 'var(--teal)' : 'var(--border)';
-  });
-  const rx = restricoesDoUtente(nome);
+function estUtenteInput(nome){
   const avEl = document.getElementById('estAvisoRestricao');
+  const u = acharUtentePorNome(nome);
+  if(u) document.getElementById('estRes').value = u.res;
+  const rx = restricoesDoUtente(nome.trim());
   if(rx.length){
     avEl.style.display = 'block';
     avEl.innerHTML = `<strong>⚠️ Restrição registada:</strong><br>${rx.map(r=>r.restricao).join('<br>')}`;
@@ -4984,7 +4973,7 @@ function estSelUtente(nome, res, btn){
   }
 }
 async function svEstetica(){
-  const utente = document.getElementById('estUtente').value;
+  const utente = document.getElementById('estUtente').value.trim();
   const res = document.getElementById('estRes').value;
   let servicos = [...document.querySelectorAll('.estSvChk:checked')].map(c=>c.value);
   const outroTxt = document.getElementById('estServicoOutro').value.trim();
@@ -4992,7 +4981,7 @@ async function svEstetica(){
   const profissional = document.getElementById('estProfissional').value.trim();
   const data = document.getElementById('estData').value || todayStr();
   const notas = document.getElementById('estNotas').value.trim();
-  if(!utente){ alert('Seleciona o utente (piso/ala e depois o nome).'); return; }
+  if(!utente){ alert('Indica o nome do utente.'); return; }
   if(!servicos.length){ alert('Seleciona pelo menos um serviço realizado.'); return; }
   if(!profissional){ alert('Indica o nome da/do profissional.'); return; }
   const obj = {utente, res, servicos, profissional, data, notas, ts: Date.now(), quem: sesN()};
@@ -5020,9 +5009,7 @@ async function delEstetica(key){
 
 // --- Restrições ---
 function abrirRestricaoEst(){
-  const pisoSel = document.getElementById('estRxPiso');
-  pisoSel.innerHTML = '<option value="">Selecionar piso/ala...</option>' + pisosDisponiveis().map(p=>`<option value="${p}">${p}</option>`).join('');
-  document.getElementById('estRxUtentesPiso').innerHTML = '';
+  preencherEstUtenteList();
   document.getElementById('estRxUtente').value = '';
   document.getElementById('estRxRes').value = '';
   document.getElementById('estRxTexto').value = '';
@@ -5038,33 +5025,16 @@ function renderRestricoesLista(){
       <button onclick="delRestricaoEst('${r._key}')" style="background:none;border:none;color:var(--red);cursor:pointer"><i class="ti ti-x"></i></button>
     </div>`).join('') : '<div style="font-size:.78rem;color:var(--gray-400)">Sem restrições registadas.</div>';
 }
-function estRxSelPiso(piso){
-  const cont = document.getElementById('estRxUtentesPiso');
-  document.getElementById('estRxUtente').value = '';
-  if(!piso){ cont.innerHTML = ''; return; }
-  const lista = utentesDoPiso(piso);
-  cont.innerHTML = lista.length ? lista.map(u=>`
-    <button type="button" class="estRxUtBtn" onclick="estRxSelUtente('${u.nome.replace(/'/g,"\\'")}','${u.res}',this)"
-      style="border:1px solid var(--border);background:white;border-radius:8px;padding:.35rem .6rem;font-size:.78rem;cursor:pointer">
-      ${u.nome} <span style="color:var(--gray-400)">· Q.${u.quarto}</span>
-    </button>`).join('') : '<div style="font-size:.75rem;color:var(--gray-400)">Sem utentes neste piso.</div>';
-}
-function estRxSelUtente(nome, res, btn){
-  document.getElementById('estRxUtente').value = nome;
-  document.getElementById('estRxRes').value = res;
-  const cont = document.getElementById('estRxUtentesPiso');
-  cont.querySelectorAll('.estRxUtBtn').forEach(b=>{
-    const on = b===btn;
-    b.style.background = on ? 'var(--teal)' : 'white';
-    b.style.color = on ? 'white' : 'inherit';
-    b.style.borderColor = on ? 'var(--teal)' : 'var(--border)';
-  });
+function estRxUtenteInput(nome){
+  const u = acharUtentePorNome(nome);
+  document.getElementById('estRxRes').value = u ? u.res : '';
 }
 async function svRestricaoEst(){
-  const utente = document.getElementById('estRxUtente').value;
-  const res = document.getElementById('estRxRes').value;
+  const utente = document.getElementById('estRxUtente').value.trim();
+  const u = acharUtentePorNome(utente);
+  const res = document.getElementById('estRxRes').value || (u?u.res:'');
   const restricao = document.getElementById('estRxTexto').value.trim();
-  if(!utente){ alert('Seleciona o utente (piso/ala e depois o nome).'); return; }
+  if(!utente){ alert('Indica o nome do utente.'); return; }
   if(!restricao){ alert('Escreve a restrição.'); return; }
   const obj = {utente, res, restricao, ts: Date.now(), quem: sesN()};
   if(!DB.esteticaRestricoes) DB.esteticaRestricoes = {};
@@ -5110,42 +5080,23 @@ async function seedRestricoesCDS(){
 
 // --- Necessidade de Agendar ---
 function abrirNecessidadeEst(){
-  const pisoSel = document.getElementById('estNcPiso');
-  pisoSel.innerHTML = '<option value="">Selecionar piso/ala...</option>' + pisosDisponiveis().map(p=>`<option value="${p}">${p}</option>`).join('');
-  document.getElementById('estNcUtentesPiso').innerHTML = '';
+  preencherEstUtenteList();
   document.getElementById('estNcUtente').value = '';
   document.getElementById('estNcRes').value = '';
   document.getElementById('estNcNota').value = '';
   document.getElementById('mNecessidadeEst').classList.add('open');
 }
-function estNcSelPiso(piso){
-  const cont = document.getElementById('estNcUtentesPiso');
-  document.getElementById('estNcUtente').value = '';
-  if(!piso){ cont.innerHTML = ''; return; }
-  const lista = utentesDoPiso(piso);
-  cont.innerHTML = lista.length ? lista.map(u=>`
-    <button type="button" class="estNcUtBtn" onclick="estNcSelUtente('${u.nome.replace(/'/g,"\\'")}','${u.res}',this)"
-      style="border:1px solid var(--border);background:white;border-radius:8px;padding:.35rem .6rem;font-size:.78rem;cursor:pointer">
-      ${u.nome} <span style="color:var(--gray-400)">· Q.${u.quarto}</span>
-    </button>`).join('') : '<div style="font-size:.75rem;color:var(--gray-400)">Sem utentes neste piso.</div>';
-}
-function estNcSelUtente(nome, res, btn){
-  document.getElementById('estNcUtente').value = nome;
-  document.getElementById('estNcRes').value = res;
-  const cont = document.getElementById('estNcUtentesPiso');
-  cont.querySelectorAll('.estNcUtBtn').forEach(b=>{
-    const on = b===btn;
-    b.style.background = on ? 'var(--teal)' : 'white';
-    b.style.color = on ? 'white' : 'inherit';
-    b.style.borderColor = on ? 'var(--teal)' : 'var(--border)';
-  });
+function estNcUtenteInput(nome){
+  const u = acharUtentePorNome(nome);
+  document.getElementById('estNcRes').value = u ? u.res : '';
 }
 async function svNecessidadeEst(){
-  const utente = document.getElementById('estNcUtente').value;
-  const res = document.getElementById('estNcRes').value;
+  const utente = document.getElementById('estNcUtente').value.trim();
+  const u = acharUtentePorNome(utente);
+  const res = document.getElementById('estNcRes').value || (u?u.res:'');
   const servico = document.getElementById('estNcServico').value;
   const nota = document.getElementById('estNcNota').value.trim();
-  if(!utente){ alert('Seleciona o utente (piso/ala e depois o nome).'); return; }
+  if(!utente){ alert('Indica o nome do utente.'); return; }
   const obj = {utente, res, servico, nota, resolvido:false, ts: Date.now(), quem: sesN()};
   if(!DB.esteticaPendentes) DB.esteticaPendentes = {};
   const k = await fbP('estetica_pendentes', obj);
