@@ -5214,8 +5214,42 @@ function distNavegar(dir){
 // ===== ELIMINAÇÃO =====
 let elimData = [];
 
-function addElimUtente(){
+function pisosDisponiveis(){
   const ut = filt(S.utentes);
+  const set = new Set();
+  ut.forEach(u=>set.add((u.piso && u.piso!=='Piso ?') ? u.piso : pisoDoQuarto(u.quarto)));
+  return [...set].sort();
+}
+
+function utentesDoPiso(piso){
+  return filt(S.utentes).filter(u=>((u.piso && u.piso!=='Piso ?') ? u.piso : pisoDoQuarto(u.quarto))===piso)
+    .sort((a,b)=>(parseInt(a.quarto)||999)-(parseInt(b.quarto)||999));
+}
+
+function elimSelPiso(idx, piso){
+  elimData[idx].utente = '';
+  const cont = document.getElementById('elimUtentesPiso'+idx);
+  if(!cont) return;
+  if(!piso){ cont.innerHTML = ''; return; }
+  const lista = utentesDoPiso(piso);
+  cont.innerHTML = lista.length ? lista.map(u=>`
+    <button type="button" class="elimUtBtn" data-nome="${u.nome}" onclick="elimSelUtente(${idx},'${u.nome.replace(/'/g,"\\'")}',this)"
+      style="border:1px solid var(--border);background:white;border-radius:8px;padding:.35rem .6rem;font-size:.78rem;cursor:pointer">
+      ${u.nome} <span style="color:var(--gray-400)">· Q.${u.quarto}</span>
+    </button>`).join('') : '<div style="font-size:.75rem;color:var(--gray-400)">Sem utentes neste piso.</div>';
+}
+
+function elimSelUtente(idx, nome, btn){
+  elimData[idx].utente = nome;
+  const cont = document.getElementById('elimUtentesPiso'+idx);
+  if(cont) cont.querySelectorAll('.elimUtBtn').forEach(b=>{
+    b.style.background = (b===btn) ? 'var(--teal)' : 'white';
+    b.style.color = (b===btn) ? 'white' : 'inherit';
+    b.style.borderColor = (b===btn) ? 'var(--teal)' : 'var(--border)';
+  });
+}
+
+function addElimUtente(){
   const sel = document.getElementById('elimList');
   if(!sel) return;
   const idx = elimData.length;
@@ -5225,13 +5259,15 @@ function addElimUtente(){
   div.id = 'elim_'+idx;
   div.style.cssText = 'background:white;border:1px solid var(--border);border-radius:var(--radius);padding:.6rem;margin-bottom:.4rem';
   div.innerHTML = `
-    <div style="display:flex;gap:.4rem;margin-bottom:.4rem;flex-wrap:wrap">
-      <input type="text" class="fc" style="flex:1;min-width:120px;font-size:.78rem;padding:.3rem .5rem" 
-        placeholder="Nome utente" list="elimUtenteList${idx}" 
-        oninput="elimData[${idx}].utente=this.value">
-      <datalist id="elimUtenteList${idx}">${ut.map(u=>`<option value="${u.nome}">`).join('')}</datalist>
+    <div style="display:flex;gap:.4rem;margin-bottom:.4rem;flex-wrap:wrap;align-items:center">
+      <select class="fc" style="flex:1;min-width:120px;font-size:.78rem;padding:.3rem .5rem" 
+        onchange="elimSelPiso(${idx}, this.value)">
+        <option value="">Selecionar piso/ala...</option>
+        ${pisosDisponiveis().map(p=>`<option value="${p}">${p}</option>`).join('')}
+      </select>
       <button onclick="removeElim(${idx})" style="background:var(--red-light);color:var(--red);border:none;border-radius:6px;padding:.3rem .5rem;cursor:pointer">×</button>
     </div>
+    <div id="elimUtentesPiso${idx}" style="display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.5rem"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">
       <div>
         <div style="font-size:.7rem;font-weight:600;color:var(--gray-500);margin-bottom:.2rem">🚽 Evacuou</div>
