@@ -1633,6 +1633,7 @@ body.is-adm .adm-only{display:inline-flex!important}
       <div id="estRxUtentesPiso" style="display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.5rem"></div>
       <input type="hidden" id="estRxUtente"><input type="hidden" id="estRxRes">
       <div class="fg"><label class="fl">Restrição / cuidado especial</label><input type="text" class="fc" id="estRxTexto" placeholder="Ex: Alergia a tintas · Não usar tesoura"></div>
+      <button class="btn btn-d btn-s adm-only" style="display:none;margin-top:.4rem" onclick="seedRestricoesCDS()"><i class="ti ti-download" style="margin-right:.3rem"></i>Importar lista Casa dos Sonhos (uma vez)</button>
     </div>
     <div class="mf"><button class="btn btn-g" onclick="cm('mRestricaoEst')">Fechar</button><button class="btn btn-p" onclick="svRestricaoEst()">Guardar Restrição</button></div>
   </div>
@@ -5082,6 +5083,29 @@ async function delRestricaoEst(key){
   if(DB.esteticaRestricoes) delete DB.esteticaRestricoes[key];
   renderRestricoesLista();
   rEstetica();
+}
+
+async function seedRestricoesCDS(){
+  if(!confirm('Importar a lista de restrições de cabeleireiro/estética da Casa dos Sonhos? Utentes que já têm uma restrição registada são ignorados.')) return;
+  const base = 'Não pode ser levado(a) para cabeleireiro/estética sem autorização da família.';
+  const lista = [
+    ['Claudina',''],['Alcina',''],['Antonio Cabrita',''],['Aurora',''],['Fátima',''],
+    ['Fernanda Catalão',''],['Adriano',''],['Emília Simões',''],['Fernandinha',''],['Eugénia',''],
+    ['Maria José Matos',''],['Deolinda',''],['Jacinta',''],['Amélia Álvares',''],['Milú',''],
+    ['Maria Nunes',' O cabelo é tratado pelo filho; a estética ele costuma pedir.'],
+    ['Neide',' Vai sempre a serviços fora da residência.'],
+    ['Nazaret',' Vai sempre a serviços fora da residência.']
+  ];
+  let ok=0, skip=0;
+  for(const [nome, extra] of lista){
+    if(restricoesDoUtente(nome).length){ skip++; continue; }
+    const obj = {utente:nome, res:'r2', restricao: base+extra, ts: Date.now(), quem: sesN()};
+    const k = await fbP('estetica_restricoes', obj);
+    if(k){ if(!DB.esteticaRestricoes) DB.esteticaRestricoes={}; DB.esteticaRestricoes[k]=obj; ok++; }
+  }
+  renderRestricoesLista();
+  rEstetica();
+  toast(`<strong>✅ Importação concluída</strong><br>${ok} adicionadas${skip?`, ${skip} já existiam`:''}`);
 }
 
 // --- Necessidade de Agendar ---
