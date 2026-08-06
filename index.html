@@ -1982,7 +1982,7 @@ function filt(arr){
   if(!rid)return arr;
   return arr.filter(x=>x.res===rid||x.res==='all');
 }
-const sesN=()=>ses.nome||'Equipa';
+const sesN=()=>ses.nome ? (ses.func ? `${ses.nome} (${ses.func})` : ses.nome) : 'Equipa';
 function tAtiva(t){const td=todayStr(),dw=new Date().getDay();if(t.recur==='daily')return true;if(t.recur==='weekly')return(t.days||[]).includes(String(dw));if(t.recur==='period')return td>=(t.dataIni||'')&&td<=(t.dataFim||'');return true;}
 function tUids(t){const ids=new Set(t.utenteIds||[]);(t.grupoIds||[]).forEach(gid=>{const g=S.grupos.find(x=>x.id==gid||x._key==gid);if(g)(g.utenteIds||[]).forEach(uid=>ids.add(uid));});return[...ids];}
 function jaC(tid,uid,hora){const td=todayStr();return getConf().find(c=>c.tarefaId==tid&&c.utenteId==uid&&c.data===td&&c.hora===hora);}
@@ -2048,7 +2048,7 @@ function doLogin(){
         if(!res){err.textContent='Erro: residência não encontrada.';return;}
         const colab=S.equipa?S.equipa.find(e=>e.res===rid&&e.pin===pin):null;
         if(pin!==res.pin&&!colab){err.textContent='PIN incorreto.';return;}
-        ses={role:'res',rid,nome:colab?colab.nome:'Equipa',admRes:null};
+        ses={role:'res',rid,nome:colab?colab.nome:'Equipa',admRes:null,func:colab?(colab.func||''):''};
         document.body.classList.remove('is-adm');
       }
       err.textContent='';
