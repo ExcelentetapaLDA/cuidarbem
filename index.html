@@ -935,7 +935,10 @@ body.is-adm .adm-only{display:inline-flex!important}
         </div>
         <div class="ph">
           <div><div class="ph-title">Entregas de Material</div><div class="ph-sub">Registo do que a família traz, com assinatura</div></div>
-          <button class="btn btn-p" onclick="abrirEntrega()">+ Nova Entrega</button>
+          <div style="display:flex;gap:.4rem">
+            <button class="btn btn-g" onclick="abrirLembretes()"><i class="ti ti-bell" style="margin-right:.3rem"></i>Lembretes fim de mês</button>
+            <button class="btn btn-p" onclick="abrirEntrega()">+ Nova Entrega</button>
+          </div>
         </div>
         <div id="entregasContent"></div>
       </div>
@@ -1536,6 +1539,31 @@ body.is-adm .adm-only{display:inline-flex!important}
       <input type="hidden" id="egEid">
     </div>
     <div class="mf"><button class="btn btn-g" onclick="cm('mEntrega')">Cancelar</button><button class="btn btn-p" onclick="svEntrega()">Guardar e Registar</button></div>
+  </div>
+</div>
+
+<div class="mo" id="mLembretes">
+  <div class="md" style="max-width:480px">
+    <div class="mh"><span class="mht"><i class="ti ti-bell" style="margin-right:.3rem"></i>Lembretes de fim de mês</span><button class="mc" onclick="cm('mLembretes')">×</button></div>
+    <div class="mb">
+      <div style="font-size:.8rem;color:var(--gray-500);margin-bottom:.6rem">Envia um email a pedir a entrega de material do mês. Utentes sem email registado aparecem desmarcados.</div>
+      <div id="lembretesLista" style="max-height:340px;overflow-y:auto"></div>
+    </div>
+    <div class="mf"><button class="btn btn-g" onclick="cm('mLembretes')">Cancelar</button><button class="btn btn-p" onclick="enviarLembretesMes()">Enviar lembretes</button></div>
+  </div>
+</div>
+
+<div class="mo" id="mReforco">
+  <div class="md" style="max-width:440px">
+    <div class="mh"><span class="mht"><i class="ti ti-alert-triangle" style="margin-right:.3rem"></i>Pedir reforço de material</span><button class="mc" onclick="cm('mReforco')">×</button></div>
+    <div class="mb">
+      <div class="fg"><label class="fl">Utente</label><input type="text" class="fc" id="rfUtente" disabled></div>
+      <div class="fg"><label class="fl">Familiar / email</label><input type="text" class="fc" id="rfFamiliarEmail" disabled></div>
+      <div class="fg"><label class="fl">Material em falta</label><input type="text" class="fc" id="rfMaterial" placeholder="Ex: Fraldas L"></div>
+      <div class="fg"><label class="fl">Nota (opcional)</label><input type="text" class="fc" id="rfNota" placeholder="Ex: para levar até sexta-feira"></div>
+      <input type="hidden" id="rfEmail"><input type="hidden" id="rfFamiliar"><input type="hidden" id="rfRes">
+    </div>
+    <div class="mf"><button class="btn btn-g" onclick="cm('mReforco')">Cancelar</button><button class="btn btn-p" onclick="enviarPedidoReforco()">Enviar pedido</button></div>
   </div>
 </div>
 
@@ -4686,6 +4714,109 @@ async function enviarEmailEntrega(obj){
   }
 }
 
+function utentesUnicosEntregas(){
+  const all = Object.values(DB.entregas||{});
+  const map = {};
+  all.forEach(r=>{
+    if(!map[r.utente] || r.ts > map[r.utente].ts) map[r.utente] = r;
+  });
+  return Object.values(map).sort((a,b)=>a.utente.localeCompare(b.utente));
+}
+
+function abrirLembretes(){
+  const lista = utentesUnicosEntregas();
+  const el = document.getElementById('lembretesLista');
+  el.innerHTML = lista.length ? lista.map(r=>`
+    <label style="display:flex;align-items:center;gap:.5rem;padding:.4rem .2rem;border-bottom:1px solid var(--border);font-size:.85rem">
+      <input type="checkbox" class="lembChk" value="${r.utente}" ${r.emailFamiliar?'checked':'disabled'}>
+      <span style="flex:1">${r.utente} <span style="color:var(--gray-400)">— ${r.familiar||'sem familiar'}</span></span>
+      <span style="color:${r.emailFamiliar?'var(--gray-500)':'var(--red)'};font-size:.75rem">${r.emailFamiliar||'sem email'}</span>
+    </label>`).join('') : '<div style="font-size:.82rem;color:var(--gray-400)">Sem utentes com entregas registadas.</div>';
+  document.getElementById('mLembretes').classList.add('open');
+}
+
+async function enviarLembretesMes(){
+  const lista = utentesUnicosEntregas();
+  const chks = [...document.querySelectorAll('.lembChk:checked')];
+  if(!chks.length){ alert('Seleciona pelo menos um utente.'); return; }
+  const mesNome = new Date().toLocaleDateString('pt-PT',{month:'long',year:'numeric'});
+  let ok=0, falha=0;
+  for(const chk of chks){
+    const r = lista.find(x=>x.utente===chk.value);
+    if(!r || !r.emailFamiliar) continue;
+    const html = `<div style="font-family:Arial,sans-serif;font-size:14px;color:#333;max-width:560px">
+      <h2 style="color:#2563EB">📦 Lembrete de entrega de material</h2>
+      <p>Exmo(a). ${r.familiar||'Familiar'},</p>
+      <p>Vimos por este meio relembrar que se aproxima o fim do mês de <strong>${mesNome}</strong>, pelo que pedimos que providencie a entrega do material de incontinência de <strong>${r.utente}</strong> na residência.</p>
+      <p style="color:#888;font-size:12px">Mensagem automática do CuidarBem.</p>
+    </div>`;
+    try{
+      const resp = await fetch('https://faturasai-production.up.railway.app/api/enviar-email-generico', {
+        method:'POST', headers:{'Content-Type':'text/plain'},
+        body: JSON.stringify({
+          secret: 'cbem_2026_entregas_x7q',
+          to: r.emailFamiliar,
+          cc: 'suse.carvalho@casadossonhos-residencias.com',
+          subject: `Lembrete: entrega de material — ${r.utente}`,
+          empresa: r.res==='r1' ? 'sva' : 'cds',
+          html
+        })
+      });
+      if(resp.ok) ok++; else falha++;
+    }catch(e){ falha++; }
+  }
+  cm('mLembretes');
+  toast(`<strong>🔔 Lembretes enviados: ${ok}</strong>${falha?` · ${falha} falharam`:''}`);
+}
+
+function abrirReforcoPorEntrega(key){
+  const r = (DB.entregas||{})[key];
+  if(!r) return;
+  document.getElementById('rfUtente').value = r.utente;
+  document.getElementById('rfFamiliarEmail').value = `${r.familiar||'—'} · ${r.emailFamiliar||'sem email'}`;
+  document.getElementById('rfFamiliar').value = r.familiar||'';
+  document.getElementById('rfEmail').value = r.emailFamiliar||'';
+  document.getElementById('rfRes').value = r.res||'';
+  document.getElementById('rfMaterial').value = '';
+  document.getElementById('rfNota').value = '';
+  document.getElementById('mReforco').classList.add('open');
+}
+
+async function enviarPedidoReforco(){
+  const utente = document.getElementById('rfUtente').value;
+  const familiar = document.getElementById('rfFamiliar').value;
+  const email = document.getElementById('rfEmail').value.trim();
+  const res = document.getElementById('rfRes').value;
+  const material = document.getElementById('rfMaterial').value.trim();
+  const nota = document.getElementById('rfNota').value.trim();
+  if(!material){ alert('Indica o material em falta.'); return; }
+  if(!email){ alert('Sem email do familiar registado para este utente.'); return; }
+  const html = `<div style="font-family:Arial,sans-serif;font-size:14px;color:#333;max-width:560px">
+    <h2 style="color:#DC2626">⚠️ Reforço de material necessário</h2>
+    <p>Exmo(a). ${familiar||'Familiar'},</p>
+    <p>Informamos que está a terminar o stock de <strong>${material}</strong> de <strong>${utente}</strong>. Pedimos que providencie a entrega deste material assim que possível.</p>
+    ${nota?`<p>${nota}</p>`:''}
+    <p style="color:#888;font-size:12px">Mensagem automática do CuidarBem.</p>
+  </div>`;
+  try{
+    const r = await fetch('https://faturasai-production.up.railway.app/api/enviar-email-generico', {
+      method:'POST', headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({
+        secret: 'cbem_2026_entregas_x7q',
+        to: email,
+        cc: 'suse.carvalho@casadossonhos-residencias.com',
+        subject: `Reforço de material necessário — ${utente}`,
+        empresa: res==='r1' ? 'sva' : 'cds',
+        html
+      })
+    });
+    if(r.ok){ cm('mReforco'); toast('<strong>⚠️ Pedido de reforço enviado!</strong>'); }
+    else { toast('<strong>❌ Falha ao enviar o pedido.</strong>','err'); }
+  }catch(e){
+    toast(`<strong>❌ Erro de ligação.</strong><br>${e.message||''}`,'err');
+  }
+}
+
 async function delEntrega(key){
   if(!confirm('Eliminar este registo de entrega?')) return;
   await fbD(`entregas/${key}`);
@@ -4713,6 +4844,7 @@ function rEntregas(){
         </div>
         <div style="display:flex;gap:.4rem;align-items:center;flex-shrink:0">
           ${r.assinatura?`<img src="${r.assinatura}" style="height:40px;border:1px solid var(--border);border-radius:6px;background:white" title="Assinatura">`:''}
+          <button class="btn btn-g btn-s" title="Pedir reforço de material" onclick="abrirReforcoPorEntrega('${r._key}')"><i class="ti ti-alert-triangle"></i></button>
           ${ses.role==='adm'?`<button class="btn btn-r btn-s" onclick="delEntrega('${r._key}')"><i class="ti ti-trash"></i></button>`:''}
         </div>
       </div>
