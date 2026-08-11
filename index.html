@@ -1705,15 +1705,20 @@ body.is-adm .adm-only{display:inline-flex!important}
 <div id="mCartao" style="display:none;position:fixed;inset:0;background:#f0f4f8;z-index:9999;overflow-y:auto;-webkit-overflow-scrolling:touch">
   <div style="position:sticky;top:0;background:#1E293B;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;z-index:10">
     <span id="mCartaoTitulo" style="color:#fff;font-weight:700;font-size:14px"></span>
-    <div style="display:flex;gap:8px">
-      <button onclick="fecharCartao()" style="background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer">✕ Fechar</button>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button onclick="zoomCartao(-1)" style="background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:8px;width:32px;height:32px;font-size:16px;font-weight:700;cursor:pointer" title="Diminuir">−</button>
+      <span id="mCartaoZoomLabel" style="color:#fff;font-size:12px;min-width:34px;text-align:center">100%</span>
+      <button onclick="zoomCartao(1)" style="background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:8px;width:32px;height:32px;font-size:16px;font-weight:700;cursor:pointer" title="Aumentar">+</button>
+      <button onclick="fecharCartao()" style="background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;margin-left:4px">✕ Fechar</button>
     </div>
   </div>
   <div style="padding:8px">
     <div style="background:#EFF6FF;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:11px;color:#1D4ED8;text-align:center">
-      <i class="ti ti-camera" style="margin-right:.3rem"></i>Faz screenshot desta página para enviar no WhatsApp
+      <i class="ti ti-camera" style="margin-right:.3rem"></i>Usa os botões − / + para caber tudo no ecrã e depois faz screenshot para enviar no WhatsApp
     </div>
-    <div id="mCartaoConteudo"></div>
+    <div id="mCartaoConteudoWrap" style="width:100%;display:flex;justify-content:center;overflow:hidden">
+      <div id="mCartaoConteudo" style="transform-origin:top center;transition:transform .15s"></div>
+    </div>
   </div>
 </div>
 
@@ -6193,12 +6198,27 @@ async function icGuardar(){
   }
 }
 
+var mCartaoZoom = 100;
+
 function mostrarCartaoModal(titulo, html){
   document.getElementById('mCartaoTitulo').textContent=titulo;
   document.getElementById('mCartaoConteudo').innerHTML=html;
   document.getElementById('mCartao').style.display='block';
   document.body.style.overflow='hidden';
   window.scrollTo(0,0);
+  mCartaoZoom = 100;
+  aplicarZoomCartao();
+}
+
+function zoomCartao(delta){
+  mCartaoZoom = Math.max(40, Math.min(150, mCartaoZoom + delta*10));
+  aplicarZoomCartao();
+}
+
+function aplicarZoomCartao(){
+  var el = document.getElementById('mCartaoConteudo');
+  el.style.transform = 'scale(' + (mCartaoZoom/100) + ')';
+  document.getElementById('mCartaoZoomLabel').textContent = mCartaoZoom + '%';
 }
 
 function fecharCartao(){
