@@ -2728,6 +2728,37 @@ function rDist(){
   const rouPiso={'1':'Piso 3','2':'Piso 4','3':'Piso 5','4':'Piso 6'}[String(diaSem)]||'';
   const rouExtra=rouPiso?'<br><span style="color:#7C3AED">🗄️ <strong>Hoje:</strong> Organizar a fundo os roupeiros do '+rouPiso+'</span>':'';
   const extraT6={'1':'<br><span style="color:#0D9488">🛏️ <strong>Hoje — 2ª feira:</strong> Limpar a fundo todas as mesas de cabeceira e toucadores de todos os quartos de todos os pisos</span>','2':'<br><span style="color:#0D9488">🚪 <strong>Hoje — 3ª feira:</strong> Limpar as portas de madeira e os roupeiros de todos os quartos de todos os pisos</span>','3':'<br><span style="color:#0D9488">🛋️ <strong>Hoje — 4ª feira:</strong> Limpeza a fundo das salas dos pisos — limpar armários por dentro, mesas, cadeiras e riscos das paredes</span>','4':'<br><span style="color:#0D9488">🧱 <strong>Hoje — 5ª feira:</strong> Limpeza de todos os azuleijos de todos os WCs de todos os pisos (utilizar mopa)</span>','5':'<br><span style="color:#DC2626">🪑 <strong>Hoje — 6ª feira:</strong> Lavar todas as cadeiras de rodas de todos os utentes</span>','6':'<br><span style="color:#0D9488">🖌️ <strong>Hoje — Sábado:</strong> Limpar os riscos das paredes dos corredores de todos os pisos</span>','0':'<br><span style="color:#0D9488">🏗️ <strong>Hoje — Domingo:</strong> Limpeza do Piso -1 · Lavagem do chão da garagem e da zona dos sujos</span>'}[String(diaSem)]||'';
+  // ===== Rotação diária de limpeza a fundo — distribuída por todos os postos =====
+  const EXTRA_COMUM=[
+    {e:'🛗',t:'Elevador — limpeza profunda (calhas da porta, teto, espelho)'},
+    {e:'🪜',t:'Escadas — corrimãos, rodapés e janelas das escadas a fundo'},
+    {e:'🚧',t:'Corredores — remover riscos e marcas do piso'},
+    {e:'🚪',t:'Portas de madeira do edifício — entrada e portas comuns'},
+    {e:'☀️',t:'Esplanadas — varrer, lavar pavimento e limpar mobiliário'},
+    {e:'🪟',t:'Janelas do Piso 0 — vidros e caixilhos'},
+    {e:'🪟',t:'Janelas do Piso 2 — vidros e caixilhos'},
+    {e:'🏗️',t:'Exterior do Piso 2'},
+    {e:'🧱',t:'Azulejos dos WC comuns — juntas a fundo'},
+    {e:'🏪',t:'Dispensas — limpeza a fundo'},
+    {e:'🗄️',t:'Cacifos — por fora e por dentro'},
+    {e:'🌸',t:'Flores e plantas — quartos e corredores'},
+    {e:'🪑',t:'Cadeiras de rodas — limpeza e desinfeção'},
+    {e:'🧽',t:'Zona das cadeiras de rodas — limpeza a fundo do espaço'},
+    {e:'🖥️',t:'Mobiliário dos escritórios — limpeza total'}
+  ];
+  const POSTOS_COMUM=['Piso 3','Piso 4','Piso 5','Piso 6','Piso 3 — Tarde','Piso 4 — Tarde','Piso 5 — Tarde','Piso 6 — Tarde','Apoio 1','Apoio 2','Cozinha (8h-17h)','Cozinha (10h-20h)','Serviços Gerais'];
+  const _dayIdx=Math.floor(Date.UTC(hoje.getFullYear(),hoje.getMonth(),hoje.getDate())/86400000);
+  function extraComum(pN){
+    const idx=POSTOS_COMUM.indexOf(pN);
+    if(idx<0)return '';
+    const it=EXTRA_COMUM[(_dayIdx+idx)%EXTRA_COMUM.length];
+    return '<br><span style="color:#B45309">'+it.e+' <strong>Hoje:</strong> '+it.t+' 📸</span>';
+  }
+  const PISO_MOVEIS={'1':{e:'🪑',t:'Mesas e móveis da sala — limpeza a fundo'},'2':{e:'🗄️',t:'Gavetas da sala — esvaziar, limpar e reorganizar'},'3':{e:'🚪',t:'Portas e frisos dos roupeiros — limpeza a fundo'},'4':{e:'🪟',t:'Janelas do piso — vidros e caixilhos'},'5':{e:'📺',t:'TVs da sala — limpeza e desinfeção'}}[String(diaSem)];
+  function pisoMoveisExtra(){
+    if(!PISO_MOVEIS)return '';
+    return '<br><span style="color:#0D9488">'+PISO_MOVEIS.e+' <strong>Hoje:</strong> '+PISO_MOVEIS.t+' 📸</span>';
+  }
   const funcs={
     'Piso 3':'🌅 Manhã: Cuidados directos · 🌆 Tarde: Lanche nas mesas · Levar utentes ao WC · Preparar mesas para o jantar · Repor produtos na casa de banho do piso 0, organizar carro · Limpar mesas dos lanches',
     'Piso 4':'🌅 Manhã: Cuidados directos · 🌆 Tarde: Lanche aos dependentes à boca e aos que ficam nos pisos · Ajuda a sentar utentes e a deitar utentes',
@@ -2745,6 +2776,17 @@ function rDist(){
   const t4='👗 Arrumar a roupa de todos os pisos — trabalho bem feito 📸 · 🏠 Arrumar as toalhas, lençóis e edredões nas rouparias dos pisos de forma bem distribuída 📸 · 🕔 Descer ao piso 0 às 17h30 para ajudar a sentar os utentes para o jantar · 🌙 Após o jantar: assume a lavandaria · Deixar o espaço limpo e organizado · Aspirar as máquinas 📹'+NOTA+rouExtra;
   const t5='🪡 Fazer os cabides · 🧹 Arrumar, repor e organizar todos os carrinhos de limpeza dos pisos — lavar os carrinhos e organizar correctamente · 🔄 Ajuda nos posicionamentos · 🕔 Descer ao piso 0 às 17h00 para dar água aos utentes e apoiar a colega · Ajudar a sentar os utentes que vão jantar no piso 0 · 🩸 Medir as glicemias e registar na folha · 🌙 Após o deitar: assume a cozinha — deixar a cozinha e a zona da loiça limpa e organizada · ⚠️ Não colocar loiça com restos de comida na máquina'+NOTA;
   const t6='🌙 Após o deitar: limpar as salas de estar de todos os pisos 📸 · 🌙 Após o deitar: limpar os suportes de alimentação com água quente · 🌙 Dar apoio nas ceias juntamente com a colega T3'+NOTA+extraT6;
+  // Aplica a rotação diária comum + a rotação semanal de mobiliário dos pisos
+  ['Piso 3','Piso 4','Piso 5','Piso 6','Apoio 1','Apoio 2','Piso 3 — Tarde','Serviços Gerais'].forEach(k=>{
+    if(funcs[k]===undefined)return;
+    if(['Piso 3','Piso 4','Piso 5','Piso 6'].includes(k))funcs[k]+=pisoMoveisExtra();
+    funcs[k]+=extraComum(k);
+  });
+  const coz1f=coz1+extraComum('Cozinha (8h-17h)');
+  const coz2f=coz2+extraComum('Cozinha (10h-20h)');
+  const t4f=t4+extraComum('Piso 4 — Tarde');
+  const t5f=t5+extraComum('Piso 5 — Tarde');
+  const t6f=t6+extraComum('Piso 6 — Tarde');
   const grupos=isSVA?SVA_GROUPS:[
     {titulo:'🌅 Turno da Manhã',postos:['Piso 3','Piso 4','Piso 5','Piso 6','Apoio 1','Apoio 2','Cozinha (8h-17h)','Cozinha (10h-20h)','Serviços Gerais','Encarregada','Manhã Geral']},
     {titulo:'🌆 Turno da Tarde',postos:['Piso 3 — Tarde','Piso 4 — Tarde','Piso 5 — Tarde','Piso 6 — Tarde']},
@@ -2766,7 +2808,7 @@ function rDist(){
         if(pN==='Piso 3'||pN==='Piso 4')lencH=lenc34;
         if(pN==='Piso 5'||pN==='Piso 6')lencH=lenc56;
       }
-      const fnMap=isSVA?SVA_FUNCS:{...funcs,'Cozinha (8h-17h)':coz1,'Cozinha (10h-20h)':coz2,'Piso 4 — Tarde':t4,'Piso 5 — Tarde':t5,'Piso 6 — Tarde':t6};
+      const fnMap=isSVA?SVA_FUNCS:{...funcs,'Cozinha (8h-17h)':coz1f,'Cozinha (10h-20h)':coz2f,'Piso 4 — Tarde':t4f,'Piso 5 — Tarde':t5f,'Piso 6 — Tarde':t6f};
       var _dc=(window.DB&&window.DB.distCustom&&window.DB.distCustom[pN]);const fn=_dc?_dc.texto:fnMap[pN]||'';const fnNota=_dc?(_dc.nota||''):'';
       // Usar colaborador personalizado se existir, senão usar o da escala
       const colabCustom=_dc&&_dc.colab?_dc.colab:'';
@@ -6364,24 +6406,52 @@ function exportarCartao(tipo){
   const rouPiso={1:'Piso 3',2:'Piso 4',3:'Piso 5',4:'Piso 6'}[dw]||'';
   const rouExtra=rouPiso?'<br><span style="color:#7C3AED;font-size:9px;font-weight:600">🗄️ Hoje: Organizar roupeiros a fundo — '+rouPiso+'</span>':'';
   const extraT6={1:'<br><span style="color:#0D9488;font-size:9px;font-weight:600">🛏️ Hoje 2ª: Limpar mesas cabeceira e toucadores de todos os pisos</span>',2:'<br><span style="color:#0D9488;font-size:9px;font-weight:600">🚪 Hoje 3ª: Limpar portas e roupeiros de todos os pisos</span>',3:'<br><span style="color:#0D9488;font-size:9px;font-weight:600">🛋️ Hoje 4ª: Limpeza a fundo das salas dos pisos</span>',4:'<br><span style="color:#0D9488;font-size:9px;font-weight:600">🧱 Hoje 5ª: Limpeza azuleijos de todos os WCs</span>',5:'<br><span style="color:#DC2626;font-size:9px;font-weight:600">🪑 Hoje 6ª: Lavar todas as cadeiras de rodas</span>',6:'<br><span style="color:#0D9488;font-size:9px;font-weight:600">🖌️ Hoje Sáb: Limpar riscos das paredes dos corredores</span>',0:'<br><span style="color:#0D9488;font-size:9px;font-weight:600">🏗️ Hoje Dom: Limpeza do Piso -1 e garagem</span>'}[dw]||'';
+  // ===== Rotação diária de limpeza a fundo — distribuída por todos os postos (igual à do rDist) =====
+  const EXTRA_COMUM=[
+    {e:'🛗',t:'Elevador — limpeza profunda (calhas, teto, espelho)'},
+    {e:'🪜',t:'Escadas — corrimãos, rodapés e janelas das escadas'},
+    {e:'🚧',t:'Corredores — remover riscos e marcas do piso'},
+    {e:'🚪',t:'Portas de madeira do edifício — entrada e portas comuns'},
+    {e:'☀️',t:'Esplanadas — varrer, lavar e limpar mobiliário'},
+    {e:'🪟',t:'Janelas do Piso 0 — vidros e caixilhos'},
+    {e:'🪟',t:'Janelas do Piso 2 — vidros e caixilhos'},
+    {e:'🏗️',t:'Exterior do Piso 2'},
+    {e:'🧱',t:'Azulejos dos WC comuns — juntas a fundo'},
+    {e:'🏪',t:'Dispensas — limpeza a fundo'},
+    {e:'🗄️',t:'Cacifos — por fora e por dentro'},
+    {e:'🌸',t:'Flores e plantas — quartos e corredores'},
+    {e:'🪑',t:'Cadeiras de rodas — limpeza e desinfeção'},
+    {e:'🧽',t:'Zona das cadeiras de rodas — limpeza a fundo'},
+    {e:'🖥️',t:'Mobiliário dos escritórios — limpeza total'}
+  ];
+  const POSTOS_COMUM=['Piso 3','Piso 4','Piso 5','Piso 6','Piso 3 — Tarde','Piso 4 — Tarde','Piso 5 — Tarde','Piso 6 — Tarde','Apoio 1','Apoio 2','Cozinha (8h-17h)','Cozinha (10h-20h)','Serviços Gerais'];
+  const _dayIdx=Math.floor(Date.UTC(hoje.getFullYear(),hoje.getMonth(),hoje.getDate())/86400000);
+  function extraComum(pN){
+    const idx=POSTOS_COMUM.indexOf(pN);
+    if(idx<0)return '';
+    const it=EXTRA_COMUM[(_dayIdx+idx)%EXTRA_COMUM.length];
+    return '<br><span style="color:#B45309;font-size:9px;font-weight:600">'+it.e+' Hoje: '+it.t+' 📸</span>';
+  }
+  const PISO_MOVEIS={1:{e:'🪑',t:'Mesas e móveis da sala — limpeza a fundo'},2:{e:'🗄️',t:'Gavetas da sala — esvaziar e reorganizar'},3:{e:'🚪',t:'Portas e frisos dos roupeiros — limpeza a fundo'},4:{e:'🪟',t:'Janelas do piso — vidros e caixilhos'},5:{e:'📺',t:'TVs da sala — limpeza e desinfeção'}}[dw];
+  const pisoMoveisExtra=PISO_MOVEIS?'<br><span style="color:#0D9488;font-size:9px;font-weight:600">'+PISO_MOVEIS.e+' Hoje: '+PISO_MOVEIS.t+' 📸</span>':'';
   const AVISO='<div style="font-size:9px;color:#DC2626;font-weight:600;margin-top:4px">⚠️ As 3 funcionárias começam por deitar 1 piso de cada vez — só avançam quando todos os utentes estiverem deitados</div>';
 
   const funcoes={
     'Encarregada':{cor:'#7C3AED',bg:'#F5F3FF',txt:'Recebe turno e passa informações do dia · Apoia peq. almoços e visitas · Supervisão das equipas · Gestão de ocorrências e urgências · Articulação com a direcção técnica · Apoio clínico de 1ª linha'},
-    'Piso 3':{cor:'#0EA5E9',bg:'#F8FAFC',txt:'Cuidados directos — higiene matinal · Lanche nas mesas · Levar utentes ao WC · Preparar mesas para o jantar · Repor produtos CdB Piso 0 e organizar carro · Limpar mesas dos lanches'+lenc34},
-    'Piso 4':{cor:'#0D9488',bg:'#F8FAFC',txt:'Cuidados directos — higiene matinal · Lanche dependentes à boca e aos que ficam nos pisos · Ajuda a sentar e a deitar utentes'+lenc56},
-    'Piso 5':{cor:'#C9973A',bg:'#F8FAFC',txt:'Cuidados directos — higiene matinal · Começa por limpar o Piso 2 · Assinar folhas de limpeza até hoje · Abrir camas dos 4 pisos — verificar colchões ligados, janelas fechadas, portas dos quartos fechadas'},
-    'Piso 6':{cor:'#7C3AED',bg:'#F8FAFC',txt:'Cuidados directos — higiene matinal · Avaliação de sinais vitais dos utentes e registar ❤️'},
-    'Apoio 1':{cor:'#1D4ED8',bg:'#F8FAFC',txt:'Cuidados directos Q9/15/21 · Higiene matinal · Medicação · Posicionamentos · Tarde: apoio alimentação dependentes · Ajuda a deitar utentes'},
-    'Apoio 2':{cor:'#6D28D9',bg:'#F8FAFC',txt:'Cuidados directos Piso 3 (M3 e AP2 sempre juntos) · Lanche nas mesas · Levar utentes ao WC · Preparar mesas para jantar · Repor produtos CdB Piso 0 · Limpar mesas dos lanches'},
-    'Cozinha (8h-17h)':{cor:'#EA580C',bg:'#FFF7ED',txt:'Peq. almoço · Almoço · Lanche · Preparação jantar · Distribuir refeições e orientar equipa sala sobre dietas · Recolha loiça + lavagem · Limpeza e organização posto 📸'+limpCoz},
-    'Cozinha (10h-20h)':{cor:'#D97706',bg:'#FFF7ED',txt:'Almoço · Lanche · Jantar · Distribuir refeições e orientar equipa sala sobre dietas · Após jantar: retirar ceia, recolher loiça + lavagem · Limpeza geral cozinha · Registo fotográfico no fecho 📸'+limpCoz},
-    'Serviços Gerais':{cor:'#16A34A',bg:'#F0FDF4',txt:'Supervisão lavandaria e atoalhados · Apoio sala e pisos nos peq. almoços · Limpeza WCs, corredores, zona dos sujos e hall · Assume lavandaria · Organiza roupas nos carros da rouparia'},
+    'Piso 3':{cor:'#0EA5E9',bg:'#F8FAFC',txt:'Cuidados directos — higiene matinal · Lanche nas mesas · Levar utentes ao WC · Preparar mesas para o jantar · Repor produtos CdB Piso 0 e organizar carro · Limpar mesas dos lanches'+lenc34+pisoMoveisExtra+extraComum('Piso 3')},
+    'Piso 4':{cor:'#0D9488',bg:'#F8FAFC',txt:'Cuidados directos — higiene matinal · Lanche dependentes à boca e aos que ficam nos pisos · Ajuda a sentar e a deitar utentes'+lenc56+pisoMoveisExtra+extraComum('Piso 4')},
+    'Piso 5':{cor:'#C9973A',bg:'#F8FAFC',txt:'Cuidados directos — higiene matinal · Começa por limpar o Piso 2 · Assinar folhas de limpeza até hoje · Abrir camas dos 4 pisos — verificar colchões ligados, janelas fechadas, portas dos quartos fechadas'+pisoMoveisExtra+extraComum('Piso 5')},
+    'Piso 6':{cor:'#7C3AED',bg:'#F8FAFC',txt:'Cuidados directos — higiene matinal · Avaliação de sinais vitais dos utentes e registar ❤️'+pisoMoveisExtra+extraComum('Piso 6')},
+    'Apoio 1':{cor:'#1D4ED8',bg:'#F8FAFC',txt:'Cuidados directos Q9/15/21 · Higiene matinal · Medicação · Posicionamentos · Tarde: apoio alimentação dependentes · Ajuda a deitar utentes'+extraComum('Apoio 1')},
+    'Apoio 2':{cor:'#6D28D9',bg:'#F8FAFC',txt:'Cuidados directos Piso 3 (M3 e AP2 sempre juntos) · Lanche nas mesas · Levar utentes ao WC · Preparar mesas para jantar · Repor produtos CdB Piso 0 · Limpar mesas dos lanches'+extraComum('Apoio 2')},
+    'Cozinha (8h-17h)':{cor:'#EA580C',bg:'#FFF7ED',txt:'Peq. almoço · Almoço · Lanche · Preparação jantar · Distribuir refeições e orientar equipa sala sobre dietas · Recolha loiça + lavagem · Limpeza e organização posto 📸'+limpCoz+extraComum('Cozinha (8h-17h)')},
+    'Cozinha (10h-20h)':{cor:'#D97706',bg:'#FFF7ED',txt:'Almoço · Lanche · Jantar · Distribuir refeições e orientar equipa sala sobre dietas · Após jantar: retirar ceia, recolher loiça + lavagem · Limpeza geral cozinha · Registo fotográfico no fecho 📸'+limpCoz+extraComum('Cozinha (10h-20h)')},
+    'Serviços Gerais':{cor:'#16A34A',bg:'#F0FDF4',txt:'Supervisão lavandaria e atoalhados · Apoio sala e pisos nos peq. almoços · Limpeza WCs, corredores, zona dos sujos e hall · Assume lavandaria · Organiza roupas nos carros da rouparia'+extraComum('Serviços Gerais')},
     'Manhã Geral':{cor:'#0EA5E9',bg:'#F8FAFC',txt:'Trabalho Técnico'},
-    'Piso 3 — Tarde':{cor:'#0EA5E9',bg:'#F8FAFC',txt:'Fechar janelas dos quartos de todos os pisos · Arrumar carros de fraldas Pisos 3/4/5/6 (saco 100L dentro saco amarelo) 📸 · Organizar zona banho assistido 📸 · Posicionamentos às 16h · 18h · 20h 📸 · Descer ao Piso 0 às 16h45 · Verificar sistemas alimentação acamados às 20h 📸 · Ceias com colega T6'},
-    'Piso 4 — Tarde':{cor:'#0D9488',bg:'#F0FDFA',txt:'Arrumar roupa de todos os pisos — bem feito 📸 · Toalhas, lençóis e edredões nas rouparias 📸 · Descer às 17h30 para sentar utentes jantar · Após jantar: assume lavandaria · Aspirar as máquinas 📹'+rouExtra},
-    'Piso 5 — Tarde':{cor:'#C9973A',bg:'#FFFBEB',txt:'Fazer os cabides · Arrumar e organizar carrinhos de limpeza · Lavar os carrinhos e organizar correctamente · Ajuda nos posicionamentos · Descer às 17h — dar água e apoiar colega · Ajudar a sentar utentes para jantar · Medir as glicemias e registar 🩸 · Após deitar: assume a cozinha — deixar limpa e organizada'},
-    'Piso 6 — Tarde':{cor:'#7C3AED',bg:'#F5F3FF',txt:'Após deitar: limpar salas de estar de todos os pisos 📸 · Após deitar: limpar suportes de alimentação com água quente · Dar apoio nas ceias com a colega T3 · Sinais vitais ❤️'+extraT6},
+    'Piso 3 — Tarde':{cor:'#0EA5E9',bg:'#F8FAFC',txt:'Fechar janelas dos quartos de todos os pisos · Arrumar carros de fraldas Pisos 3/4/5/6 (saco 100L dentro saco amarelo) 📸 · Organizar zona banho assistido 📸 · Posicionamentos às 16h · 18h · 20h 📸 · Descer ao Piso 0 às 16h45 · Verificar sistemas alimentação acamados às 20h 📸 · Ceias com colega T6'+extraComum('Piso 3 — Tarde')},
+    'Piso 4 — Tarde':{cor:'#0D9488',bg:'#F0FDFA',txt:'Arrumar roupa de todos os pisos — bem feito 📸 · Toalhas, lençóis e edredões nas rouparias 📸 · Descer às 17h30 para sentar utentes jantar · Após jantar: assume lavandaria · Aspirar as máquinas 📹'+rouExtra+extraComum('Piso 4 — Tarde')},
+    'Piso 5 — Tarde':{cor:'#C9973A',bg:'#FFFBEB',txt:'Fazer os cabides · Arrumar e organizar carrinhos de limpeza · Lavar os carrinhos e organizar correctamente · Ajuda nos posicionamentos · Descer às 17h — dar água e apoiar colega · Ajudar a sentar utentes para jantar · Medir as glicemias e registar 🩸 · Após deitar: assume a cozinha — deixar limpa e organizada'+extraComum('Piso 5 — Tarde')},
+    'Piso 6 — Tarde':{cor:'#7C3AED',bg:'#F5F3FF',txt:'Após deitar: limpar salas de estar de todos os pisos 📸 · Após deitar: limpar suportes de alimentação com água quente · Dar apoio nas ceias com a colega T3 · Sinais vitais ❤️'+extraT6+extraComum('Piso 6 — Tarde')},
     'Noite — Piso 1-2':{cor:'#1E293B',bg:'#F8FAFC',txt:''},
     'Noite — Piso 3-4':{cor:'#334155',bg:'#F8FAFC',txt:''}
   };
@@ -6526,16 +6596,10 @@ function exportarCartao(tipo){
     html+='<div style="background:#FEF2F2;border-radius:8px;padding:9px 14px;border-left:3px solid #DC2626"><div style="font-size:10px;font-weight:700;color:#DC2626;margin-bottom:3px">⚠️ Regra da Noite</div><div style="font-size:10px;color:#7F1D1D;line-height:1.6">Trabalho nocturno sempre em equipa — não dividir tarefas!<br>As duas funcionárias fazem tudo juntas em todos os pisos.</div></div>';
   } else if(tipo==='T'){
     // Tarde - pairs
-    const tPairs=[['Piso 3 — Tarde','Piso 4 — Tarde'],['Piso 5 — Tarde','Piso 6 — Tarde']];
-    tPairs.forEach(pair=>{
-      const a=pair[0],b=pair[1];
-      if(!pm[a]&&!pm[b])return;
-      html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
-      if(pm[a])html+=cardPosto(a.replace(' — Tarde','<br><small style="font-weight:400;font-size:8px">Tarde</small>'),pm[a],funcoes[a]);
-      else html+='<div></div>';
-      if(pm[b])html+=cardPosto(b.replace(' — Tarde','<br><small style="font-weight:400;font-size:8px">Tarde</small>'),pm[b],funcoes[b]);
-      else html+='<div></div>';
-      html+='</div>';
+    const tOrdem=['Piso 3 — Tarde','Piso 4 — Tarde','Piso 5 — Tarde','Piso 6 — Tarde'];
+    tOrdem.forEach(a=>{
+      if(!pm[a])return;
+      html+=cardPosto(a.replace(' — Tarde','<br><small style="font-weight:400;font-size:8px">Tarde</small>'),pm[a],funcoes[a]);
     });
     // Rotinas gerais tarde
     html+='<div style="background:#FFF7ED;border-radius:8px;padding:9px 14px;border-left:3px solid #EA580C"><div style="font-size:10px;font-weight:700;color:#EA580C;margin-bottom:6px">📋 Rotinas Gerais do Turno da Tarde</div>';
@@ -6545,16 +6609,10 @@ function exportarCartao(tipo){
     html+='<div style="background:#FEF2F2;border-radius:8px;padding:9px 14px;border-left:3px solid #DC2626"><div style="font-size:10px;font-weight:700;color:#DC2626">'+AVISO+'</div></div>';
   } else {
     // Manhã - pairs
-    const mPairs=[['Piso 3','Piso 4'],['Piso 5','Piso 6'],['Apoio 1','Apoio 2'],['Cozinha (8h-17h)','Cozinha (10h-20h)'],['Encarregada','Serviços Gerais']];
-    mPairs.forEach(pair=>{
-      const a=pair[0],b=pair[1];
-      if(!pm[a]&&!pm[b])return;
-      html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
-      if(pm[a])html+=cardPosto(a,pm[a],funcoes[a]);
-      else html+='<div></div>';
-      if(pm[b])html+=cardPosto(b,pm[b],funcoes[b]);
-      else html+='<div></div>';
-      html+='</div>';
+    const mOrdem=['Piso 3','Piso 4','Piso 5','Piso 6','Apoio 1','Apoio 2','Cozinha (8h-17h)','Cozinha (10h-20h)','Encarregada','Serviços Gerais'];
+    mOrdem.forEach(a=>{
+      if(!pm[a])return;
+      html+=cardPosto(a,pm[a],funcoes[a]);
     });
   }
 
