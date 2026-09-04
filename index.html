@@ -2701,13 +2701,29 @@ function rEscala(){
   document.getElementById('escLeg').innerHTML=legs.map(l=>`<span class="ecc ${l.c}" style="font-size:.68rem">${l.l}</span>`).join('');
 }
 
-async function assignLimpeza(tipo,idx,posto){
+function _limpezaDefaults(hoje){
+  const POSTOS_COMUM=['Piso 3','Piso 4','Piso 5','Piso 6','Piso 3 — Tarde','Piso 4 — Tarde','Piso 5 — Tarde','Piso 6 — Tarde','Apoio 1','Apoio 2','Cozinha (8h-17h)','Cozinha (10h-20h)','Serviços Gerais'];
+  const POSTOS_PISO=['Piso 3','Piso 4','Piso 5','Piso 6'];
+  const EXTRA_COMUM_LEN=15,MOV_LEN=5;
+  const _dayIdx=Math.floor(Date.UTC(hoje.getFullYear(),hoje.getMonth(),hoje.getDate())/86400000);
+  const defComum=new Array(EXTRA_COMUM_LEN).fill('');
+  POSTOS_COMUM.forEach(p=>{defComum[(_dayIdx+POSTOS_COMUM.indexOf(p))%EXTRA_COMUM_LEN]=p;});
+  const defMov=new Array(MOV_LEN).fill('');
+  POSTOS_PISO.forEach(p=>{defMov[(_dayIdx+POSTOS_PISO.indexOf(p))%MOV_LEN]=p;});
+  return {defComum,defMov};
+}
+async function assignPorPosto(tipo,posto,idxStr){
   const hoje=new Date();hoje.setDate(hoje.getDate()+distDiaOffset);
   const dateKey=hoje.toISOString().slice(0,10);
   if(!DB.limpezaSel)DB.limpezaSel={};
   if(!DB.limpezaSel[dateKey])DB.limpezaSel[dateKey]={};
-  if(!DB.limpezaSel[dateKey][tipo])DB.limpezaSel[dateKey][tipo]=[];
-  DB.limpezaSel[dateKey][tipo][idx]=posto;
+  const {defComum,defMov}=_limpezaDefaults(hoje);
+  const base=tipo==='comum'?defComum:defMov;
+  let arr=(DB.limpezaSel[dateKey][tipo]&&DB.limpezaSel[dateKey][tipo].length)?DB.limpezaSel[dateKey][tipo].slice():base.slice();
+  arr=arr.map(v=>v===posto?'':v);
+  const idx=idxStr===''?-1:parseInt(idxStr,10);
+  if(idx>=0)arr[idx]=posto;
+  DB.limpezaSel[dateKey][tipo]=arr;
   await fbS('limpeza_sel/'+dateKey,DB.limpezaSel[dateKey]);
   rDist();
 }
@@ -2821,14 +2837,25 @@ function rDist(){
     {titulo:'🏖 Ausências',postos:['Folga','Descanso Comp.','Férias','Baixa Médica']},
   ];
   let html='<div style="font-size:.74rem;color:var(--gray-400);margin-bottom:.95rem">📅 '+hoje.toLocaleDateString('pt-PT',{weekday:'long',day:'numeric',month:'long'})+' — Gerado automaticamente da escala</div>';
-  // ===== Painel — ver as tarefas de limpeza e escolher quem fica com cada uma hoje =====
+  // ===== Painel — escolher por piso/posto qual a tarefa de limpeza de hoje =====
   {
     const postosDisp=POSTOS_COMUM.filter(p=>pm[p]&&pm[p].colab.length>0);
     const postosMovDisp=POSTOS_PISO.filter(p=>pm[p]&&pm[p].colab.length>0);
-    const optHtml=(sel,lista)=>'<option value="">— não atribuir —</option>'+lista.map(p=>'<option value="'+p+'" '+(p===sel?'selected':'')+'>'+p+'</option>').join('');
-    let linhasComum=EXTRA_COMUM.map((it,idx)=>'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #FEF3C7"><span style="flex:1;font-size:.74rem">'+it.e+' '+it.t+'</span><select onchange="assignLimpeza(\'comum\','+idx+',this.value)" style="font-size:.72rem;padding:3px 6px;border-radius:6px;border:1px solid #FDE68A;max-width:150px">'+optHtml(arrComum[idx],postosDisp)+'</select></div>').join('');
-    let linhasMov=PISO_MOVEIS_LIST.map((it,idx)=>'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #CCFBF1"><span style="flex:1;font-size:.74rem">'+it.e+' '+it.t+' <em style="color:#0D9488">(mobília)</em></span><select onchange="assignLimpeza(\'mov\','+idx+',this.value)" style="font-size:.72rem;padding:3px 6px;border-radius:6px;border:1px solid #99F6E4;max-width:150px">'+optHtml(arrMov[idx],postosMovDisp)+'</select></div>').join('');
-    html+='<details style="margin-bottom:1rem;background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:.6rem .8rem"><summary style="cursor:pointer;font-size:.78rem;font-weight:600;color:#92400E">🧹 Limpezas de hoje — ver e atribuir a quem quiseres</summary><div style="margin-top:.6rem">'+linhasComum+linhasMov+'</div></details>';
+    const comumOptHtml=(selPosto)=>{
+      let o='<option value="">— nenhuma —</option>';
+      EXTRA_COMUM.forEach((it,idx)=>{o+='<option value="'+idx+'" '+(arrComum[idx]===selPosto?'selected':'')+'>'+it.e+' '+it.t+'</option>';});
+      return o;
+    };
+    const movOptHtml=(selPosto)=>{
+      let o='<option value="">— nenhuma —</option>';
+      PISO_MOVEIS_LIST.forEach((it,idx)=>{o+='<option value="'+idx+'" '+(arrMov[idx]===selPosto?'selected':'')+'>'+it.e+' '+it.t+'</option>';});
+      return o;
+    };
+    let linhas=postosDisp.map(p=>{
+      const movRow=postosMovDisp.includes(p)?'<div style="margin-top:4px"><span style="font-size:.68rem;color:#0D9488">Mobília:</span> <select onchange="assignPorPosto(\'mov\',\''+p+'\',this.value)" style="font-size:.72rem;padding:3px 6px;border-radius:6px;border:1px solid #99F6E4;max-width:230px">'+movOptHtml(p)+'</select></div>':'';
+      return '<div style="padding:6px 0;border-bottom:1px solid #FEF3C7"><div style="font-size:.76rem;font-weight:600;margin-bottom:3px">'+p+'</div><select onchange="assignPorPosto(\'comum\',\''+p+'\',this.value)" style="font-size:.72rem;padding:3px 6px;border-radius:6px;border:1px solid #FDE68A;max-width:260px">'+comumOptHtml(p)+'</select>'+movRow+'</div>';
+    }).join('');
+    html+='<details style="margin-bottom:1rem;background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:.6rem .8rem"><summary style="cursor:pointer;font-size:.78rem;font-weight:600;color:#92400E">🧹 Limpezas de hoje — escolhe por piso/posto</summary><div style="margin-top:.6rem">'+linhas+'</div></details>';
   }
   grupos.forEach(g=>{
     const pp=g.postos.filter(p=>pm[p]&&pm[p].colab.length>0);
