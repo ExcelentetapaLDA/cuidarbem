@@ -2701,25 +2701,13 @@ function rEscala(){
   document.getElementById('escLeg').innerHTML=legs.map(l=>`<span class="ecc ${l.c}" style="font-size:.68rem">${l.l}</span>`).join('');
 }
 
-function _limpezaDefaults(hoje){
-  const POSTOS_COMUM=['Piso 3','Piso 4','Piso 5','Piso 6','Piso 3 — Tarde','Piso 4 — Tarde','Piso 5 — Tarde','Piso 6 — Tarde','Apoio 1','Apoio 2','Cozinha (8h-17h)','Cozinha (10h-20h)','Serviços Gerais'];
-  const POSTOS_PISO=['Piso 3','Piso 4','Piso 5','Piso 6'];
-  const EXTRA_COMUM_LEN=15,MOV_LEN=5;
-  const _dayIdx=Math.floor(Date.UTC(hoje.getFullYear(),hoje.getMonth(),hoje.getDate())/86400000);
-  const defComum=new Array(EXTRA_COMUM_LEN).fill('');
-  POSTOS_COMUM.forEach(p=>{defComum[(_dayIdx+POSTOS_COMUM.indexOf(p))%EXTRA_COMUM_LEN]=p;});
-  const defMov=new Array(MOV_LEN).fill('');
-  POSTOS_PISO.forEach(p=>{defMov[(_dayIdx+POSTOS_PISO.indexOf(p))%MOV_LEN]=p;});
-  return {defComum,defMov};
-}
 async function assignPorPosto(tipo,posto,idxStr){
   const hoje=new Date();hoje.setDate(hoje.getDate()+distDiaOffset);
   const dateKey=hoje.toISOString().slice(0,10);
   if(!DB.limpezaSel)DB.limpezaSel={};
   if(!DB.limpezaSel[dateKey])DB.limpezaSel[dateKey]={};
-  const {defComum,defMov}=_limpezaDefaults(hoje);
-  const base=tipo==='comum'?defComum:defMov;
-  let arr=(DB.limpezaSel[dateKey][tipo]&&DB.limpezaSel[dateKey][tipo].length)?DB.limpezaSel[dateKey][tipo].slice():base.slice();
+  const LEN=tipo==='comum'?15:5;
+  let arr=(DB.limpezaSel[dateKey][tipo]&&DB.limpezaSel[dateKey][tipo].length)?DB.limpezaSel[dateKey][tipo].slice():new Array(LEN).fill('');
   arr=arr.map(v=>v===posto?'':v);
   const idx=idxStr===''?-1:parseInt(idxStr,10);
   if(idx>=0)arr[idx]=posto;
@@ -2786,13 +2774,9 @@ function rDist(){
     {e:'📺',t:'TVs da sala — limpeza e desinfeção'}
   ];
   const POSTOS_PISO=['Piso 3','Piso 4','Piso 5','Piso 6'];
-  // sugestão por omissão (a rotação de sempre), só usada se ainda não houver escolha guardada para o dia
-  const defComum=new Array(EXTRA_COMUM.length).fill('');
-  POSTOS_COMUM.filter(p=>pm[p]&&pm[p].colab.length>0).forEach((p,j)=>{defComum[(_dayIdx+POSTOS_COMUM.indexOf(p))%EXTRA_COMUM.length]=p;});
-  const defMov=new Array(PISO_MOVEIS_LIST.length).fill('');
-  POSTOS_PISO.filter(p=>pm[p]&&pm[p].colab.length>0).forEach((p)=>{defMov[(_dayIdx+POSTOS_PISO.indexOf(p))%PISO_MOVEIS_LIST.length]=p;});
-  const arrComum=(savedHoje.comum&&savedHoje.comum.length)?savedHoje.comum:defComum;
-  const arrMov=(savedHoje.mov&&savedHoje.mov.length)?savedHoje.mov:defMov;
+  // nada fica atribuído por omissão — só aparece no cartão depois de escolhido no painel
+  const arrComum=(savedHoje.comum&&savedHoje.comum.length)?savedHoje.comum:new Array(EXTRA_COMUM.length).fill('');
+  const arrMov=(savedHoje.mov&&savedHoje.mov.length)?savedHoje.mov:new Array(PISO_MOVEIS_LIST.length).fill('');
   function tarefasDe(pN,arr,list,cor){
     let out='';
     arr.forEach((posto,idx)=>{
@@ -6499,12 +6483,8 @@ function exportarCartao(tipo){
     {e:'📺',t:'TVs da sala — limpeza e desinfeção'}
   ];
   const POSTOS_PISO=['Piso 3','Piso 4','Piso 5','Piso 6'];
-  const defComum=new Array(EXTRA_COMUM.length).fill('');
-  POSTOS_COMUM.forEach(p=>{defComum[(_dayIdx+POSTOS_COMUM.indexOf(p))%EXTRA_COMUM.length]=p;});
-  const defMov=new Array(PISO_MOVEIS_LIST.length).fill('');
-  POSTOS_PISO.forEach(p=>{defMov[(_dayIdx+POSTOS_PISO.indexOf(p))%PISO_MOVEIS_LIST.length]=p;});
-  const arrComum=(savedHoje.comum&&savedHoje.comum.length)?savedHoje.comum:defComum;
-  const arrMov=(savedHoje.mov&&savedHoje.mov.length)?savedHoje.mov:defMov;
+  const arrComum=(savedHoje.comum&&savedHoje.comum.length)?savedHoje.comum:new Array(EXTRA_COMUM.length).fill('');
+  const arrMov=(savedHoje.mov&&savedHoje.mov.length)?savedHoje.mov:new Array(PISO_MOVEIS_LIST.length).fill('');
   function tarefasDe(pN,arr,list,cor){
     let out='';
     arr.forEach((posto,idx)=>{
