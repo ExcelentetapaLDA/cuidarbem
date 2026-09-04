@@ -2005,7 +2005,7 @@ let S={
     {id:'g5',nome:'Inaladores',res:'r1',utenteIds:[]}
   ]
 };
-let DB={alertas:{},rotinas:{},tarefas:{},confirmacoes:{},hist:{}};
+let DB={alertas:{},rotinas:{},tarefas:{},confirmacoes:{},hist:{},limpezaSel:{}};
 let ses={role:null,rid:null,nome:null,admRes:null};
 let tcFA='all',eqFA='all',escVA='escala',escFA='todos',utFA='all',utResFA=null,distDiaOffset=0;
 
@@ -2029,6 +2029,7 @@ async function loadFB(){
   const es=await fbG('estetica');if(es)DB.estetica=es;
   const erx=await fbG('estetica_restricoes');if(erx)DB.esteticaRestricoes=erx;
   const epd=await fbG('estetica_pendentes');if(epd)DB.esteticaPendentes=epd;
+  const lsx=await fbG('limpeza_sel');if(lsx)DB.limpezaSel=lsx;
   // Load utentes badges from Firebase
   const ub=await fbG('utentes_badges');
   if(ub&&Array.isArray(ub)){
@@ -2700,6 +2701,15 @@ function rEscala(){
   document.getElementById('escLeg').innerHTML=legs.map(l=>`<span class="ecc ${l.c}" style="font-size:.68rem">${l.l}</span>`).join('');
 }
 
+async function toggleLimpezaExtra(pN,checked){
+  const hoje=new Date();hoje.setDate(hoje.getDate()+distDiaOffset);
+  const dateKey=hoje.toISOString().slice(0,10);
+  if(!DB.limpezaSel)DB.limpezaSel={};
+  if(!DB.limpezaSel[dateKey])DB.limpezaSel[dateKey]={};
+  DB.limpezaSel[dateKey][pN]=checked;
+  await fbS('limpeza_sel/'+dateKey,DB.limpezaSel[dateKey]);
+  rDist();
+}
 function rDist(){
   const hoje=new Date();
   hoje.setDate(hoje.getDate()+distDiaOffset);
@@ -2729,6 +2739,9 @@ function rDist(){
   const rouExtra=rouPiso?'<br><span style="color:#7C3AED">🗄️ <strong>Hoje:</strong> Organizar a fundo os roupeiros do '+rouPiso+'</span>':'';
   const extraT6={'1':'<br><span style="color:#0D9488">🛏️ <strong>Hoje — 2ª feira:</strong> Limpar a fundo todas as mesas de cabeceira e toucadores de todos os quartos de todos os pisos</span>','2':'<br><span style="color:#0D9488">🚪 <strong>Hoje — 3ª feira:</strong> Limpar as portas de madeira e os roupeiros de todos os quartos de todos os pisos</span>','3':'<br><span style="color:#0D9488">🛋️ <strong>Hoje — 4ª feira:</strong> Limpeza a fundo das salas dos pisos — limpar armários por dentro, mesas, cadeiras e riscos das paredes</span>','4':'<br><span style="color:#0D9488">🧱 <strong>Hoje — 5ª feira:</strong> Limpeza de todos os azuleijos de todos os WCs de todos os pisos (utilizar mopa)</span>','5':'<br><span style="color:#DC2626">🪑 <strong>Hoje — 6ª feira:</strong> Lavar todas as cadeiras de rodas de todos os utentes</span>','6':'<br><span style="color:#0D9488">🖌️ <strong>Hoje — Sábado:</strong> Limpar os riscos das paredes dos corredores de todos os pisos</span>','0':'<br><span style="color:#0D9488">🏗️ <strong>Hoje — Domingo:</strong> Limpeza do Piso -1 · Lavagem do chão da garagem e da zona dos sujos</span>'}[String(diaSem)]||'';
   // ===== Rotação diária de limpeza a fundo — distribuída por todos os postos =====
+  const dateKey=hoje.toISOString().slice(0,10);
+  if(!DB.limpezaSel)DB.limpezaSel={};
+  const selHoje=DB.limpezaSel[dateKey]||{};
   const EXTRA_COMUM=[
     {e:'🛗',t:'Elevador — limpeza profunda (calhas da porta, teto, espelho)'},
     {e:'🪜',t:'Escadas — corrimãos, rodapés e janelas das escadas a fundo'},
@@ -2749,6 +2762,7 @@ function rDist(){
   const POSTOS_COMUM=['Piso 3','Piso 4','Piso 5','Piso 6','Piso 3 — Tarde','Piso 4 — Tarde','Piso 5 — Tarde','Piso 6 — Tarde','Apoio 1','Apoio 2','Cozinha (8h-17h)','Cozinha (10h-20h)','Serviços Gerais'];
   const _dayIdx=Math.floor(Date.UTC(hoje.getFullYear(),hoje.getMonth(),hoje.getDate())/86400000);
   function extraComum(pN){
+    if(selHoje[pN]===false)return '';
     const idx=POSTOS_COMUM.indexOf(pN);
     if(idx<0)return '';
     const it=EXTRA_COMUM[(_dayIdx+idx)%EXTRA_COMUM.length];
@@ -2763,6 +2777,7 @@ function rDist(){
   ];
   const POSTOS_PISO=['Piso 3','Piso 4','Piso 5','Piso 6'];
   function pisoMoveisExtra(pN){
+    if(selHoje[pN+'_mov']===false)return '';
     const idx=POSTOS_PISO.indexOf(pN);
     if(idx<0)return '';
     const it=PISO_MOVEIS_LIST[(_dayIdx+idx)%PISO_MOVEIS_LIST.length];
@@ -2803,6 +2818,19 @@ function rDist(){
     {titulo:'🏖 Ausências',postos:['Folga','Descanso Comp.','Férias','Baixa Médica']},
   ];
   let html='<div style="font-size:.74rem;color:var(--gray-400);margin-bottom:.95rem">📅 '+hoje.toLocaleDateString('pt-PT',{weekday:'long',day:'numeric',month:'long'})+' — Gerado automaticamente da escala</div>';
+  // ===== Painel de seleção — escolher quais limpezas extra entram hoje =====
+  {
+    const opcoes=[];
+    POSTOS_COMUM.filter(p=>pm[p]&&pm[p].colab.length>0).forEach(p=>{
+      const on=selHoje[p]!==false;
+      opcoes.push('<label style="display:flex;align-items:center;gap:6px;font-size:.72rem;padding:4px 8px;border-radius:8px;background:'+(on?'#F0FDF4':'#F8FAFC')+';border:1px solid '+(on?'#BBF7D0':'#E2E8F0')+';cursor:pointer"><input type="checkbox" '+(on?'checked':'')+' onchange="toggleLimpezaExtra(\''+p.replace(/'/g,"\\'")+'\',this.checked)" style="accent-color:#16A34A">'+p+'</label>');
+    });
+    POSTOS_PISO.filter(p=>pm[p]&&pm[p].colab.length>0).forEach(p=>{
+      const key=p+'_mov';const on=selHoje[key]!==false;
+      opcoes.push('<label style="display:flex;align-items:center;gap:6px;font-size:.72rem;padding:4px 8px;border-radius:8px;background:'+(on?'#F0FDFA':'#F8FAFC')+';border:1px solid '+(on?'#99F6E4':'#E2E8F0')+';cursor:pointer"><input type="checkbox" '+(on?'checked':'')+' onchange="toggleLimpezaExtra(\''+key+'\',this.checked)" style="accent-color:#0D9488">'+p+' — mobília</label>');
+    });
+    if(opcoes.length)html+='<details style="margin-bottom:1rem;background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:.6rem .8rem"><summary style="cursor:pointer;font-size:.78rem;font-weight:600;color:#92400E">🧹 Limpezas extra de hoje — escolher quais entram ('+opcoes.filter((o,i)=>true).length+' postos)</summary><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:.6rem">'+opcoes.join('')+'</div></details>';
+  }
   grupos.forEach(g=>{
     const pp=g.postos.filter(p=>pm[p]&&pm[p].colab.length>0);
     if(!pp.length)return;
@@ -6416,6 +6444,8 @@ function exportarCartao(tipo){
   const rouExtra=rouPiso?'<br><span style="color:#7C3AED;font-size:9px;font-weight:600">🗄️ Hoje: Organizar roupeiros a fundo — '+rouPiso+'</span>':'';
   const extraT6={1:'<br><span style="color:#0D9488;font-size:9px;font-weight:600">🛏️ Hoje 2ª: Limpar mesas cabeceira e toucadores de todos os pisos</span>',2:'<br><span style="color:#0D9488;font-size:9px;font-weight:600">🚪 Hoje 3ª: Limpar portas e roupeiros de todos os pisos</span>',3:'<br><span style="color:#0D9488;font-size:9px;font-weight:600">🛋️ Hoje 4ª: Limpeza a fundo das salas dos pisos</span>',4:'<br><span style="color:#0D9488;font-size:9px;font-weight:600">🧱 Hoje 5ª: Limpeza azuleijos de todos os WCs</span>',5:'<br><span style="color:#DC2626;font-size:9px;font-weight:600">🪑 Hoje 6ª: Lavar todas as cadeiras de rodas</span>',6:'<br><span style="color:#0D9488;font-size:9px;font-weight:600">🖌️ Hoje Sáb: Limpar riscos das paredes dos corredores</span>',0:'<br><span style="color:#0D9488;font-size:9px;font-weight:600">🏗️ Hoje Dom: Limpeza do Piso -1 e garagem</span>'}[dw]||'';
   // ===== Rotação diária de limpeza a fundo — distribuída por todos os postos (igual à do rDist) =====
+  const dateKey=hoje.toISOString().slice(0,10);
+  const selHoje=(DB.limpezaSel&&DB.limpezaSel[dateKey])||{};
   const EXTRA_COMUM=[
     {e:'🛗',t:'Elevador — limpeza profunda (calhas, teto, espelho)'},
     {e:'🪜',t:'Escadas — corrimãos, rodapés e janelas das escadas'},
@@ -6436,6 +6466,7 @@ function exportarCartao(tipo){
   const POSTOS_COMUM=['Piso 3','Piso 4','Piso 5','Piso 6','Piso 3 — Tarde','Piso 4 — Tarde','Piso 5 — Tarde','Piso 6 — Tarde','Apoio 1','Apoio 2','Cozinha (8h-17h)','Cozinha (10h-20h)','Serviços Gerais'];
   const _dayIdx=Math.floor(Date.UTC(hoje.getFullYear(),hoje.getMonth(),hoje.getDate())/86400000);
   function extraComum(pN){
+    if(selHoje[pN]===false)return '';
     const idx=POSTOS_COMUM.indexOf(pN);
     if(idx<0)return '';
     const it=EXTRA_COMUM[(_dayIdx+idx)%EXTRA_COMUM.length];
@@ -6450,6 +6481,7 @@ function exportarCartao(tipo){
   ];
   const POSTOS_PISO=['Piso 3','Piso 4','Piso 5','Piso 6'];
   function pisoMoveisExtra(pN){
+    if(selHoje[pN+'_mov']===false)return '';
     const idx=POSTOS_PISO.indexOf(pN);
     if(idx<0)return '';
     const it=PISO_MOVEIS_LIST[(_dayIdx+idx)%PISO_MOVEIS_LIST.length];
