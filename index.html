@@ -2701,17 +2701,26 @@ function rEscala(){
   document.getElementById('escLeg').innerHTML=legs.map(l=>`<span class="ecc ${l.c}" style="font-size:.68rem">${l.l}</span>`).join('');
 }
 
-async function assignPorPosto(tipo,posto,idxStr){
+async function assignComumTarefa(idx,posto){
   const hoje=new Date();hoje.setDate(hoje.getDate()+distDiaOffset);
   const dateKey=hoje.toISOString().slice(0,10);
   if(!DB.limpezaSel)DB.limpezaSel={};
   if(!DB.limpezaSel[dateKey])DB.limpezaSel[dateKey]={};
-  const LEN=tipo==='comum'?15:5;
-  let arr=(DB.limpezaSel[dateKey][tipo]&&DB.limpezaSel[dateKey][tipo].length)?DB.limpezaSel[dateKey][tipo].slice():new Array(LEN).fill('');
-  arr=arr.map(v=>v===posto?'':v);
-  const idx=idxStr===''?-1:parseInt(idxStr,10);
-  if(idx>=0)arr[idx]=posto;
-  DB.limpezaSel[dateKey][tipo]=arr;
+  let arr=(DB.limpezaSel[dateKey].comum&&DB.limpezaSel[dateKey].comum.length)?DB.limpezaSel[dateKey].comum.slice():new Array(15).fill('');
+  arr[idx]=posto;
+  DB.limpezaSel[dateKey].comum=arr;
+  await fbS('limpeza_sel/'+dateKey,DB.limpezaSel[dateKey]);
+  rDist();
+}
+async function assignMovTarefa(idx,campo,valor){
+  const hoje=new Date();hoje.setDate(hoje.getDate()+distDiaOffset);
+  const dateKey=hoje.toISOString().slice(0,10);
+  if(!DB.limpezaSel)DB.limpezaSel={};
+  if(!DB.limpezaSel[dateKey])DB.limpezaSel[dateKey]={};
+  let arr=(DB.limpezaSel[dateKey].mov&&DB.limpezaSel[dateKey].mov.length)?DB.limpezaSel[dateKey].mov.slice():new Array(5).fill(null);
+  arr[idx]=Object.assign({quem:'',piso:''},arr[idx]||{});
+  arr[idx][campo]=valor;
+  DB.limpezaSel[dateKey].mov=arr;
   await fbS('limpeza_sel/'+dateKey,DB.limpezaSel[dateKey]);
   rDist();
 }
@@ -2776,16 +2785,21 @@ function rDist(){
   const POSTOS_PISO=['Piso 3','Piso 4','Piso 5','Piso 6'];
   // nada fica atribuído por omissão — só aparece no cartão depois de escolhido no painel
   const arrComum=(savedHoje.comum&&savedHoje.comum.length)?savedHoje.comum:new Array(EXTRA_COMUM.length).fill('');
-  const arrMov=(savedHoje.mov&&savedHoje.mov.length)?savedHoje.mov:new Array(PISO_MOVEIS_LIST.length).fill('');
-  function tarefasDe(pN,arr,list,cor){
+  const arrMov=(savedHoje.mov&&savedHoje.mov.length)?savedHoje.mov:new Array(PISO_MOVEIS_LIST.length).fill(null);
+  function extraComum(pN){
     let out='';
-    arr.forEach((posto,idx)=>{
-      if(posto===pN){const it=list[idx];out+='<br><span style="color:'+cor+'">'+it.e+' <strong>Hoje:</strong> '+it.t+' 📸</span>';}
+    arrComum.forEach((posto,idx)=>{
+      if(posto===pN){const it=EXTRA_COMUM[idx];out+='<br><span style="color:#B45309">'+it.e+' <strong>Hoje:</strong> '+it.t+' 📸</span>';}
     });
     return out;
   }
-  function extraComum(pN){return tarefasDe(pN,arrComum,EXTRA_COMUM,'#B45309');}
-  function pisoMoveisExtra(pN){return tarefasDe(pN,arrMov,PISO_MOVEIS_LIST,'#0D9488');}
+  function pisoMoveisExtra(pN){
+    let out='';
+    arrMov.forEach((v,idx)=>{
+      if(v&&v.quem===pN){const it=PISO_MOVEIS_LIST[idx];out+='<br><span style="color:#0D9488">'+it.e+' <strong>Hoje'+(v.piso?' — '+v.piso:'')+':</strong> '+it.t+' 📸</span>';}
+    });
+    return out;
+  }
   const funcs={
     'Piso 3':'🌅 Manhã: Cuidados directos · 🌆 Tarde: Lanche nas mesas · Levar utentes ao WC · Preparar mesas para o jantar · Repor produtos na casa de banho do piso 0, organizar carro · Limpar mesas dos lanches',
     'Piso 4':'🌅 Manhã: Cuidados directos · 🌆 Tarde: Lanche aos dependentes à boca e aos que ficam nos pisos · Ajuda a sentar utentes e a deitar utentes',
@@ -2821,25 +2835,17 @@ function rDist(){
     {titulo:'🏖 Ausências',postos:['Folga','Descanso Comp.','Férias','Baixa Médica']},
   ];
   let html='<div style="font-size:.74rem;color:var(--gray-400);margin-bottom:.95rem">📅 '+hoje.toLocaleDateString('pt-PT',{weekday:'long',day:'numeric',month:'long'})+' — Gerado automaticamente da escala</div>';
-  // ===== Painel — escolher por piso/posto qual a tarefa de limpeza de hoje =====
+  // ===== Painel — lista de tarefas: escolher quem realiza (inclui T3-T6) e, na mobília, em que piso =====
   {
     const postosDisp=POSTOS_COMUM.filter(p=>pm[p]&&pm[p].colab.length>0);
-    const postosMovDisp=POSTOS_PISO.filter(p=>pm[p]&&pm[p].colab.length>0);
-    const comumOptHtml=(selPosto)=>{
-      let o='<option value="">— nenhuma —</option>';
-      EXTRA_COMUM.forEach((it,idx)=>{o+='<option value="'+idx+'" '+(arrComum[idx]===selPosto?'selected':'')+'>'+it.e+' '+it.t+'</option>';});
-      return o;
-    };
-    const movOptHtml=(selPosto)=>{
-      let o='<option value="">— nenhuma —</option>';
-      PISO_MOVEIS_LIST.forEach((it,idx)=>{o+='<option value="'+idx+'" '+(arrMov[idx]===selPosto?'selected':'')+'>'+it.e+' '+it.t+'</option>';});
-      return o;
-    };
-    let linhas=postosDisp.map(p=>{
-      const movRow=postosMovDisp.includes(p)?'<div style="margin-top:4px"><span style="font-size:.68rem;color:#0D9488">Mobília:</span> <select onchange="assignPorPosto(\'mov\',\''+p+'\',this.value)" style="font-size:.72rem;padding:3px 6px;border-radius:6px;border:1px solid #99F6E4;max-width:230px">'+movOptHtml(p)+'</select></div>':'';
-      return '<div style="padding:6px 0;border-bottom:1px solid #FEF3C7"><div style="font-size:.76rem;font-weight:600;margin-bottom:3px">'+p+'</div><select onchange="assignPorPosto(\'comum\',\''+p+'\',this.value)" style="font-size:.72rem;padding:3px 6px;border-radius:6px;border:1px solid #FDE68A;max-width:260px">'+comumOptHtml(p)+'</select>'+movRow+'</div>';
+    const quemOptHtml=(sel)=>'<option value="">— nenhuma —</option>'+postosDisp.map(p=>'<option value="'+p+'" '+(p===sel?'selected':'')+'>'+p+'</option>').join('');
+    const pisoOptHtml=(sel)=>'<option value="">— piso —</option>'+POSTOS_PISO.map(p=>'<option value="'+p+'" '+(p===sel?'selected':'')+'>'+p+'</option>').join('');
+    let linhasComum=EXTRA_COMUM.map((it,idx)=>'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #FEF3C7"><span style="flex:1;font-size:.74rem">'+it.e+' '+it.t+'</span><select onchange="assignComumTarefa('+idx+',this.value)" style="font-size:.72rem;padding:3px 6px;border-radius:6px;border:1px solid #FDE68A;max-width:170px">'+quemOptHtml(arrComum[idx])+'</select></div>').join('');
+    let linhasMov=PISO_MOVEIS_LIST.map((it,idx)=>{
+      const v=arrMov[idx]||{quem:'',piso:''};
+      return '<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #CCFBF1;flex-wrap:wrap"><span style="flex:1;min-width:140px;font-size:.74rem">'+it.e+' '+it.t+' <em style="color:#0D9488">(mobília)</em></span><select onchange="assignMovTarefa('+idx+',\'quem\',this.value)" style="font-size:.72rem;padding:3px 6px;border-radius:6px;border:1px solid #99F6E4;max-width:150px">'+quemOptHtml(v.quem)+'</select><select onchange="assignMovTarefa('+idx+',\'piso\',this.value)" style="font-size:.72rem;padding:3px 6px;border-radius:6px;border:1px solid #99F6E4;max-width:110px">'+pisoOptHtml(v.piso)+'</select></div>';
     }).join('');
-    html+='<details style="margin-bottom:1rem;background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:.6rem .8rem"><summary style="cursor:pointer;font-size:.78rem;font-weight:600;color:#92400E">🧹 Limpezas de hoje — escolhe por piso/posto</summary><div style="margin-top:.6rem">'+linhas+'</div></details>';
+    html+='<details style="margin-bottom:1rem;background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:.6rem .8rem"><summary style="cursor:pointer;font-size:.78rem;font-weight:600;color:#92400E">🧹 Limpezas de hoje — ver tarefas e atribuir quem/onde</summary><div style="margin-top:.6rem">'+linhasComum+linhasMov+'</div></details>';
   }
   grupos.forEach(g=>{
     const pp=g.postos.filter(p=>pm[p]&&pm[p].colab.length>0);
@@ -6484,16 +6490,21 @@ function exportarCartao(tipo){
   ];
   const POSTOS_PISO=['Piso 3','Piso 4','Piso 5','Piso 6'];
   const arrComum=(savedHoje.comum&&savedHoje.comum.length)?savedHoje.comum:new Array(EXTRA_COMUM.length).fill('');
-  const arrMov=(savedHoje.mov&&savedHoje.mov.length)?savedHoje.mov:new Array(PISO_MOVEIS_LIST.length).fill('');
-  function tarefasDe(pN,arr,list,cor){
+  const arrMov=(savedHoje.mov&&savedHoje.mov.length)?savedHoje.mov:new Array(PISO_MOVEIS_LIST.length).fill(null);
+  function extraComum(pN){
     let out='';
-    arr.forEach((posto,idx)=>{
-      if(posto===pN){const it=list[idx];out+='<br><span style="color:'+cor+';font-size:9px;font-weight:600">'+it.e+' Hoje: '+it.t+' 📸</span>';}
+    arrComum.forEach((posto,idx)=>{
+      if(posto===pN){const it=EXTRA_COMUM[idx];out+='<br><span style="color:#B45309;font-size:9px;font-weight:600">'+it.e+' Hoje: '+it.t+' 📸</span>';}
     });
     return out;
   }
-  function extraComum(pN){return tarefasDe(pN,arrComum,EXTRA_COMUM,'#B45309');}
-  function pisoMoveisExtra(pN){return tarefasDe(pN,arrMov,PISO_MOVEIS_LIST,'#0D9488');}
+  function pisoMoveisExtra(pN){
+    let out='';
+    arrMov.forEach((v,idx)=>{
+      if(v&&v.quem===pN){const it=PISO_MOVEIS_LIST[idx];out+='<br><span style="color:#0D9488;font-size:9px;font-weight:600">'+it.e+' Hoje'+(v.piso?' — '+v.piso:'')+': '+it.t+' 📸</span>';}
+    });
+    return out;
+  }
   const AVISO='<div style="font-size:9px;color:#DC2626;font-weight:600;margin-top:4px">⚠️ As 3 funcionárias começam por deitar 1 piso de cada vez — só avançam quando todos os utentes estiverem deitados</div>';
 
   const funcoes={
