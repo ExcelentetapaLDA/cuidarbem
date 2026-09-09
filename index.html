@@ -3345,6 +3345,7 @@ function rConfig(){
       <div class="setR"><div><div class="setRL">Pedir exportação ao MySenior</div><div class="setRS">Demora alguns minutos a ficar pronta — inclui fotos, se existirem</div></div><button class="btn btn-d btn-s" id="btnMSPedir" onclick="msPedirExportacao()">📤 Pedir</button></div>
       <div class="setR"><div><div class="setRL">Ver ficheiros já extraídos</div><div class="setRS">Confirma o que chegou do MySenior</div></div><button class="btn btn-d btn-s" id="btnMSListar" onclick="msListarExtraidos()">📂 Ver</button></div>
       <div class="setR"><div><div class="setRL">Comparar utentes com o CuidarBem</div><div class="setRS">Só diagnóstico — entradas, saídas e mudanças de quarto. Não altera nada.</div></div><button class="btn btn-d btn-s" id="btnMSDiff" onclick="msDiffUtentes()">🔍 Comparar</button></div>
+      <div class="setR"><div><div class="setRL">Aplicar etiquetas clínicas (MySenior)</div><div class="setRS">Diabético/Insulinotratado/Anticoagulado/Inalador — 100 utentes, revisto em Excel a 09/09/2026</div></div><button class="btn btn-d btn-s" onclick="aplicarTagsMySenior()">🏷️ Aplicar</button></div>
       <pre id="msResultado" style="display:none;background:var(--gray-50,#F8FAFC);border:1px solid var(--border);border-radius:8px;padding:.75rem;font-size:.74rem;white-space:pre-wrap;word-break:break-word;margin-top:.5rem;max-height:280px;overflow:auto"></pre>
     </div></div>
     <div class="setS edt"><div class="setT" style="display:flex;align-items:center;gap:.5rem">📲 Estado dos Alertas por Funcionária <button class="btn btn-d btn-s" onclick="recarregarEstadoAlertas()" style="margin-left:auto">🔄 Actualizar</button></div>
@@ -6067,6 +6068,135 @@ tick();setInterval(tick,1000);
   }
   setTimeout(apF2,600);window._apF2=apF2;
 })();
+
+const TAGS_MYSENIOR = {
+  'Adelina Rodrigues Garcia': ['uantic'],
+  'Adelino de Oliveira Lopes': ['uantic'],
+  'Adosinda Rosa Cândida Miranda': ['udb'],
+  'Adriano dos Santos Ribeiro': ['uantic','udb','uins'],
+  'Alexandre Rocha': ['udb','uins'],
+  'Alice da Conceição Borges Viana': ['uinal'],
+  'Amélia Freire dos Santos': ['uantic','udb'],
+  'Ana Patrícia Carvalho Jorge': ['udb'],
+  'Angelina Gonçalves Lamas Areias': ['uantic','uinal'],
+  'Antero Domingues Antunes Fernandes': ['uinal'],
+  'António Afonso dos Santos': ['uantic','udb','uinal'],
+  'António Coelho da Silva': ['uantic','udb'],
+  'António Conceição D´Almeida': ['udb','uins'],
+  'António Joaquim Canas Correia': ['udb'],
+  'António Jorge Cruz': ['uantic','udb','uins'],
+  'António Sequeira Cabrita': ['uantic'],
+  'Artur José Ferreira Guimarães': ['udb'],
+  'Aurora Reis da Silva': ['uantic','udb','uinal'],
+  'Carlos Alberto Couras': ['udb'],
+  'Casimiro de Oliveira Martins': ['uantic'],
+  'Cecília José Figueira de Brito': ['udb'],
+  'Diamantino Sequeira Dias': ['udb'],
+  'Donzília de Sousa Carvalho': ['uantic','udb'],
+  'Eduardo António Silva Brito': ['udb'],
+  'Elisabete Maria Bandeira de Oliveira Ruas da Silva': ['uinal'],
+  'Emília da Conceição Trindade Lavado Cardoso': ['uantic','uinal'],
+  'Ermelinda Antunes da Nave Cândido': ['udb','uins'],
+  'Felisbela Marques Paulo': ['uantic','udb'],
+  'Flávio dos Santos Antunes': ['udb'],
+  'Francisco Manuel dos Santos': ['uantic','udb'],
+  'Gertrudes Maria da Conceição Moura': ['udb','uinal'],
+  'Gracilda da Luz Ribeiro Monteiro': ['uantic'],
+  'Helena Maria de Almeida Carvalho Salgado Moreno': ['uantic'],
+  'Ildo Gamboa Matos': ['uantic','udb'],
+  'Ilídio Fernandes Martins': ['uantic'],
+  'Isabel da Conceição Carvalho': ['udb','uins'],
+  'Joaquim Lourenço Ferreira': ['uantic'],
+  'Jorge Augusto Ferreira Caldas': ['udb'],
+  'José Fernando Maia Pereira da Silva': ['uinal'],
+  'José Martins Brandão Coelho': ['udb'],
+  'José da Anunciação Beato Quelho': ['uantic','udb'],
+  'José da Conceição Ferreira': ['uantic','udb'],
+  'José do Rosário Gaspar': ['uantic'],
+  'João Garção Miranda': ['udb'],
+  'Laura Pires Tomás': ['uantic','udb'],
+  'Laurinda Pereira Fortunato Pinheiro': ['uantic'],
+  'Leonel Alexandre Ribeiro Moreira Gonçalves': ['uantic','udb','uinal'],
+  'Lucilia Conceição Martins Lopes': ['uinal'],
+  'Luis Alves Barroco': ['uantic'],
+  'Lúcilia do Carmo Canhoto': ['uantic','uinal'],
+  'M. Martins Nunes': ['uantic','udb','uins'],
+  'Manuel Jorge Teles Ribeiro': ['udb'],
+  'Maria Alexandra da Costa Santos Nunes': ['uantic'],
+  'Maria Alice Miranda Fernandes': ['uantic','udb'],
+  'Maria Almerinda Barreiro Patronilha Alves': ['udb','uinal'],
+  'Maria Conceição de Almeida Ferreira Martinho': ['uinal'],
+  'Maria Cândida Felícia Potra Florêncio': ['uinal'],
+  'Maria Deolinda Venâncio de Oliveira Gaspar': ['udb'],
+  'Maria Emília Lopes Simões dos Santos': ['uantic','udb'],
+  'Maria Emília Nunes Pereira': ['uantic','uinal'],
+  'Maria Emília Santana': ['uantic','udb'],
+  'Maria Emília  Baptista Moreira dos Santos': ['udb','uinal'],
+  'Maria Fernanda Carvalho Cordeiro Ferreira': ['udb'],
+  'Maria Fernanda Verdú Catalão de Sousa': ['uantic','udb','uinal'],
+  'Maria Fernanda de Meneses Sande Freire': ['udb'],
+  'Maria Fernanda de Rezende Gonzalez Lievens': ['uantic','udb'],
+  'Maria Guiomar Freire Cruz Silva': ['uantic','udb','uins'],
+  'Maria Helena do Mar Rodrigues Reis': ['uantic','uinal'],
+  'Maria Jacinta Lopes Barros': ['uantic','udb','uinal'],
+  'Maria José da Fonseca': ['uantic'],
+  'Maria Júlia Ramos Duarte Martins Engrácio': ['uantic','udb','uinal'],
+  'Maria Ludovina de Jesus Filipe Furtado': ['uantic','udb','uins'],
+  'Maria Luísa Oliveira Monteiro de Andrade': ['uantic','uinal'],
+  'Maria Natália Carvalho Rego Rodrigues': ['uantic'],
+  'Maria Nazareth de Freitas Armas Perry da Câmara': ['uantic','udb','uinal'],
+  'Maria Odete Martins da Cunha Matos': ['uantic','udb','uins'],
+  'Maria Odete de Freitas Mota e Cunha': ['uantic','udb'],
+  'Maria Olimpia Patrício Reis': ['udb'],
+  'Maria Peres Guerreiro Martinho': ['uantic'],
+  'Maria Rita Braz Machado': ['uantic'],
+  'Maria Rosa Rodrigues Lisboa': ['uantic','udb','uinal','uins'],
+  'Maria Teresa de Oliveira Belo Chaves de Sá Nogueira': ['uantic','udb','uins'],
+  'Maria Violeta D´Almeida Lage de Mendonça': ['uinal'],
+  'Maria Wanda Caldeira Menezes Sabrosa': ['uinal'],
+  'Maria da Assunção Marques Pereira Rosa': ['uantic'],
+  'Maria da Conceição de Oliveira Teixeira': ['uantic','udb','uinal'],
+  'Maria de Fátima Borges Lourenço': ['uantic','udb'],
+  'Maria de Lurdes Gonçalves Pinto': ['uinal'],
+  'Maria do Céu Ramos Rodrigues': ['udb'],
+  'Michael John Talbot': ['uantic','udb','uinal'],
+  'Mª Celeste Teixeira Guimarães Canas Correia': ['uinal'],
+  'Mª Fernanda dos Santos Crespo Lopes': ['uantic','udb','uinal'],
+  'Mª Graciete Silva Santos Inácio': ['uinal'],
+  'Mª Idalina Henriques Cardiga': ['uantic'],
+  'Nazaré  Portulado Ferreira': ['uantic'],
+  'Neide Boriero Martins': ['uantic','uinal'],
+  'Piedade Domingos Oliveira e Silva Gomes': ['uantic','uinal'],
+  'Teresa Maria dos Santos Xavier Teixeira Monteiro Barbosa': ['uantic'],
+  'Vitória Conceição Garcia Palminhas Costa': ['udb','uins'],
+  'Vitória Peças Rosado dos Santos': ['uinal'],
+};
+
+async function aplicarTagsMySenior(){
+  if(!confirm('Vai aplicar etiquetas clínicas (Diabético/Insulinotratado/Anticoagulado/Inalador) a até 100 utentes, com base no export do MySenior. Já reviste a folha Excel? Isto grava no CuidarBem.'))return;
+  const nomes=Object.keys(TAGS_MYSENIOR);
+  let aplicados=0,jaTinham=0,naoEncontrados=[];
+  for(const nome of nomes){
+    const nomeAlvo=nome.toLowerCase();
+    let u=S.utentes.find(x=>x.res==='r2'&&x.nome.toLowerCase()===nomeAlvo);
+    if(!u)u=S.utentes.find(x=>x.res==='r2'&&(x.nome.toLowerCase().includes(nomeAlvo)||nomeAlvo.includes(x.nome.toLowerCase())));
+    if(!u){naoEncontrados.push(nome);continue;}
+    const novas=TAGS_MYSENIOR[nome];
+    const atuais=u.badges||[];
+    const emFalta=novas.filter(b=>!atuais.includes(b));
+    if(emFalta.length===0){jaTinham++;continue;}
+    const merged=[...atuais,...emFalta];
+    u.badges=merged;
+    await fbS('utentes/'+u.id+'/badges',merged);
+    aplicados++;
+  }
+  rUtentes();
+  let msg=`✅ Etiquetas atualizadas em ${aplicados} utentes.\n${jaTinham} já estavam corretas.`;
+  if(naoEncontrados.length)msg+=`\n⚠️ ${naoEncontrados.length} sem correspondência: `+naoEncontrados.join(', ');
+  alert(msg);
+  console.log('[CuidarBem] Diagnóstico aplicação de etiquetas:',{aplicados,jaTinham,naoEncontrados});
+}
+
 
 if(window.speechSynthesis){window.speechSynthesis.getVoices();window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices();}
 
