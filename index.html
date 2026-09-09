@@ -226,7 +226,7 @@ body.is-adm .edt,body.is-encarregada .edt{display:inline-flex!important}
 .us{font-size:.71rem;color:var(--gray-500)}
 .uno{font-size:.75rem;color:var(--gray-500);line-height:1.4;margin-bottom:.5rem}
 .ubg{display:flex;gap:.3rem;flex-wrap:wrap}
-.ub{font-size:.62rem;font-weight:600;padding:.15rem .42rem;border-radius:6px}
+.ubadge{font-size:.62rem;font-weight:600;padding:.15rem .42rem;border-radius:6px;display:inline-block}
 .um{background:var(--orange-light);color:var(--orange)}.uf{background:var(--teal-light);color:var(--teal)}.uco{background:var(--primary-light);color:var(--primary-dark)}.uu{background:var(--red-light);color:var(--red)}.udb{background:#FDE8E8;color:#9B1C1C}.uins{background:#F3E8FF;color:#6B21A8}.uantic{background:#FEF2F2;color:#991B1B;border:1px solid #FECACA}
 
 /* TEAM */
@@ -813,6 +813,10 @@ body.is-adm .edt,body.is-encarregada .edt{display:inline-flex!important}
     <button class="btn btn-g btn-s edt" title="Gerir inalador" onclick="abrirGerirEtiqueta('uinal')" style="padding:.28rem .45rem;font-size:.72rem;background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-light)"><i class="ti ti-pencil"></i></button>
   </div>
   <div style="display:flex;align-items:center;gap:.2rem">
+    <button class="btn btn-g btn-s utF" onclick="utFiltro('upens',this)"><i class="ti ti-bandage" style="margin-right:.3rem"></i>P. Transdérmico</button>
+    <button class="btn btn-g btn-s edt" title="Gerir penso transdérmico" onclick="abrirGerirEtiqueta('upens')" style="padding:.28rem .45rem;font-size:.72rem;background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-light)"><i class="ti ti-pencil"></i></button>
+  </div>
+  <div style="display:flex;align-items:center;gap:.2rem">
     <button class="btn btn-g btn-s utF" onclick="utFiltro('uext',this)"><i class="ti ti-star" style="margin-right:.3rem"></i>Extras</button>
     <button class="btn btn-g btn-s edt" title="Gerir extras" onclick="abrirGerirEtiqueta('uext')" style="padding:.28rem .45rem;font-size:.72rem;background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-light)"><i class="ti ti-pencil"></i></button>
   </div>
@@ -828,6 +832,7 @@ body.is-adm .edt,body.is-encarregada .edt{display:inline-flex!important}
   <button class="btn btn-s" onclick="atribuirEtiqueta('umed')" style="background:#F3E8FF;color:#5B21B6;border:1px solid #DDD6FE"><i class="ti ti-pill" style="margin-right:.3rem"></i>Med.Jejum</button>
   <button class="btn btn-s" onclick="atribuirEtiqueta('ucol')" style="background:#CCFBF1;color:#134E4A;border:1px solid #99F6E4"><i class="ti ti-eye" style="margin-right:.3rem"></i>Colírio</button>
   <button class="btn btn-s" onclick="atribuirEtiqueta('uinal')" style="background:#E0F2FE;color:#075985;border:1px solid #BAE6FD"><i class="ti ti-wind" style="margin-right:.3rem"></i>Inalador</button>
+  <button class="btn btn-s" onclick="atribuirEtiqueta('upens')" style="background:#FAE8FF;color:#86198F;border:1px solid #F0ABFC"><i class="ti ti-bandage" style="margin-right:.3rem"></i>P.Transdérmico</button>
   <button class="btn btn-s" onclick="atribuirEtiqueta('uext')" style="background:#FEFCE8;color:#713F12;border:1px solid #FDE68A"><i class="ti ti-star" style="margin-right:.3rem"></i>Extras</button>
   <button class="btn btn-g btn-s" onclick="selecionarUtente(selectedUtenteId)">Cancelar</button>
 </div>
@@ -1842,17 +1847,14 @@ let S={
     {id:3,nome:'Elisabete Maria Bandeira de Oliveira Ruas da Silva',quarto:'3',res:'r2',piso:'Piso 3',idade:69,nomeResponsavel:'Carlos Alberto Trigo da Silva (Marido)',telResponsavel:'965124301',emailResponsavel:'ctrigosilva@gmail.com',notas:'',badges:[],av:'av-s',em:'👵'},
     {id:4,nome:'Gracilda da Luz Ribeiro Monteiro',quarto:'2',res:'r2',piso:'Piso 3',idade:90,nomeResponsavel:'Isabel Maria Ribeiro Monteiro Mira (Filha)',telResponsavel:'962819579',emailResponsavel:'isabel.mmira@gmail.com',notas:'',badges:[],av:'av-b',em:'👵'},
     {id:5,nome:'Ildo Gamboa Matos',quarto:'6',res:'r2',piso:'Piso 3',idade:90,nomeResponsavel:'Susana Alexandre Borja Matos (Filha)',telResponsavel:'964065034',emailResponsavel:'susanaborjamatos@gmail.com',notas:'',badges:[],av:'av-t',em:'👴'},
-    {id:6,nome:'Joaquina Henriques Rodrigues Esteves',quarto:'2',res:'r2',piso:'Piso 3',idade:'',nomeResponsavel:'Maria Paula Rodrigues Esteves Reis (Filha)',telResponsavel:'969093637',emailResponsavel:'paula.e.reis@gmail.com',notas:'',badges:[],av:'av-g',em:'👵'},
     {id:7,nome:'Mª. Arlete Santos Carmo',quarto:'5',res:'r2',piso:'Piso 3',idade:88,nomeResponsavel:'Heldér Luiz do Carmo Vieira dos Santos (Filho)',telResponsavel:'914845338',emailResponsavel:'helluis@gmail.com',notas:'',badges:[],av:'av-s',em:'👵'},
     {id:8,nome:'Maria Alzira Cardoso Crispim',quarto:'1',res:'r2',piso:'Piso 3',idade:89,nomeResponsavel:'Rui Noel de Carvalho Crispim (Sobrinho)',telResponsavel:'965864007',emailResponsavel:'patricia.bravo@outlook.pt',notas:'',badges:[],av:'av-b',em:'👵'},
     {id:9,nome:'Maria Claudina da Conceição da Nave Almeida',quarto:'3',res:'r2',piso:'Piso 3',idade:96,nomeResponsavel:'Rosa Maria da Nave Almeida Marques Amaral (Filha)',telResponsavel:'966361131',emailResponsavel:'rosa.romini@gmail.com',notas:'',badges:[],av:'av-b',em:'👵'},
     {id:10,nome:'Maria de Lurdes de Jesus Santos Pereira',quarto:'5',res:'r2',piso:'Piso 3',idade:82,nomeResponsavel:'Manuel Paulo Santos da Costa (Sobrinho)',telResponsavel:'964334931',emailResponsavel:'manuelpscosta@sapo.pt',notas:'',badges:[],av:'av-s',em:'👵'},
     {id:11,nome:'Maria José da Fonseca',quarto:'3',res:'r2',piso:'Piso 3',idade:95,nomeResponsavel:'Ana Cristina da Fonseca Teixeira (Neta)',telResponsavel:'918985301',emailResponsavel:'afonsecateixeira@gmail.com',notas:'',badges:[],av:'av-b',em:'👵'},
-    {id:12,nome:'Maria Violeta D´Almeida Lage de Mendonça',quarto:'4',res:'r2',piso:'Piso 3',idade:99,nomeResponsavel:'João Mendonça (filho)',telResponsavel:'917260171',emailResponsavel:'arrudajoao@live.com.pt',notas:'',badges:[],av:'av-s',em:'👵'},
     {id:13,nome:'Adelina Rodrigues Garcia',quarto:'9',res:'r2',piso:'Piso 4',idade:70,nomeResponsavel:'Edite Paula Garcia Vicente (Filha)',telResponsavel:'914555225',emailResponsavel:'editevicente@hotmail.com',notas:'',badges:[],av:'av-t',em:'👵'},
     {id:14,nome:'António Sequeira Cabrita',quarto:'7',res:'r2',piso:'Piso 4',idade:'',nomeResponsavel:'Paulo Jorge Sequeira Cabrita (Filho)',telResponsavel:'919222475',emailResponsavel:'paulocabrita28@gmail.com',notas:'',badges:[],av:'av-g',em:'👴'},
     {id:15,nome:'Donzília de Sousa Carvalho',quarto:'10',res:'r2',piso:'Piso 4',idade:85,nomeResponsavel:'Filipa Cristina Carvalho Mineiro (Filha)',telResponsavel:'933136529',emailResponsavel:'filipamineiro@gmail.com',notas:'',badges:[],av:'av-t',em:'👵'},
-    {id:16,nome:'Maria de Fátima Borges Lourenço',quarto:'11',res:'r2',piso:'Piso 4',idade:71,nomeResponsavel:'Paula Sofia Lourenço Pires (filha)',telResponsavel:'962646992',emailResponsavel:'paulaspires77@gmail.com',notas:'',badges:[],av:'av-t',em:'👵'},
     {id:17,nome:'Maria Fernanda de Meneses Sande Freire',quarto:'9',res:'r2',piso:'Piso 4',idade:91,nomeResponsavel:'Maria Fernanda Ceia Casquilho Valério Maduro (Prima)',telResponsavel:'966518585',emailResponsavel:'madurofernanda@hotmail.com',notas:'',badges:[],av:'av-t',em:'👵'},
     {id:18,nome:'Maria Fernanda Verdú Catalão de Sousa',quarto:'11',res:'r2',piso:'Piso 4',idade:87,nomeResponsavel:'Eva Maria Verdú Catalão de Sousa (Filha)',telResponsavel:'962518383',emailResponsavel:'evaverdu2@gmail.com',notas:'',badges:[],av:'av-s',em:'👵'},
     {id:19,nome:'Maria Júlia da Cruz Fonseca',quarto:'8',res:'r2',piso:'Piso 4',idade:'',notas:'',badges:[],av:'av-b',em:'👵'},
@@ -2903,7 +2905,7 @@ const pDot={urgent:'du',normal:'dn',info:'di'};
 const pTag={urgent:'turg',normal:'tnrm',info:'tinf'};
 const tcTL={inal:'💨 Inalador',pos:'🔄 Posicionamento',sin:'❤️ Sinais Vitais',med:'💊 Medicação',pens:'🩹 Penso Transdérmico',col:'👁️ Colírio',outro:'📌 Outro'};
 const tcTC={inal:'tb-inal',pos:'tb-pos',sin:'tb-sin',med:'tb-med',pens:'tb-inal',col:'tb-pos',outro:'tb-outro'};
-const bLbl={um:'💊 Med',uf:'🏃 Fisio',uco:'🩺 Consulta',uu:'🚨 Urgente',udb:'🩸 Diabético',uins:'💉 Insulina',uantic:'🔴 Anticoag.',uacam:'🔄 Acamado',uref:'🥣 Reforço PA',umed:'💊 Med.Jejum',uext:'⭐ Extras',ucol:'👁️ Colírio',uinal:'💨 Inalador'};
+const bLbl={um:'💊 Med',uf:'🏃 Fisio',uco:'🩺 Consulta',uu:'🚨 Urgente',udb:'🩸 Diabético',uins:'💉 Insulina',uantic:'🔴 Anticoag.',uacam:'🔄 Acamado',uref:'🥣 Reforço PA',umed:'💊 Med.Jejum',uext:'⭐ Extras',ucol:'👁️ Colírio',uinal:'💨 Inalador',upens:'🩹 P.Transd.'};
 
 function aiH(a,key,compact=false){
   return`<div class="ai ${a.done?'done':''}">
@@ -3047,7 +3049,7 @@ function rUtentes(){
       ${intAtivo?`<div class="uno" style="background:#FEE2E2;color:#DC2626;font-weight:600">🏥 Internado desde ${new Date(intAtivo.inicio+'T12:00:00').toLocaleDateString('pt-PT',{day:'numeric',month:'short'})}${intAtivo.nota?` — ${intAtivo.nota}`:''}</div>`:u.internado?`<div class="uno" style="background:#FEE2E2;color:#DC2626;font-weight:600">🏥 Internado${u.internadoDesde?` desde ${new Date(u.internadoDesde+'T12:00:00').toLocaleDateString('pt-PT',{day:'numeric',month:'short'})}`:''}</div>`:''}
       ${u.notas?`<div class="uno">${u.notas}</div>`:''}
       <div class="ubg">
-        ${(u.badges||[]).map(b=>`<span class="ub ${b}">${bLbl[b]||b}</span>`).join('')}
+        ${(u.badges||[]).map(b=>{const ei=etiqInfo[b]||{cor:'#334155',bg:'#F1F5F9'};return `<span class="ubadge" style="background:${ei.bg};color:${ei.cor};border:1px solid ${ei.cor}33">${bLbl[b]||b}</span>`;}).join('')}
         ${(u.tagsExtra||[]).map(t=>`<span class="ub" style="background:#F0FDF4;color:#166534;border:1px solid #BBF7D0">${t}</span>`).join('')}
       </div>
       <div style="display:flex;gap:.32rem;margin-top:.62rem">
@@ -3345,7 +3347,7 @@ function rConfig(){
       <div class="setR"><div><div class="setRL">Pedir exportação ao MySenior</div><div class="setRS">Demora alguns minutos a ficar pronta — inclui fotos, se existirem</div></div><button class="btn btn-d btn-s" id="btnMSPedir" onclick="msPedirExportacao()">📤 Pedir</button></div>
       <div class="setR"><div><div class="setRL">Ver ficheiros já extraídos</div><div class="setRS">Confirma o que chegou do MySenior</div></div><button class="btn btn-d btn-s" id="btnMSListar" onclick="msListarExtraidos()">📂 Ver</button></div>
       <div class="setR"><div><div class="setRL">Comparar utentes com o CuidarBem</div><div class="setRS">Só diagnóstico — entradas, saídas e mudanças de quarto. Não altera nada.</div></div><button class="btn btn-d btn-s" id="btnMSDiff" onclick="msDiffUtentes()">🔍 Comparar</button></div>
-      <div class="setR"><div><div class="setRL">Aplicar etiquetas clínicas (MySenior)</div><div class="setRS">Diabético/Insulinotratado/Anticoagulado/Inalador — 100 utentes, revisto em Excel a 09/09/2026</div></div><button class="btn btn-d btn-s" onclick="aplicarTagsMySenior()">🏷️ Aplicar</button></div>
+      <div class="setR"><div><div class="setRL">Aplicar etiquetas clínicas (MySenior)</div><div class="setRS">Diabético/Insulinotratado/Anticoagulado/Inalador/Colírio/Penso Transdérmico — 36 utentes ativos, revisto em Excel a 09/09/2026</div></div><button class="btn btn-d btn-s" onclick="aplicarTagsMySenior()">🏷️ Aplicar</button></div>
       <pre id="msResultado" style="display:none;background:var(--gray-50,#F8FAFC);border:1px solid var(--border);border-radius:8px;padding:.75rem;font-size:.74rem;white-space:pre-wrap;word-break:break-word;margin-top:.5rem;max-height:280px;overflow:auto"></pre>
     </div></div>
     <div class="setS edt"><div class="setT" style="display:flex;align-items:center;gap:.5rem">📲 Estado dos Alertas por Funcionária <button class="btn btn-d btn-s" onclick="recarregarEstadoAlertas()" style="margin-left:auto">🔄 Actualizar</button></div>
@@ -4118,13 +4120,20 @@ function prevTCFoto(input){
 
 // ===== GESTÃO DE ETIQUETAS =====
 const etiqInfo = {
-  udb:  {label:'Diabético',     ic:'🩸', cor:'#9B1C1C', bg:'#FDE8E8'},
+  udb:  {label:'Diabético',     ic:'🩸', cor:'#B45309', bg:'#FFFBEB'},
   uins: {label:'Insulinotratado',ic:'💉', cor:'#6B21A8', bg:'#F3E8FF'},
   uantic:{label:'Anticoagulado', ic:'🔴', cor:'#991B1B', bg:'#FEF2F2'},
   um:   {label:'Medicação',      ic:'💊', cor:'#92400E', bg:'#FFF7ED'},
   uf:   {label:'Fisioterapia',   ic:'🏃', cor:'#155E75', bg:'#CFFAFE'},
   uco:  {label:'Consulta',       ic:'🩺', cor:'#1D4ED8', bg:'#EFF6FF'},
-  uu:   {label:'Urgente',        ic:'🚨', cor:'#991B1B', bg:'#FEF2F2'},
+  uu:   {label:'Urgente',        ic:'🚨', cor:'#DC2626', bg:'#FEE2E2'},
+  uacam:{label:'Acamado',        ic:'🔄', cor:'#334155', bg:'#F1F5F9'},
+  uref: {label:'Reforço PA',     ic:'🥣', cor:'#C2410C', bg:'#FFEDD5'},
+  umed: {label:'Med. Jejum',     ic:'💊', cor:'#92400E', bg:'#FFF7ED'},
+  uext: {label:'Extras',         ic:'⭐', cor:'#A16207', bg:'#FEF9C3'},
+  ucol: {label:'Colírio',        ic:'👁️', cor:'#0F766E', bg:'#CCFBF1'},
+  uinal:{label:'Inalador',       ic:'💨', cor:'#0369A1', bg:'#E0F2FE'},
+  upens:{label:'Penso Transdérmico', ic:'🩹', cor:'#86198F', bg:'#FAE8FF'},
 };
 
 function abrirGerirEtiqueta(badge){
@@ -6055,7 +6064,11 @@ tick();setInterval(tick,1000);
     F2.forEach(function(x){
       const nomeAlvo=x[0].toLowerCase();
       let u=S.utentes.find(function(u){return u.res==='r2'&&u.nome.toLowerCase()===nomeAlvo;});
-      if(!u)u=S.utentes.find(function(u){return u.res==='r2'&&(u.nome.toLowerCase().includes(nomeAlvo)||nomeAlvo.includes(u.nome.toLowerCase()));});
+      if(!u){
+        // fallback só se houver EXATAMENTE UM candidato plausível (evita trocar nomes parecidos, ex: várias "Maria Fernanda...")
+        const candidatos=S.utentes.filter(function(u){return u.res==='r2'&&(u.nome.toLowerCase().includes(nomeAlvo)||nomeAlvo.includes(u.nome.toLowerCase()));});
+        if(candidatos.length===1)u=candidatos[0];
+      }
       if(u){if(!u.foto){u.foto=x[1];aplicadas++;}}
       else naoEncontrados.push(x[0]);
     });
@@ -6070,116 +6083,55 @@ tick();setInterval(tick,1000);
 })();
 
 const TAGS_MYSENIOR = {
-  'Adelina Rodrigues Garcia': ['uantic'],
-  'Adelino de Oliveira Lopes': ['uantic'],
-  'Adosinda Rosa Cândida Miranda': ['udb'],
+  'Adelina Rodrigues Garcia': ['uantic','ucol'],
   'Adriano dos Santos Ribeiro': ['uantic','udb','uins'],
-  'Alexandre Rocha': ['udb','uins'],
-  'Alice da Conceição Borges Viana': ['uinal'],
-  'Amélia Freire dos Santos': ['uantic','udb'],
-  'Ana Patrícia Carvalho Jorge': ['udb'],
-  'Angelina Gonçalves Lamas Areias': ['uantic','uinal'],
-  'Antero Domingues Antunes Fernandes': ['uinal'],
-  'António Afonso dos Santos': ['uantic','udb','uinal'],
-  'António Coelho da Silva': ['uantic','udb'],
-  'António Conceição D´Almeida': ['udb','uins'],
-  'António Joaquim Canas Correia': ['udb'],
-  'António Jorge Cruz': ['uantic','udb','uins'],
-  'António Sequeira Cabrita': ['uantic'],
-  'Artur José Ferreira Guimarães': ['udb'],
-  'Aurora Reis da Silva': ['uantic','udb','uinal'],
+  'Amélia Freire dos Santos': ['uantic','ucol','udb'],
+  'António Conceição D´Almeida': ['ucol','udb','uins'],
+  'António Sequeira Cabrita': ['uantic','upens'],
   'Carlos Alberto Couras': ['udb'],
-  'Casimiro de Oliveira Martins': ['uantic'],
-  'Cecília José Figueira de Brito': ['udb'],
+  'Cecília José Figueira de Brito': ['udb','upens'],
   'Diamantino Sequeira Dias': ['udb'],
-  'Donzília de Sousa Carvalho': ['uantic','udb'],
-  'Eduardo António Silva Brito': ['udb'],
-  'Elisabete Maria Bandeira de Oliveira Ruas da Silva': ['uinal'],
-  'Emília da Conceição Trindade Lavado Cardoso': ['uantic','uinal'],
+  'Donzília de Sousa Carvalho': ['uantic','ucol','udb'],
+  'Elisabete Maria Bandeira de Oliveira Ruas da Silva': ['uinal','upens'],
   'Ermelinda Antunes da Nave Cândido': ['udb','uins'],
-  'Felisbela Marques Paulo': ['uantic','udb'],
-  'Flávio dos Santos Antunes': ['udb'],
-  'Francisco Manuel dos Santos': ['uantic','udb'],
-  'Gertrudes Maria da Conceição Moura': ['udb','uinal'],
-  'Gracilda da Luz Ribeiro Monteiro': ['uantic'],
-  'Helena Maria de Almeida Carvalho Salgado Moreno': ['uantic'],
-  'Ildo Gamboa Matos': ['uantic','udb'],
-  'Ilídio Fernandes Martins': ['uantic'],
-  'Isabel da Conceição Carvalho': ['udb','uins'],
-  'Joaquim Lourenço Ferreira': ['uantic'],
-  'Jorge Augusto Ferreira Caldas': ['udb'],
-  'José Fernando Maia Pereira da Silva': ['uinal'],
-  'José Martins Brandão Coelho': ['udb'],
-  'José da Anunciação Beato Quelho': ['uantic','udb'],
-  'José da Conceição Ferreira': ['uantic','udb'],
-  'José do Rosário Gaspar': ['uantic'],
-  'João Garção Miranda': ['udb'],
-  'Laura Pires Tomás': ['uantic','udb'],
-  'Laurinda Pereira Fortunato Pinheiro': ['uantic'],
+  'Gracilda da Luz Ribeiro Monteiro': ['uantic','ucol','upens'],
+  'Ildo Gamboa Matos': ['uantic','ucol','udb'],
   'Leonel Alexandre Ribeiro Moreira Gonçalves': ['uantic','udb','uinal'],
-  'Lucilia Conceição Martins Lopes': ['uinal'],
-  'Luis Alves Barroco': ['uantic'],
-  'Lúcilia do Carmo Canhoto': ['uantic','uinal'],
-  'M. Martins Nunes': ['uantic','udb','uins'],
-  'Manuel Jorge Teles Ribeiro': ['udb'],
-  'Maria Alexandra da Costa Santos Nunes': ['uantic'],
-  'Maria Alice Miranda Fernandes': ['uantic','udb'],
-  'Maria Almerinda Barreiro Patronilha Alves': ['udb','uinal'],
-  'Maria Conceição de Almeida Ferreira Martinho': ['uinal'],
-  'Maria Cândida Felícia Potra Florêncio': ['uinal'],
-  'Maria Deolinda Venâncio de Oliveira Gaspar': ['udb'],
-  'Maria Emília Lopes Simões dos Santos': ['uantic','udb'],
-  'Maria Emília Nunes Pereira': ['uantic','uinal'],
-  'Maria Emília Santana': ['uantic','udb'],
-  'Maria Emília  Baptista Moreira dos Santos': ['udb','uinal'],
+  'M. Martins Nunes': ['uantic','udb','uins','upens'],
+  'Maria Cândida Felícia Potra Florêncio': ['uinal','upens'],
+  'Maria Deolinda Marques Tróia': ['upens'],
+  'Maria Emília Lopes Simões dos Santos': ['uantic','udb','upens'],
+  'Maria Eugénia Antunes': ['ucol','upens'],
   'Maria Fernanda Carvalho Cordeiro Ferreira': ['udb'],
   'Maria Fernanda Verdú Catalão de Sousa': ['uantic','udb','uinal'],
   'Maria Fernanda de Meneses Sande Freire': ['udb'],
-  'Maria Fernanda de Rezende Gonzalez Lievens': ['uantic','udb'],
-  'Maria Guiomar Freire Cruz Silva': ['uantic','udb','uins'],
-  'Maria Helena do Mar Rodrigues Reis': ['uantic','uinal'],
   'Maria Jacinta Lopes Barros': ['uantic','udb','uinal'],
-  'Maria José da Fonseca': ['uantic'],
-  'Maria Júlia Ramos Duarte Martins Engrácio': ['uantic','udb','uinal'],
-  'Maria Ludovina de Jesus Filipe Furtado': ['uantic','udb','uins'],
-  'Maria Luísa Oliveira Monteiro de Andrade': ['uantic','uinal'],
-  'Maria Natália Carvalho Rego Rodrigues': ['uantic'],
+  'Maria José da Fonseca': ['uantic','ucol','upens'],
+  'Maria José de Matos Ferreira': ['upens'],
+  'Maria Luísa Oliveira Monteiro de Andrade': ['uantic','ucol','uinal','upens'],
   'Maria Nazareth de Freitas Armas Perry da Câmara': ['uantic','udb','uinal'],
-  'Maria Odete Martins da Cunha Matos': ['uantic','udb','uins'],
+  'Maria Odete Martins da Cunha Matos': ['uantic','ucol','udb','uins'],
   'Maria Odete de Freitas Mota e Cunha': ['uantic','udb'],
-  'Maria Olimpia Patrício Reis': ['udb'],
   'Maria Peres Guerreiro Martinho': ['uantic'],
-  'Maria Rita Braz Machado': ['uantic'],
   'Maria Rosa Rodrigues Lisboa': ['uantic','udb','uinal','uins'],
-  'Maria Teresa de Oliveira Belo Chaves de Sá Nogueira': ['uantic','udb','uins'],
-  'Maria Violeta D´Almeida Lage de Mendonça': ['uinal'],
   'Maria Wanda Caldeira Menezes Sabrosa': ['uinal'],
-  'Maria da Assunção Marques Pereira Rosa': ['uantic'],
-  'Maria da Conceição de Oliveira Teixeira': ['uantic','udb','uinal'],
-  'Maria de Fátima Borges Lourenço': ['uantic','udb'],
-  'Maria de Lurdes Gonçalves Pinto': ['uinal'],
-  'Maria do Céu Ramos Rodrigues': ['udb'],
-  'Michael John Talbot': ['uantic','udb','uinal'],
-  'Mª Celeste Teixeira Guimarães Canas Correia': ['uinal'],
-  'Mª Fernanda dos Santos Crespo Lopes': ['uantic','udb','uinal'],
-  'Mª Graciete Silva Santos Inácio': ['uinal'],
-  'Mª Idalina Henriques Cardiga': ['uantic'],
-  'Nazaré  Portulado Ferreira': ['uantic'],
+  'Maria de Lurdes de Jesus Santos Pereira': ['upens'],
+  'Mª. Arlete Santos Carmo': ['upens'],
   'Neide Boriero Martins': ['uantic','uinal'],
-  'Piedade Domingos Oliveira e Silva Gomes': ['uantic','uinal'],
-  'Teresa Maria dos Santos Xavier Teixeira Monteiro Barbosa': ['uantic'],
-  'Vitória Conceição Garcia Palminhas Costa': ['udb','uins'],
-  'Vitória Peças Rosado dos Santos': ['uinal'],
+  'Olinda Aurora Pinto Duarte Oliveira': ['upens'],
 };
 
 async function aplicarTagsMySenior(){
-  if(!confirm('Vai aplicar etiquetas clínicas (Diabético/Insulinotratado/Anticoagulado/Inalador) a até 100 utentes, com base no export do MySenior. Já reviste a folha Excel? Isto grava no CuidarBem.'))return;
+  if(!confirm('Vai aplicar etiquetas clínicas (Diabético/Insulinotratado/Anticoagulado/Inalador/Colírio/Penso Transdérmico) a até 36 utentes ativos, com base no export do MySenior. Já reviste a folha Excel? Isto grava no CuidarBem.'))return;
   const nomes=Object.keys(TAGS_MYSENIOR);
   let aplicados=0,jaTinham=0,naoEncontrados=[];
   for(const nome of nomes){
     const nomeAlvo=nome.toLowerCase();
     let u=S.utentes.find(x=>x.res==='r2'&&x.nome.toLowerCase()===nomeAlvo);
-    if(!u)u=S.utentes.find(x=>x.res==='r2'&&(x.nome.toLowerCase().includes(nomeAlvo)||nomeAlvo.includes(x.nome.toLowerCase())));
+    if(!u){
+      const candidatos=S.utentes.filter(x=>x.res==='r2'&&(x.nome.toLowerCase().includes(nomeAlvo)||nomeAlvo.includes(x.nome.toLowerCase())));
+      if(candidatos.length===1)u=candidatos[0];
+    }
     if(!u){naoEncontrados.push(nome);continue;}
     const novas=TAGS_MYSENIOR[nome];
     const atuais=u.badges||[];
@@ -6187,8 +6139,11 @@ async function aplicarTagsMySenior(){
     if(emFalta.length===0){jaTinham++;continue;}
     const merged=[...atuais,...emFalta];
     u.badges=merged;
-    await fbS('utentes/'+u.id+'/badges',merged);
     aplicados++;
+  }
+  if(aplicados>0){
+    // Grava no MESMO sítio que o resto da app usa (utentes_badges, array completo) — não em utentes/{id}/badges
+    await fbS('utentes_badges', S.utentes.map(u=>({id:u.id,badges:u.badges||[],tagsExtra:u.tagsExtra||[],insulinaMoments:u.insulinaMoments||[],insulinaNota:u.insulinaNota||'',notas:u.notas||'',internado:u.internado||false,internadoDesde:u.internadoDesde||''})));
   }
   rUtentes();
   let msg=`✅ Etiquetas atualizadas em ${aplicados} utentes.\n${jaTinham} já estavam corretas.`;
