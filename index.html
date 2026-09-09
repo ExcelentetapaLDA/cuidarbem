@@ -1812,9 +1812,11 @@ body.is-adm .edt,body.is-encarregada .edt{display:inline-flex!important}
 <script>
 const FB='https://cuidarbem-4af96-default-rtdb.europe-west1.firebasedatabase.app';
 
-// ===== AUTENTICAÇÃO ANÓNIMA (segurança) =====
-// A app autentica-se sozinha ao abrir, sem pedir nada ao utilizador.
-// As regras da base de dados passam a exigir esta autenticação, fechando o acesso direto pela internet.
+// ===== AUTENTICAÇÃO REAL (Email/Password) — substitui a autenticação anónima =====
+// A app já não se autentica sozinha ao abrir. Só depois de um PIN válido é que
+// se autentica de verdade no Firebase, usando uma de 3 contas fixas (Administrador,
+// Solar Villa Arruda, Casa dos Sonhos) cuja password acompanha o PIN real dessa conta.
+const FB_API_KEY = 'AIzaSyAiqR1f8dy-LmdtwzhNy4Qwjg3HSbJ6Jt8';
 let _authToken = '';
 const _authReadyPromise = new Promise((resolve) => {
   const s1 = document.createElement('script');
@@ -1822,16 +1824,15 @@ const _authReadyPromise = new Promise((resolve) => {
   s1.onload = function () {
     const s2 = document.createElement('script');
     s2.src = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js';
-    s2.onload = async function () {
+    s2.onload = function () {
       try {
         if (!firebase.apps.length) firebase.initializeApp(window._fbConfig);
         window._fbLoaded = true;
         firebase.auth().onIdTokenChanged(async (user) => {
           if (user) { try { _authToken = await user.getIdToken(); } catch (e) {} }
+          else { _authToken = ''; }
         });
-        const cred = await firebase.auth().signInAnonymously();
-        _authToken = await cred.user.getIdToken();
-      } catch (e) { console.warn('[CuidarBem] Autenticação anónima falhou:', e); }
+      } catch (e) { console.warn('[CuidarBem] Firebase Auth não iniciou:', e); }
       resolve();
     };
     s2.onerror = function () { console.warn('[CuidarBem] firebase-auth-compat não carregou'); resolve(); };
@@ -1841,6 +1842,40 @@ const _authReadyPromise = new Promise((resolve) => {
   document.head.appendChild(s1);
 });
 function _fbAuthQS(){ return _authToken ? ('?auth=' + _authToken) : ''; }
+function _contaEmail(tipo){ return tipo+'@cuidarbem-auth.local'; }
+async function _fbEntrar(tipo, password){
+  await _authReadyPromise;
+  const cred = await firebase.auth().signInWithEmailAndPassword(_contaEmail(tipo), password);
+  _authToken = await cred.user.getIdToken();
+  return true;
+}
+async function _fbSair(){
+  try{ if(window._fbLoaded) await firebase.auth().signOut(); }catch(e){}
+  _authToken = '';
+}
+// Cria (ou, se já existir, ignora) uma conta de acesso real ligada a um PIN.
+async function _fbCriarConta(tipo, password){
+  const r = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FB_API_KEY}`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ email: _contaEmail(tipo), password, returnSecureToken:true })
+  });
+  const data = await r.json();
+  if(r.ok) return {ok:true, criada:true};
+  if(data.error && data.error.message==='EMAIL_EXISTS') return {ok:true, criada:false};
+  return {ok:false, erro:data.error?data.error.message:'desconhecido'};
+}
+// Atualiza a password de uma conta já criada — só funciona depois de já estar
+// autenticado NESSA MESMA conta (é assim que o Firebase permite alterar sem SDK Admin).
+async function _fbAtualizarPassword(tipo, novaPassword){
+  if(!_authToken) return {ok:false, erro:'sem sessão'};
+  const r = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:update?key=${FB_API_KEY}`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ idToken:_authToken, password:novaPassword, returnSecureToken:true })
+  });
+  const data = await r.json();
+  if(r.ok){ _authToken = data.idToken; return {ok:true}; }
+  return {ok:false, erro:data.error?data.error.message:'desconhecido'};
+}
 
 async function fbG(p){await _authReadyPromise;try{const r=await fetch(`${FB}/${p}.json${_fbAuthQS()}`);return r.ok?await r.json():null;}catch{so();return null;}}
 async function fbS(p,d){await _authReadyPromise;try{const r=await fetch(`${FB}/${p}.json${_fbAuthQS()}`,{method:'PUT',body:JSON.stringify(d)});if(r.ok)son();return r.ok;}catch{so();return false;}}
@@ -2159,7 +2194,7 @@ function pinClear(){
   const disp=document.getElementById('pinDisplay');
   if(disp)disp.textContent=f.value.length?'●'.repeat(f.value.length):' ';
 }
-function doLogin(){
+async function doLogin(){
   const rid=document.getElementById('resSelect').value;
   const pin=getPin();
   const err=document.getElementById('pErr');
@@ -2169,49 +2204,54 @@ function doLogin(){
     S.res=[{id:'r1',nome:'Solar Villa Arruda',cor:'#0EA5E9',pin:'1234'},{id:'r2',nome:'Casa dos Sonhos',cor:'#0D9488',pin:'5678'}];
   }
   if(!S.aPin)S.aPin='0000';
-  // Load equipa from Firebase first, then verify
-  fbG('equipa').then(eq=>{
-    if(eq)S.equipa=Object.entries(eq).map(([k,v])=>({...v,_key:k}));
-    try{
-      if(rid==='adm'){
-        if(pin!==S.aPin){err.textContent='PIN incorreto.';return;}
-        ses={role:'adm',rid:null,nome:'Administrador',admRes:null};
-        document.body.classList.add('is-adm');
-      } else {
-        const res=S.res.find(r=>r.id===rid);
-        if(!res){err.textContent='Erro: residência não encontrada.';return;}
-        const colab=S.equipa?S.equipa.find(e=>e.res===rid&&e.pin===pin):null;
-        if(pin!==res.pin&&!colab){err.textContent='PIN incorreto.';return;}
-        const perfilColab=colab&&/encarregad/i.test(colab.func||'')?'encarregada':'auxiliar';
-        ses={role:'res',rid,nome:colab?colab.nome:'Equipa',admRes:null,func:colab?(colab.func||''):'',perfil:perfilColab};
-        document.body.classList.remove('is-adm');
-      }
-      err.textContent='';
-      document.getElementById('loginScreen').classList.add('hidden');
-      document.getElementById('app').classList.add('on');
-      setupSes();loadFB();unlockAudio();startPoll();setTimeout(iniciarSistemaAlertas,1500);actualizarLogos(ses.admRes||ses.rid||"r2");
-    }catch(ex){err.textContent='Erro: '+ex.message;console.error(ex);}
-  }).catch(()=>{
-    // Firebase offline — try local only
-    err.textContent='';
+  let eq;
+  try{ eq = await fbG('equipa'); }catch(e){ eq = null; }
+  if(eq)S.equipa=Object.entries(eq).map(([k,v])=>({...v,_key:k}));
+  try{
+    let contaTipo, contaPassword;
     if(rid==='adm'){
       if(pin!==S.aPin){err.textContent='PIN incorreto.';return;}
+      contaTipo='adm'; contaPassword=S.aPin;
+    } else {
+      const res=S.res.find(r=>r.id===rid);
+      if(!res){err.textContent='Erro: residência não encontrada.';return;}
+      const colab=S.equipa?S.equipa.find(e=>e.res===rid&&e.pin===pin):null;
+      if(pin!==res.pin&&!colab){err.textContent='PIN incorreto.';return;}
+      contaTipo=rid; contaPassword=res.pin;
+    }
+    err.textContent='A entrar...';
+    try{
+      await _fbEntrar(contaTipo, contaPassword);
+    }catch(authErr){
+      console.warn('[CuidarBem] Acesso seguro ainda não configurado para esta conta:', authErr.message);
+      // Não bloqueia a entrada — deixa passar em modo degradado só para o Admin poder
+      // ir a Configurações e clicar em "Configurar acesso seguro" pela 1ª vez.
+      if(rid!=='adm'){
+        err.textContent='Acesso ainda não configurado — pede ao Administrador para ir a Configurações → "Configurar acesso seguro", depois tenta outra vez.';
+        return;
+      }
+    }
+    if(rid==='adm'){
       ses={role:'adm',rid:null,nome:'Administrador',admRes:null};
       document.body.classList.add('is-adm');
     } else {
       const res=S.res.find(r=>r.id===rid);
-      if(!res){err.textContent='Sem ligação.';return;}
-      if(pin!==res.pin){err.textContent='PIN incorreto.';return;}
-      ses={role:'res',rid,nome:'Equipa',admRes:null,perfil:'auxiliar'};
+      const colab=S.equipa?S.equipa.find(e=>e.res===rid&&e.pin===pin):null;
+      const perfilColab=colab&&/encarregad/i.test(colab.func||'')?'encarregada':'auxiliar';
+      ses={role:'res',rid,nome:colab?colab.nome:'Equipa',admRes:null,func:colab?(colab.func||''):'',perfil:perfilColab};
+      document.body.classList.remove('is-adm');
     }
+    err.textContent='';
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('app').classList.add('on');
     setupSes();loadFB();unlockAudio();startPoll();setTimeout(iniciarSistemaAlertas,1500);actualizarLogos(ses.admRes||ses.rid||"r2");
-  });
+  }catch(ex){err.textContent='Erro: '+ex.message;console.error(ex);}
+
 }
 function doLogout(){
   ses={role:null,rid:null,nome:null,admRes:null};document.body.classList.remove('is-adm');
   stopPoll();
+  _fbSair();
   document.getElementById('loginScreen').classList.remove('hidden');
   document.getElementById('app').classList.remove('on');
   const pf=document.getElementById('pinField');if(pf){pf.value='';const d=document.getElementById('pinDisplay');if(d)d.innerHTML='&nbsp;';}
@@ -3406,6 +3446,8 @@ function rConfig(){
         <input type="password" placeholder="Novo PIN" maxlength="4" inputmode="numeric" class="fc" style="width:110px" id="nAP">
         <button class="btn btn-d btn-s" onclick="svAPin()">Alterar</button>
       </div></div>
+      <div class="setR"><div><div class="setRL">🔒 Configurar acesso seguro</div><div class="setRS">Liga os PINs a uma autenticação real — sem isto, os dados ficam acessíveis a qualquer pessoa com o link</div></div>
+      <button class="btn btn-d btn-s" onclick="configurarAutenticacaoReal()">Configurar</button></div>
     </div></div>
     <div class="setS"><div class="setT">Grupos de Utentes</div>
       <div style="display:flex;gap:.48rem;flex-wrap:wrap;margin-bottom:.72rem">${S.grupos.map(g=>`<div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:.42rem .72rem;display:flex;align-items:center;gap:.48rem;font-size:.82rem"><span style="font-weight:600">${g.nome}</span><span class="tag ${rTag(g.res)}">${rNome(g.res)}</span><button class="btn btn-r btn-s" onclick="delGrupo('${g.id||g._key}')">×</button></div>`).join('')}</div>
@@ -3447,8 +3489,31 @@ async function testarNotificacao(){
 
 async function renR(id,n){const r=S.res.find(x=>x.id===id);if(r&&n.trim()){r.nome=n.trim();await saveConf();setupSes();buildLogin();toast('<strong>✅ Residência actualizada!</strong>');}}
 function renCor(id,c){const r=S.res.find(x=>x.id===id);if(r){r.cor=c;saveConf();}}
-async function renPin(id,p){if(p.length===4){const r=S.res.find(x=>x.id===id);if(r){r.pin=p;await saveConf();toast('<strong>🔐 PIN actualizado!</strong>');}}}
-async function svAPin(){const p=document.getElementById('nAP').value;if(p.length===4){S.aPin=p;await saveConf();document.getElementById('nAP').value='';toast('<strong>🔐 PIN de admin actualizado!</strong>');}else alert('PIN deve ter 4 dígitos.');}
+async function renPin(id,p){
+  if(p.length===4){
+    const r=S.res.find(x=>x.id===id);
+    if(r){
+      const pinAntigo=r.pin;
+      try{
+        await _fbEntrar(id, pinAntigo);
+        await _fbAtualizarPassword(id, p);
+        await _fbEntrar('adm', S.aPin);
+      }catch(e){
+        console.warn('[CuidarBem] Não sincronizou acesso seguro da residência:',e);
+        toast('<strong>⚠️ PIN guardado, mas acesso seguro não sincronizou.</strong><br>Corre "Configurar acesso seguro" em Configurações.');
+      }
+      r.pin=p;await saveConf();toast('<strong>🔐 PIN actualizado!</strong>');
+    }
+  }
+}
+async function svAPin(){
+  const p=document.getElementById('nAP').value;
+  if(p.length===4){
+    try{ await _fbAtualizarPassword('adm', p); }
+    catch(e){ console.warn('[CuidarBem] Não sincronizou acesso seguro do admin:',e); }
+    S.aPin=p;await saveConf();document.getElementById('nAP').value='';toast('<strong>🔐 PIN de admin actualizado!</strong>');
+  } else alert('PIN deve ter 4 dígitos.');
+}
 async function rstRot(){if(!confirm('Repor todas as rotinas como pendentes?'))return;for(const r of getRot()){r.done=false;await fbS(`rotinas/${r._key}`,r);}rAll();toast('<strong>🔄 Rotinas repostas!</strong>');}
 async function crGrupo(){const nome=prompt('Nome do grupo:');if(!nome)return;const res=ses.admRes||(ses.rid)||(S.res[0]?S.res[0].id:'r1');const obj={nome,res,utenteIds:[]};const k=await fbP('grupos',obj);if(k)S.grupos.push({...obj,_key:k});rConfig();}
 async function delGrupo(id){if(!confirm('Eliminar grupo?'))return;const g=S.grupos.find(x=>(x.id==id||x._key==id)&&x._key);if(g)await fbD(`grupos/${g._key}`);S.grupos=S.grupos.filter(x=>x.id!=id&&x._key!=id);rConfig();}
@@ -4156,6 +4221,21 @@ async function limparDuplicadosEquipa(){
   rEquipa();
 }
 
+async function configurarAutenticacaoReal(){
+  if(!confirm('Vai criar (ou confirmar) as 3 contas de acesso seguro — Administrador, Solar Villa Arruda e Casa dos Sonhos — usando os PINs atuais. A partir de agora só quem souber o PIN certo consegue mesmo ler os dados. Continuar?'))return;
+  const resultados=[];
+  const contas=[{tipo:'adm',pass:S.aPin,label:'Administrador'}];
+  S.res.forEach(r=>contas.push({tipo:r.id,pass:r.pin,label:r.nome}));
+  for(const c of contas){
+    try{
+      const r=await _fbCriarConta(c.tipo,c.pass);
+      if(!r.ok){resultados.push(`❌ ${c.label}: ${r.erro}`);continue;}
+      resultados.push(r.criada?`✅ ${c.label}: conta criada`:`ℹ️ ${c.label}: já existia (mantida)`);
+    }catch(e){resultados.push(`❌ ${c.label}: ${e.message}`);}
+  }
+  alert('Configuração de acesso seguro:\n\n'+resultados.join('\n')+
+    '\n\nSe alguma conta "já existia" mas o PIN foi alterado entretanto, a password pode estar desatualizada — nesse caso muda o PIN outra vez em Configurações (isso sincroniza automaticamente).');
+}
 async function sincronizarEquipaComEscala(){
   const hoje=new Date();
   const nomesMes=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
