@@ -3048,10 +3048,10 @@ function rUtentes(){
   });
 
   // ===== Agrupar por piso (CDS) ou ala/villa (SVA) =====
-  const PALETA_GRUPOS=['#0F766E','#A32D2D','#B45309','#534AB7','#0C447C','#712B13','#166534','#86198F','#5F5E5A'];
+  const COR_UNICA_GRUPOS='#0F766E';
   const corPorGrupo={};
   function corDoGrupo(g){
-    if(!corPorGrupo[g])corPorGrupo[g]=PALETA_GRUPOS[Object.keys(corPorGrupo).length%PALETA_GRUPOS.length];
+    if(!corPorGrupo[g])corPorGrupo[g]=COR_UNICA_GRUPOS;
     return corPorGrupo[g];
   }
   const grupos={};
