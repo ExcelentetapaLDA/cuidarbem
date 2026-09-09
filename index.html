@@ -1843,6 +1843,7 @@ const _authReadyPromise = new Promise((resolve) => {
 });
 function _fbAuthQS(){ return _authToken ? ('?auth=' + _authToken) : ''; }
 function _contaEmail(tipo){ return tipo+'@cuidarbem-auth.local'; }
+function _pinToPassword(pin){ return 'cb-'+pin+'-x'; } // o Firebase exige 6+ caracteres; o PIN em si continua a ser só os 4 dígitos
 async function _fbEntrar(tipo, password){
   await _authReadyPromise;
   const cred = await firebase.auth().signInWithEmailAndPassword(_contaEmail(tipo), password);
@@ -2211,13 +2212,13 @@ async function doLogin(){
     let contaTipo, contaPassword;
     if(rid==='adm'){
       if(pin!==S.aPin){err.textContent='PIN incorreto.';return;}
-      contaTipo='adm'; contaPassword=S.aPin;
+      contaTipo='adm'; contaPassword=_pinToPassword(S.aPin);
     } else {
       const res=S.res.find(r=>r.id===rid);
       if(!res){err.textContent='Erro: residência não encontrada.';return;}
       const colab=S.equipa?S.equipa.find(e=>e.res===rid&&e.pin===pin):null;
       if(pin!==res.pin&&!colab){err.textContent='PIN incorreto.';return;}
-      contaTipo=rid; contaPassword=res.pin;
+      contaTipo=rid; contaPassword=_pinToPassword(res.pin);
     }
     err.textContent='A entrar...';
     try{
@@ -3495,9 +3496,9 @@ async function renPin(id,p){
     if(r){
       const pinAntigo=r.pin;
       try{
-        await _fbEntrar(id, pinAntigo);
-        await _fbAtualizarPassword(id, p);
-        await _fbEntrar('adm', S.aPin);
+        await _fbEntrar(id, _pinToPassword(pinAntigo));
+        await _fbAtualizarPassword(id, _pinToPassword(p));
+        await _fbEntrar('adm', _pinToPassword(S.aPin));
       }catch(e){
         console.warn('[CuidarBem] Não sincronizou acesso seguro da residência:',e);
         toast('<strong>⚠️ PIN guardado, mas acesso seguro não sincronizou.</strong><br>Corre "Configurar acesso seguro" em Configurações.');
@@ -3509,7 +3510,7 @@ async function renPin(id,p){
 async function svAPin(){
   const p=document.getElementById('nAP').value;
   if(p.length===4){
-    try{ await _fbAtualizarPassword('adm', p); }
+    try{ await _fbAtualizarPassword('adm', _pinToPassword(p)); }
     catch(e){ console.warn('[CuidarBem] Não sincronizou acesso seguro do admin:',e); }
     S.aPin=p;await saveConf();document.getElementById('nAP').value='';toast('<strong>🔐 PIN de admin actualizado!</strong>');
   } else alert('PIN deve ter 4 dígitos.');
@@ -4224,8 +4225,8 @@ async function limparDuplicadosEquipa(){
 async function configurarAutenticacaoReal(){
   if(!confirm('Vai criar (ou confirmar) as 3 contas de acesso seguro — Administrador, Solar Villa Arruda e Casa dos Sonhos — usando os PINs atuais. A partir de agora só quem souber o PIN certo consegue mesmo ler os dados. Continuar?'))return;
   const resultados=[];
-  const contas=[{tipo:'adm',pass:S.aPin,label:'Administrador'}];
-  S.res.forEach(r=>contas.push({tipo:r.id,pass:r.pin,label:r.nome}));
+  const contas=[{tipo:'adm',pass:_pinToPassword(S.aPin),label:'Administrador'}];
+  S.res.forEach(r=>contas.push({tipo:r.id,pass:_pinToPassword(r.pin),label:r.nome}));
   for(const c of contas){
     try{
       const r=await _fbCriarConta(c.tipo,c.pass);
