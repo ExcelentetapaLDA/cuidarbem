@@ -147,6 +147,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#F0F2F8;color:#1E293B
 .nb{margin-left:auto;background:var(--red);color:white;border-radius:10px;padding:.06rem .38rem;font-size:.62rem;font-weight:700}
 .adm-only{display:none!important}
 body.is-adm .adm-only{display:inline-flex!important}
+.edt{display:none!important}
+body.is-adm .edt,body.is-encarregada .edt{display:inline-flex!important}
 .content{flex:1;overflow-y:auto;padding:1.5rem;background:var(--gray-50);min-height:0}
 .pg{display:none}
 .pg.active{display:block;animation:fi .2s ease}
@@ -681,9 +683,9 @@ body.is-adm .adm-only{display:inline-flex!important}
         <div class="ph">
   <div class="ph-title">Rotinas do Dia</div>
   <div style="display:flex;gap:.4rem;flex-wrap:wrap">
-    <button class="btn btn-g btn-s adm-only" style="display:none;background:#CFFAFE;color:#155E75;border-color:#A5F3FC" onclick="importarRotinasTarde()"><i class="ti ti-sunset" style="margin-right:.3rem"></i>Importar Rotinas Tarde</button>
-    <button class="btn btn-g btn-s adm-only" style="display:none;background:#E0E7FF;color:#3730A3;border-color:#C7D2FE" onclick="importarRotinasNoite()"><i class="ti ti-moon" style="margin-right:.3rem"></i>Importar Rotinas Noite</button>
-    <button class="btn btn-t adm-only" onclick="om('mR')">+ Nova Rotina</button>
+    <button class="btn btn-g btn-s edt" style="display:none;background:#CFFAFE;color:#155E75;border-color:#A5F3FC" onclick="importarRotinasTarde()"><i class="ti ti-sunset" style="margin-right:.3rem"></i>Importar Rotinas Tarde</button>
+    <button class="btn btn-g btn-s edt" style="display:none;background:#E0E7FF;color:#3730A3;border-color:#C7D2FE" onclick="importarRotinasNoite()"><i class="ti ti-moon" style="margin-right:.3rem"></i>Importar Rotinas Noite</button>
+    <button class="btn btn-t edt" onclick="om('mR')">+ Nova Rotina</button>
   </div>
 </div>
         <div class="sw" id="schWrap"></div>
@@ -712,7 +714,7 @@ body.is-adm .adm-only{display:inline-flex!important}
           <div style="display:flex;align-items:center;gap:.5rem">
             <button class="btn btn-g btn-s" onclick="navMes(-1)" title="Mês anterior">&#8592;</button>
             <button class="btn btn-g btn-s" onclick="navMes(1)" title="Mês seguinte">&#8594;</button>
-            <button class="btn btn-p adm-only" onclick="abrirImportadorEscala()" style="display:none"><i class="ti ti-file-import" style="margin-right:.3rem"></i>Importar Escala Excel</button>
+            <button class="btn btn-p edt" onclick="abrirImportadorEscala()" style="display:none"><i class="ti ti-file-import" style="margin-right:.3rem"></i>Importar Escala Excel</button>
           </div>
         </div>
         <div id="meuTurnoCard" style="display:none;background:linear-gradient(135deg,var(--primary),var(--teal));color:white;border-radius:var(--radius-lg);padding:1.2rem;margin-bottom:1.2rem">
@@ -754,7 +756,7 @@ body.is-adm .adm-only{display:inline-flex!important}
         </div><div style="margin-bottom:.75rem">
           <div style="display:flex;gap:.38rem;flex-wrap:wrap;align-items:center;margin-bottom:.5rem"><span style="font-size:.72rem;color:var(--gray-400);font-weight:600"><i class="ti ti-camera" style="margin-right:.3rem"></i>Exportar Cartão:</span><button class="btn btn-s" style="background:#0EA5E9;color:white;border:none;font-family:Inter,sans-serif" onclick="exportarCartao('RESUMO')"><i class="ti ti-layout-list" style="margin-right:.3rem"></i>Resumo</button><button class="btn btn-s" style="background:#EA580C;color:white;border:none;font-family:Inter,sans-serif" onclick="exportarCartao('M')"><i class="ti ti-sun" style="margin-right:.3rem"></i>Manhã</button><button class="btn btn-s" style="background:#0D9488;color:white;border:none;font-family:Inter,sans-serif" onclick="exportarCartao('T')"><i class="ti ti-sunset-2" style="margin-right:.3rem"></i>Tarde</button><button class="btn btn-s" style="background:#1E293B;color:white;border:none;font-family:Inter,sans-serif" onclick="exportarCartao('N')"><i class="ti ti-moon" style="margin-right:.3rem"></i>Noite</button></div>
         </div>
-        <div style="display:flex;gap:.38rem;flex-wrap:wrap;align-items:center;margin-bottom:.75rem"><span style="font-size:.72rem;color:var(--gray-400);font-weight:600"><i class="ti ti-bell" style="margin-right:.3rem"></i>Alertas Clínicos:</span><button class="btn btn-s adm-only" style="background:#7C3AED;color:white;border:none;font-family:Inter,sans-serif" onclick="agendarNotificacoesDia()"><i class="ti ti-device-mobile" style="margin-right:.3rem"></i>Agendar Notificações Hoje</button><button class="btn btn-s" style="background:#1E293B;color:white;border:none;font-family:Inter,sans-serif" onclick="exportarAlerta('POS')"><i class="ti ti-refresh" style="margin-right:.3rem"></i>Posicionamentos</button><button class="btn btn-s" style="background:#EA580C;color:white;border:none;font-family:Inter,sans-serif" onclick="exportarAlerta('REF')"><i class="ti ti-bowl" style="margin-right:.3rem"></i>Reforço Peq.Almoço</button><button class="btn btn-s" style="background:#7C3AED;color:white;border:none;font-family:Inter,sans-serif" onclick="exportarAlerta('MED')"><i class="ti ti-pill" style="margin-right:.3rem"></i>Medicação Jejum</button><button class="btn btn-s" style="background:#DC2626;color:white;border:none;font-family:Inter,sans-serif" onclick="exportarAlerta('GLI')"><i class="ti ti-droplet" style="margin-right:.3rem"></i>Glicemias</button><button class="btn btn-s" style="background:#0D9488;color:white;border:none;font-family:Inter,sans-serif" onclick="exportarAlerta('COL')"><i class="ti ti-eye" style="margin-right:.3rem"></i>Colírios</button><button class="btn btn-s" style="background:#0EA5E9;color:white;border:none;font-family:Inter,sans-serif" onclick="exportarAlerta('INA')"><i class="ti ti-wind" style="margin-right:.3rem"></i>Inaladores</button><button class="btn btn-s" style="background:#F59E0B;color:white;border:none;font-family:Inter,sans-serif" onclick="exportarAlerta('EXT')"><i class="ti ti-star" style="margin-right:.3rem"></i>Extras</button></div>
+        <div style="display:flex;gap:.38rem;flex-wrap:wrap;align-items:center;margin-bottom:.75rem"><span style="font-size:.72rem;color:var(--gray-400);font-weight:600"><i class="ti ti-bell" style="margin-right:.3rem"></i>Alertas Clínicos:</span><button class="btn btn-s edt" style="background:#7C3AED;color:white;border:none;font-family:Inter,sans-serif" onclick="agendarNotificacoesDia()"><i class="ti ti-device-mobile" style="margin-right:.3rem"></i>Agendar Notificações Hoje</button><button class="btn btn-s" style="background:#1E293B;color:white;border:none;font-family:Inter,sans-serif" onclick="exportarAlerta('POS')"><i class="ti ti-refresh" style="margin-right:.3rem"></i>Posicionamentos</button><button class="btn btn-s" style="background:#EA580C;color:white;border:none;font-family:Inter,sans-serif" onclick="exportarAlerta('REF')"><i class="ti ti-bowl" style="margin-right:.3rem"></i>Reforço Peq.Almoço</button><button class="btn btn-s" style="background:#7C3AED;color:white;border:none;font-family:Inter,sans-serif" onclick="exportarAlerta('MED')"><i class="ti ti-pill" style="margin-right:.3rem"></i>Medicação Jejum</button><button class="btn btn-s" style="background:#DC2626;color:white;border:none;font-family:Inter,sans-serif" onclick="exportarAlerta('GLI')"><i class="ti ti-droplet" style="margin-right:.3rem"></i>Glicemias</button><button class="btn btn-s" style="background:#0D9488;color:white;border:none;font-family:Inter,sans-serif" onclick="exportarAlerta('COL')"><i class="ti ti-eye" style="margin-right:.3rem"></i>Colírios</button><button class="btn btn-s" style="background:#0EA5E9;color:white;border:none;font-family:Inter,sans-serif" onclick="exportarAlerta('INA')"><i class="ti ti-wind" style="margin-right:.3rem"></i>Inaladores</button><button class="btn btn-s" style="background:#F59E0B;color:white;border:none;font-family:Inter,sans-serif" onclick="exportarAlerta('EXT')"><i class="ti ti-star" style="margin-right:.3rem"></i>Extras</button></div>
         <div id="distContent"></div></div>
       </div>
 
@@ -764,7 +766,7 @@ body.is-adm .adm-only{display:inline-flex!important}
   <div class="ph-title">Utentes</div>
   <div style="display:flex;gap:.4rem;flex-wrap:wrap">
     <button class="btn" style="background:#9B1C1C;color:white" onclick="abrirPainelDiabetes()"><i class="ti ti-droplet" style="margin-right:.3rem"></i>Diabetes & Insulina</button>
-    <button class="btn btn-p adm-only" onclick="om('mU')">+ Novo Utente</button>
+    <button class="btn btn-p edt" onclick="om('mU')">+ Novo Utente</button>
   </div>
 </div>
         <div style="display:flex;gap:.4rem;margin-bottom:.5rem;flex-wrap:wrap" id="utFiltros">
@@ -776,43 +778,43 @@ body.is-adm .adm-only{display:inline-flex!important}
   <button class="btn btn-g btn-s utF active" onclick="utFiltro('all',this)">Todos</button>
   <div style="display:flex;align-items:center;gap:.2rem">
     <button class="btn btn-g btn-s utF" onclick="utFiltro('udb',this)"><i class="ti ti-droplet" style="margin-right:.3rem"></i>Diabéticos</button>
-    <button class="btn btn-g btn-s adm-only" title="Gerir quem é diabético" onclick="abrirGerirEtiqueta('udb')" style="padding:.28rem .45rem;font-size:.72rem;background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-light)"><i class="ti ti-pencil"></i></button>
+    <button class="btn btn-g btn-s edt" title="Gerir quem é diabético" onclick="abrirGerirEtiqueta('udb')" style="padding:.28rem .45rem;font-size:.72rem;background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-light)"><i class="ti ti-pencil"></i></button>
   </div>
   <div style="display:flex;align-items:center;gap:.2rem">
     <button class="btn btn-g btn-s utF" onclick="utFiltro('uins',this)"><i class="ti ti-vaccine" style="margin-right:.3rem"></i>Insulinotratados</button>
-    <button class="btn btn-g btn-s adm-only" title="Gerir insulinotratados" onclick="abrirGerirEtiqueta('uins')" style="padding:.28rem .45rem;font-size:.72rem;background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-light)"><i class="ti ti-pencil"></i></button>
+    <button class="btn btn-g btn-s edt" title="Gerir insulinotratados" onclick="abrirGerirEtiqueta('uins')" style="padding:.28rem .45rem;font-size:.72rem;background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-light)"><i class="ti ti-pencil"></i></button>
   </div>
   <div style="display:flex;align-items:center;gap:.2rem">
     <button class="btn btn-g btn-s utF" onclick="utFiltro('uantic',this)"><i class="ti ti-heart-broken" style="margin-right:.3rem"></i>Anticoagulados</button>
-    <button class="btn btn-g btn-s adm-only" title="Gerir anticoagulados" onclick="abrirGerirEtiqueta('uantic')" style="padding:.28rem .45rem;font-size:.72rem;background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-light)"><i class="ti ti-pencil"></i></button>
+    <button class="btn btn-g btn-s edt" title="Gerir anticoagulados" onclick="abrirGerirEtiqueta('uantic')" style="padding:.28rem .45rem;font-size:.72rem;background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-light)"><i class="ti ti-pencil"></i></button>
   </div>
   <div style="display:flex;align-items:center;gap:.2rem">
     <button class="btn btn-g btn-s utF" onclick="utFiltro('uu',this)"><i class="ti ti-alert-octagon" style="margin-right:.3rem"></i>Urgentes</button>
-    <button class="btn btn-g btn-s adm-only" title="Gerir urgentes" onclick="abrirGerirEtiqueta('uu')" style="padding:.28rem .45rem;font-size:.72rem;background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-light)"><i class="ti ti-pencil"></i></button>
+    <button class="btn btn-g btn-s edt" title="Gerir urgentes" onclick="abrirGerirEtiqueta('uu')" style="padding:.28rem .45rem;font-size:.72rem;background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-light)"><i class="ti ti-pencil"></i></button>
   </div>
   <div style="display:flex;align-items:center;gap:.2rem">
     <button class="btn btn-g btn-s utF" onclick="utFiltro('uacam',this)"><i class="ti ti-bed" style="margin-right:.3rem"></i>Acamados</button>
-    <button class="btn btn-g btn-s adm-only" title="Gerir acamados" onclick="abrirGerirEtiqueta('uacam')" style="padding:.28rem .45rem;font-size:.72rem;background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-light)"><i class="ti ti-pencil"></i></button>
+    <button class="btn btn-g btn-s edt" title="Gerir acamados" onclick="abrirGerirEtiqueta('uacam')" style="padding:.28rem .45rem;font-size:.72rem;background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-light)"><i class="ti ti-pencil"></i></button>
   </div>
   <div style="display:flex;align-items:center;gap:.2rem">
     <button class="btn btn-g btn-s utF" onclick="utFiltro('uref',this)"><i class="ti ti-bowl" style="margin-right:.3rem"></i>Reforço PA</button>
-    <button class="btn btn-g btn-s adm-only" title="Gerir reforço" onclick="abrirGerirEtiqueta('uref')" style="padding:.28rem .45rem;font-size:.72rem;background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-light)"><i class="ti ti-pencil"></i></button>
+    <button class="btn btn-g btn-s edt" title="Gerir reforço" onclick="abrirGerirEtiqueta('uref')" style="padding:.28rem .45rem;font-size:.72rem;background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-light)"><i class="ti ti-pencil"></i></button>
   </div>
   <div style="display:flex;align-items:center;gap:.2rem">
     <button class="btn btn-g btn-s utF" onclick="utFiltro('umed',this)"><i class="ti ti-pill" style="margin-right:.3rem"></i>Med. Jejum</button>
-    <button class="btn btn-g btn-s adm-only" title="Gerir med. jejum" onclick="abrirGerirEtiqueta('umed')" style="padding:.28rem .45rem;font-size:.72rem;background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-light)"><i class="ti ti-pencil"></i></button>
+    <button class="btn btn-g btn-s edt" title="Gerir med. jejum" onclick="abrirGerirEtiqueta('umed')" style="padding:.28rem .45rem;font-size:.72rem;background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-light)"><i class="ti ti-pencil"></i></button>
   </div>
   <div style="display:flex;align-items:center;gap:.2rem">
     <button class="btn btn-g btn-s utF" onclick="utFiltro('ucol',this)"><i class="ti ti-eye" style="margin-right:.3rem"></i>Colírio</button>
-    <button class="btn btn-g btn-s adm-only" title="Gerir colírio" onclick="abrirGerirEtiqueta('ucol')" style="padding:.28rem .45rem;font-size:.72rem;background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-light)"><i class="ti ti-pencil"></i></button>
+    <button class="btn btn-g btn-s edt" title="Gerir colírio" onclick="abrirGerirEtiqueta('ucol')" style="padding:.28rem .45rem;font-size:.72rem;background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-light)"><i class="ti ti-pencil"></i></button>
   </div>
   <div style="display:flex;align-items:center;gap:.2rem">
     <button class="btn btn-g btn-s utF" onclick="utFiltro('uinal',this)"><i class="ti ti-wind" style="margin-right:.3rem"></i>Inalador</button>
-    <button class="btn btn-g btn-s adm-only" title="Gerir inalador" onclick="abrirGerirEtiqueta('uinal')" style="padding:.28rem .45rem;font-size:.72rem;background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-light)"><i class="ti ti-pencil"></i></button>
+    <button class="btn btn-g btn-s edt" title="Gerir inalador" onclick="abrirGerirEtiqueta('uinal')" style="padding:.28rem .45rem;font-size:.72rem;background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-light)"><i class="ti ti-pencil"></i></button>
   </div>
   <div style="display:flex;align-items:center;gap:.2rem">
     <button class="btn btn-g btn-s utF" onclick="utFiltro('uext',this)"><i class="ti ti-star" style="margin-right:.3rem"></i>Extras</button>
-    <button class="btn btn-g btn-s adm-only" title="Gerir extras" onclick="abrirGerirEtiqueta('uext')" style="padding:.28rem .45rem;font-size:.72rem;background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-light)"><i class="ti ti-pencil"></i></button>
+    <button class="btn btn-g btn-s edt" title="Gerir extras" onclick="abrirGerirEtiqueta('uext')" style="padding:.28rem .45rem;font-size:.72rem;background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-light)"><i class="ti ti-pencil"></i></button>
   </div>
 </div>
 <div id="dropZone" style="display:none;background:var(--primary-light);border:1.5px solid var(--primary);border-radius:var(--radius-lg);padding:.75rem 1rem;margin-bottom:.85rem;flex-wrap:wrap;gap:.5rem;align-items:center">
@@ -849,7 +851,7 @@ body.is-adm .adm-only{display:inline-flex!important}
 
       <!-- RELATÓRIOS -->
       <div class="pg" id="pg-relatorios">
-        <div class="ph"><div class="ph-title">Relatórios</div><button class="btn btn-d adm-only" style="display:none" onclick="exportCSV()">⬇ Exportar CSV</button></div>
+        <div class="ph"><div class="ph-title">Relatórios</div><button class="btn btn-d edt" style="display:none" onclick="exportCSV()">⬇ Exportar CSV</button></div>
         <div class="rg" id="relGrid"></div>
       </div>
 
@@ -886,7 +888,7 @@ body.is-adm .adm-only{display:inline-flex!important}
       <div class="pg" id="pg-stock">
         <div class="ph">
           <div><div class="ph-title">Stock de Material</div><div class="ph-sub" id="stockSub"></div></div>
-          <button class="btn btn-p adm-only" onclick="om('mStock')">+ Novo Item</button>
+          <button class="btn btn-p edt" onclick="om('mStock')">+ Novo Item</button>
         </div>
         <div style="display:flex;gap:.4rem;margin-bottom:.95rem;flex-wrap:wrap">
           <button class="btn btn-g btn-s skF active" onclick="skFiltro('all',this)">Tudo</button>
@@ -906,9 +908,9 @@ body.is-adm .adm-only{display:inline-flex!important}
         <div class="ph">
           <div><div class="ph-title">Registo de Incontinência</div><div class="ph-sub" id="incontSub"></div></div>
           <div style="display:flex;gap:.4rem;flex-wrap:wrap">
-            <button class="btn btn-g adm-only" onclick="om('mImpCons')"><i class="ti ti-file-import" style="margin-right:.3rem"></i>Importar Consumo Mensal</button>
-            <button class="btn btn-g adm-only" onclick="abrirClonarMes()"><i class="ti ti-copy" style="margin-right:.3rem"></i>Clonar Mês Anterior</button>
-            <button class="btn btn-g adm-only" onclick="limparDuplicadosIncont()"><i class="ti ti-trash-x" style="margin-right:.3rem"></i>Limpar Duplicados</button>
+            <button class="btn btn-g edt" onclick="om('mImpCons')"><i class="ti ti-file-import" style="margin-right:.3rem"></i>Importar Consumo Mensal</button>
+            <button class="btn btn-g edt" onclick="abrirClonarMes()"><i class="ti ti-copy" style="margin-right:.3rem"></i>Clonar Mês Anterior</button>
+            <button class="btn btn-g edt" onclick="limparDuplicadosIncont()"><i class="ti ti-trash-x" style="margin-right:.3rem"></i>Limpar Duplicados</button>
             <button class="btn btn-g" onclick="exportarIncontinencia()"><i class="ti ti-download" style="margin-right:.3rem"></i>Exportar</button>
             <button class="btn btn-p" onclick="om('mIncont')">+ Registar Consumo</button>
           </div>
@@ -2006,7 +2008,9 @@ let S={
   ]
 };
 let DB={alertas:{},rotinas:{},tarefas:{},confirmacoes:{},hist:{},limpezaSel:{}};
-let ses={role:null,rid:null,nome:null,admRes:null};
+let ses={role:null,rid:null,nome:null,admRes:null,perfil:null};
+// Encarregadas e Direção podem editar; Auxiliares só consultam e registam
+const podeEditar=()=>ses.role==='adm'||ses.perfil==='encarregada';
 let tcFA='all',eqFA='all',escVA='escala',escFA='todos',utFA='all',utResFA=null,distDiaOffset=0;
 
 // ===== FIREBASE LOAD =====
@@ -2151,7 +2155,8 @@ function doLogin(){
         if(!res){err.textContent='Erro: residência não encontrada.';return;}
         const colab=S.equipa?S.equipa.find(e=>e.res===rid&&e.pin===pin):null;
         if(pin!==res.pin&&!colab){err.textContent='PIN incorreto.';return;}
-        ses={role:'res',rid,nome:colab?colab.nome:'Equipa',admRes:null,func:colab?(colab.func||''):''};
+        const perfilColab=colab&&/encarregad/i.test(colab.func||'')?'encarregada':'auxiliar';
+        ses={role:'res',rid,nome:colab?colab.nome:'Equipa',admRes:null,func:colab?(colab.func||''):'',perfil:perfilColab};
         document.body.classList.remove('is-adm');
       }
       err.textContent='';
@@ -2170,7 +2175,7 @@ function doLogin(){
       const res=S.res.find(r=>r.id===rid);
       if(!res){err.textContent='Sem ligação.';return;}
       if(pin!==res.pin){err.textContent='PIN incorreto.';return;}
-      ses={role:'res',rid,nome:'Equipa',admRes:null};
+      ses={role:'res',rid,nome:'Equipa',admRes:null,perfil:'auxiliar'};
     }
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('app').classList.add('on');
@@ -2192,6 +2197,8 @@ function setupSes(){
   if(ses.role==='adm'){badge.textContent='Administrador';badge.className='tbadge tb-adm';}
   else{const r=S.res.find(x=>x.id===ses.rid);badge.textContent=r?r.nome:ses.rid;badge.className='tbadge '+(ses.rid==='r1'?'tb-r1':'tb-r2');}
   document.querySelectorAll('.adm-only').forEach(el=>el.style.display=ses.role==='adm'?'':'none');
+  document.body.classList.toggle('is-encarregada',ses.perfil==='encarregada');
+  document.querySelectorAll('.edt').forEach(el=>el.style.display=podeEditar()?'':'none');
   if(ses.role==='adm'){
     document.getElementById('admFilter').style.display='flex';
     const b1=document.getElementById('btnR1');const b2=document.getElementById('btnR2');
@@ -2914,7 +2921,7 @@ function aiH(a,key,compact=false){
       <button class="btn btn-g btn-s" onclick="partilharWA('${key}')" title="Enviar para WhatsApp" style="background:#25D366;border-color:#25D366;color:white">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
       </button>
-      ${ses.role==='adm'?`<button class="btn btn-r btn-s" onclick="delA('${key}')">🗑</button>`:''}
+      ${podeEditar()?`<button class="btn btn-r btn-s" onclick="delA('${key}')">🗑</button>`:''}
     </div>
   </div>`;
 }
@@ -2952,7 +2959,7 @@ function rAlertas(){
 }
 
 function rRotinas(){
-  const rt=filt(getRot()),isAdm=ses.role==='adm',hm=nowHM();
+  const rt=filt(getRot()),isAdm=podeEditar(),hm=nowHM();
   document.getElementById('schWrap').innerHTML=rt.map(r=>`
     <div class="sct ${r.hora===hm.slice(0,5)?'nw':''}">${r.hora}</div>
     <div class="scb"><div class="scc ${r.done?'dk':''}" onclick="togR('${r._key}')">
@@ -2968,7 +2975,7 @@ function rRotinas(){
 
 function rTarefas(){
   const tarefas=filt(getTar()).filter(t=>tAtiva(t)&&(tcFA==='all'||t.tipo===tcFA));
-  const isAdm=ses.role==='adm',td=todayStr();
+  const isAdm=podeEditar(),td=todayStr();
   document.getElementById('tcList').innerHTML=tarefas.map(t=>{
     const uids=tUids(t),utentes=uids.map(uid=>S.utentes.find(x=>x.id==uid)).filter(Boolean);
     const totalConf=getConf().filter(c=>c.tarefaId==t._key&&c.data===td).length;
@@ -3021,7 +3028,7 @@ function rUtentes(){
   let ut=filt(S.utentes);
   if(utResFA)ut=ut.filter(u=>u.res===utResFA);
   if(utFA!=='all')ut=ut.filter(u=>(u.badges||[]).includes(utFA));
-  const isAdm=ses.role==='adm';
+  const isAdm=podeEditar();
   const internamentosPorNome = {};
   Object.values(DB.internamentos||{}).forEach(it=>{
     if(it.fim) return; // só interessa quem está internado agora (sem data de fim)
@@ -3315,7 +3322,7 @@ function rConfig(){
       <div class="setR"><div><div class="setRL">Ver ficheiros já extraídos</div><div class="setRS">Confirma o que chegou do MySenior</div></div><button class="btn btn-d btn-s" id="btnMSListar" onclick="msListarExtraidos()">📂 Ver</button></div>
       <pre id="msResultado" style="display:none;background:var(--gray-50,#F8FAFC);border:1px solid var(--border);border-radius:8px;padding:.75rem;font-size:.74rem;white-space:pre-wrap;word-break:break-word;margin-top:.5rem;max-height:280px;overflow:auto"></pre>
     </div></div>
-    <div class="setS adm-only"><div class="setT" style="display:flex;align-items:center;gap:.5rem">📲 Estado dos Alertas por Funcionária <button class="btn btn-d btn-s" onclick="recarregarEstadoAlertas()" style="margin-left:auto">🔄 Actualizar</button></div>
+    <div class="setS edt"><div class="setT" style="display:flex;align-items:center;gap:.5rem">📲 Estado dos Alertas por Funcionária <button class="btn btn-d btn-s" onclick="recarregarEstadoAlertas()" style="margin-left:auto">🔄 Actualizar</button></div>
       <div class="setRS" style="margin-bottom:.75rem">Mostra quem tem alertas activos no telemóvel agora</div>
       <div class="ea-grid" id="eaGrid"><div style="color:var(--gray-400);font-size:.82rem;padding:.5rem">A carregar...</div></div>
     </div>`;
@@ -3323,7 +3330,7 @@ function rConfig(){
   const elEst = document.getElementById('alertasEstadoTexto');
   if(elEst) elEst.textContent = estadoTexto;
   // Carregar painel admin de alertas
-  if(ses.role === 'adm') recarregarEstadoAlertas();
+  if(podeEditar()) recarregarEstadoAlertas();
 }
 
 async function testarNotificacao(){
@@ -3630,7 +3637,7 @@ function rTurno(){
         </div>
         <div style="display:flex;gap:.35rem">
           <button class="btn btn-g btn-s" onclick="editTurno('${t._key}')" style="background:rgba(255,255,255,.2);color:white;border-color:rgba(255,255,255,.3)">✏️ Editar</button>
-          ${ses.role==='adm'?`<button class="btn btn-r btn-s" onclick="delTurno('${t._key}')" style="background:rgba(255,255,255,.15);color:white;border-color:rgba(255,255,255,.2)">🗑</button>`:''}
+          ${podeEditar()?`<button class="btn btn-r btn-s" onclick="delTurno('${t._key}')" style="background:rgba(255,255,255,.15);color:white;border-color:rgba(255,255,255,.2)">🗑</button>`:''}
         </div>
       </div>
       <div style="padding:.85rem 1rem">
@@ -3870,7 +3877,7 @@ function rQuedas(){
           <div style="display:flex;gap:.3rem;align-items:center">
             ${q.foto?'<span style="font-size:.68rem;background:rgba(255,255,255,.2);color:white;padding:.18rem .38rem;border-radius:5px">📷</span>':''}
             <button class="btn btn-g btn-s" onclick="editQueda('${q._key}')" style="background:rgba(255,255,255,.2);color:white;border-color:rgba(255,255,255,.3)"><i class="ti ti-pencil"></i></button>
-            ${ses.role==='adm'?`<button class="btn btn-s" onclick="delQueda('${q._key}')" style="background:rgba(255,255,255,.15);color:white;border:none;cursor:pointer;border-radius:6px;padding:.28rem .55rem">🗑</button>`:''}
+            ${podeEditar()?`<button class="btn btn-s" onclick="delQueda('${q._key}')" style="background:rgba(255,255,255,.15);color:white;border:none;cursor:pointer;border-radius:6px;padding:.28rem .55rem">🗑</button>`:''}
           </div>
         </div>
         <div style="padding:.75rem .9rem;display:grid;grid-template-columns:1fr ${q.foto?'72px':''}">
@@ -3976,7 +3983,7 @@ function rStock(){
     const pct=s.ideal>0?Math.min(100,Math.round((s.qty||0)/s.ideal*100)):null;
     const low=(s.qty||0)<=(s.min||0)&&s.min>0;
     const cor=low?'var(--red)':pct!==null&&pct<50?'#F59E0B':'var(--green)';
-    const isAdm=ses.role==='adm';
+    const isAdm=podeEditar();
     return`<div style="background:white;border:${low?'2px solid var(--red)':'1px solid var(--border)'};border-radius:var(--radius-lg);padding:.95rem;transition:box-shadow .2s">
       <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.55rem">
         <span style="font-size:1.1rem">${catIc[s.cat]||'📦'}</span>
@@ -3998,7 +4005,7 @@ function rStock(){
         ${isAdm?`<button class="btn btn-g btn-s" onclick="editStock('${s._key}')"><i class="ti ti-pencil"></i></button><button class="btn btn-r btn-s" onclick="delStock('${s._key}')">🗑</button>`:''}
       </div>
     </div>`;
-  }).join(''):`<div class="empty" style="grid-column:1/-1"><div class="eic">📦</div><p>Sem itens de stock.<br>${ses.role==='adm'?'Clica em + Novo Item para começar!':'O administrador ainda não adicionou itens.'}</p></div>`;
+  }).join(''):`<div class="empty" style="grid-column:1/-1"><div class="eic">📦</div><p>Sem itens de stock.<br>${podeEditar()?'Clica em + Novo Item para começar!':'O administrador ainda não adicionou itens.'}</p></div>`;
 }
 
 async function sementearEquipa(){
@@ -4604,7 +4611,7 @@ function verRegistosPorKeys(keys, tituloNome, res){
       </div>
       <div style="display:flex;gap:.3rem;flex-shrink:0">
         <button class="btn btn-g btn-s" onclick="editIncont('${r._key}')"><i class="ti ti-pencil"></i></button>
-        ${ses.role==='adm'?`<button class="btn btn-r btn-s" onclick="delIncont('${r._key}');cm('mIncontDetalhe')"><i class="ti ti-trash"></i></button>`:''}
+        ${podeEditar()?`<button class="btn btn-r btn-s" onclick="delIncont('${r._key}');cm('mIncontDetalhe')"><i class="ti ti-trash"></i></button>`:''}
       </div>
     </div>`;
   });
@@ -4729,7 +4736,7 @@ function rInternamentos(){
       </div>
       <div style="display:flex;gap:.3rem;flex-shrink:0">
         <button class="btn btn-g btn-s" onclick="abrirInternamento('${r._key}')"><i class="ti ti-pencil"></i></button>
-        ${ses.role==='adm'?`<button class="btn btn-r btn-s" onclick="delInternamento('${r._key}')"><i class="ti ti-trash"></i></button>`:''}
+        ${podeEditar()?`<button class="btn btn-r btn-s" onclick="delInternamento('${r._key}')"><i class="ti ti-trash"></i></button>`:''}
       </div>
     </div>`;
   });
@@ -5264,7 +5271,7 @@ function rEstetica(){
           ${r.notas?`<div style="font-size:.8rem;color:var(--gray-600);margin-top:.3rem"><em>${r.notas}</em></div>`:''}
           <div style="font-size:.7rem;color:var(--gray-400);margin-top:.2rem">Registado por ${r.quem}</div>
         </div>
-        ${ses.role==='adm'?`<button class="btn btn-r btn-s" onclick="delEstetica('${r._key}')"><i class="ti ti-trash"></i></button>`:''}
+        ${podeEditar()?`<button class="btn btn-r btn-s" onclick="delEstetica('${r._key}')"><i class="ti ti-trash"></i></button>`:''}
       </div>
     </div>`;
   });
@@ -5292,7 +5299,7 @@ function rEntregas(){
         <div style="display:flex;gap:.4rem;align-items:center;flex-shrink:0">
           ${r.assinatura?`<img src="${r.assinatura}" style="height:40px;border:1px solid var(--border);border-radius:6px;background:white" title="Assinatura">`:''}
           <button class="btn btn-g btn-s" title="Pedir reforço de material" onclick="abrirReforcoPorEntrega('${r._key}')"><i class="ti ti-alert-triangle"></i></button>
-          ${ses.role==='adm'?`<button class="btn btn-r btn-s" onclick="delEntrega('${r._key}')"><i class="ti ti-trash"></i></button>`:''}
+          ${podeEditar()?`<button class="btn btn-r btn-s" onclick="delEntrega('${r._key}')"><i class="ti ti-trash"></i></button>`:''}
         </div>
       </div>
     </div>`;
