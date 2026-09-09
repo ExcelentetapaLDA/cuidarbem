@@ -5176,7 +5176,7 @@ async function enviarEmailEntrega(obj){
     const r = await fetch('https://faturasai-production.up.railway.app/api/enviar-email-generico', {
       method:'POST', headers:{'Content-Type':'text/plain'},
       body: JSON.stringify({
-        secret: 'cbem_2026_entregas_x7q',
+        secret: 'zp3yQ5Bd4oL_aAMfQSUkTBlZ01yVt3fT',
         to: obj.emailFamiliar,
         cc: 'suse.carvalho@casadossonhos-residencias.com',
         subject: `Entrega de material — ${obj.utente}`,
@@ -5238,7 +5238,7 @@ async function enviarLembretesMes(){
       const resp = await fetch('https://faturasai-production.up.railway.app/api/enviar-email-generico', {
         method:'POST', headers:{'Content-Type':'text/plain'},
         body: JSON.stringify({
-          secret: 'cbem_2026_entregas_x7q',
+          secret: 'zp3yQ5Bd4oL_aAMfQSUkTBlZ01yVt3fT',
           to: r.emailFamiliar,
           cc: 'suse.carvalho@casadossonhos-residencias.com',
           subject: `Lembrete: entrega de material — ${r.utente}`,
@@ -5286,7 +5286,7 @@ async function enviarPedidoReforco(){
     const r = await fetch('https://faturasai-production.up.railway.app/api/enviar-email-generico', {
       method:'POST', headers:{'Content-Type':'text/plain'},
       body: JSON.stringify({
-        secret: 'cbem_2026_entregas_x7q',
+        secret: 'zp3yQ5Bd4oL_aAMfQSUkTBlZ01yVt3fT',
         to: email,
         cc: 'suse.carvalho@casadossonhos-residencias.com',
         subject: `Reforço de material necessário — ${utente}`,
