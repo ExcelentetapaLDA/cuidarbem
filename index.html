@@ -238,12 +238,15 @@ body.is-adm .edt,body.is-encarregada .edt{display:inline-flex!important}
 .um{background:var(--orange-light);color:var(--orange)}.uf{background:var(--teal-light);color:var(--teal)}.uco{background:var(--primary-light);color:var(--primary-dark)}.uu{background:var(--red-light);color:var(--red)}.udb{background:#FDE8E8;color:#9B1C1C}.uins{background:#F3E8FF;color:#6B21A8}.uantic{background:#FEF2F2;color:#991B1B;border:1px solid #FECACA}
 
 /* TEAM */
-.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:.75rem}
-.tc{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:.95rem}
-.tch{display:flex;align-items:center;gap:.7rem;margin-bottom:.45rem}
-.tav{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--teal));color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0}
-.tnm{font-weight:600;font-size:.9rem}.trl{font-size:.71rem;color:var(--gray-500)}
-.tac{display:flex;gap:.3rem;margin-top:.62rem}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,240px);gap:.75rem;justify-content:start}
+.tc{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);display:flex;width:240px;height:168px}
+.tcph{width:56px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-lg) 0 0 var(--radius-lg)}
+.tcbody{flex:1;min-width:0;padding:.7rem .8rem;border-radius:0 var(--radius-lg) var(--radius-lg) 0;display:flex;flex-direction:column;overflow:hidden}
+.tch{margin-bottom:.4rem}
+.tav{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.85);color:inherit;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;flex-shrink:0}
+.tnm{font-weight:600;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trl{font-size:.71rem;color:var(--gray-500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tac{display:flex;gap:.35rem;margin-top:auto;padding-top:.5rem;border-top:1px solid var(--gray-100,#F1EFE8)}
 
 /* TAREFAS */
 .tcl{display:flex;flex-direction:column;gap:.62rem}
@@ -3141,15 +3144,17 @@ function rEquipa(){
       <div class="tgrid">`;
     grp.eq.forEach(c=>{
       html+=`<div class="tc">
-        <div class="tch"><div class="tav">${init(c.nome)}</div><div><div class="tnm">${c.nome}</div><div class="trl">${c.func||''}</div></div></div>
-        <div style="display:flex;gap:.32rem;align-items:center;margin-top:.3rem;flex-wrap:wrap">
-          <span class="tag ${rTag(c.res)}">${rNome(c.res)}</span>
-          ${c.turno?`<span class="tag" style="background:var(--primary-light);color:var(--primary-dark)">${c.turno==='M'?'🌅 Manhã':c.turno==='T'?'🌆 Tarde':'🌙 Noite'}</span>`:''}
-          <span style="font-size:.68rem;color:var(--gray-400);margin-left:auto">PIN: ••••</span>
+        <div class="tcph" style="background:${r.cor}"><div class="tav">${init(c.nome)}</div></div>
+        <div class="tcbody">
+        <div class="tch"><div class="tnm" title="${c.nome}">${c.nome}</div><div class="trl">${c.func||''}</div></div>
+        <div style="display:flex;gap:.28rem;align-items:center;flex-wrap:wrap;margin-bottom:.3rem">
+          ${c.turno?`<span class="tag" style="background:var(--primary-light);color:var(--primary-dark);font-size:.65rem">${c.turno==='M'?'🌅':c.turno==='T'?'🌆':'🌙'} ${c.turno==='M'?'Manhã':c.turno==='T'?'Tarde':'Noite'}</span>`:''}
+          <span style="font-size:.65rem;color:var(--gray-400);margin-left:auto">PIN ••••</span>
         </div>
         <div class="tac">
-          <button class="btn btn-g btn-s" style="flex:1" onclick="editC('${c._key}')">✏️ Editar</button>
-          <button class="btn btn-r btn-s" onclick="delC('${c._key}')">🗑 Remover</button>
+          <button class="btn btn-g btn-s" style="flex:1" onclick="editC('${c._key}')"><i class="ti ti-pencil" style="margin-right:.25rem"></i>Editar</button>
+          <button class="btn btn-r btn-s ucicon" onclick="delC('${c._key}')"><i class="ti ti-trash"></i></button>
+        </div>
         </div>
       </div>`;
     });
