@@ -853,6 +853,7 @@ body.is-adm .edt,body.is-encarregada .edt{display:inline-flex!important}
 <div style="display:flex;gap:.4rem">
   <button class="btn btn-g btn-s" id="btnSeedEq" onclick="sementearEquipa()" style="background:#FEF3C7;color:#92400E;border-color:#FDE68A"><i class="ti ti-users-plus" style="margin-right:.3rem"></i>Importar Equipa da Escala</button>
   <button class="btn btn-g btn-s" onclick="limparDuplicadosEquipa()" style="background:#FEE2E2;color:#991B1B;border-color:#FECACA"><i class="ti ti-trash-x" style="margin-right:.3rem"></i>Limpar Duplicados</button>
+  <button class="btn btn-g btn-s" onclick="sincronizarEquipaComEscala()" style="background:#E0F2FE;color:#075985;border-color:#BAE6FD"><i class="ti ti-refresh" style="margin-right:.3rem"></i>Sincronizar com Escala do Mês</button>
   <button class="btn btn-p" onclick="om('mC')">+ Novo Colaborador</button>
 </div></div>
         <div style="display:flex;gap:.38rem;margin-bottom:.95rem">
@@ -4132,6 +4133,67 @@ async function limparDuplicadosEquipa(){
   await fbS('equipa',limpo);
   S.equipa=Object.entries(limpo).map(([k,v])=>({...v,_key:k}));
   toast(`<strong>🧹 ${duplicados} duplicados removidos!</strong><br>Ficam ${S.equipa.length} colaboradores.`);
+  rEquipa();
+}
+
+async function sincronizarEquipaComEscala(){
+  const hoje=new Date();
+  const nomesMes=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const ano=hoje.getFullYear(), mesNome=nomesMes[hoje.getMonth()], mesLabel=mesNome[0].toUpperCase()+mesNome.slice(1);
+
+  const eqAtual=await fbG('equipa');
+  const equipaPorRes={r1:[],r2:[]};
+  Object.entries(eqAtual||{}).forEach(([k,v])=>{if(equipaPorRes[v.res])equipaPorRes[v.res].push({...v,_key:k});});
+
+  const aAdicionar=[]; // {nome,res}
+  const aRemover=[];   // {_key,nome,res}
+  let semEscala=[];
+
+  for(const res of ['r2','r1']){
+    const dados=await fbG(`escalas/${res}/${ano}/${mesNome}`);
+    if(!dados||!dados.staff||!dados.staff.length){semEscala.push(res==='r2'?'Casa dos Sonhos':'Solar Villa Arruda');continue;}
+    const nomesEscala=new Set(dados.staff.map(s=>(s.nome||'').trim().toLowerCase()).filter(Boolean));
+    // quem está na escala mas não nos colaboradores
+    nomesEscala.forEach(nomeL=>{
+      const existe=equipaPorRes[res].find(e=>e.nome.trim().toLowerCase()===nomeL);
+      if(!existe){
+        const original=dados.staff.find(s=>s.nome.trim().toLowerCase()===nomeL);
+        aAdicionar.push({nome:original.nome.trim(),func:original.cargo||'',res});
+      }
+    });
+    // quem está nos colaboradores mas já não consta da escala deste mês
+    equipaPorRes[res].forEach(e=>{
+      if(!nomesEscala.has(e.nome.trim().toLowerCase()))aRemover.push(e);
+    });
+  }
+
+  if(!aAdicionar.length&&!aRemover.length){
+    toast(`<strong>✅ Já está tudo sincronizado</strong> com a escala de ${mesLabel}.`+(semEscala.length?`<br>Sem escala carregada: ${semEscala.join(', ')}`:''));
+    return;
+  }
+
+  let msg=`Escala de ${mesLabel} ${ano}:\n\n`;
+  if(aAdicionar.length)msg+=`➕ Adicionar ${aAdicionar.length}: ${aAdicionar.map(a=>a.nome).join(', ')}\n\n`;
+  if(aRemover.length)msg+=`➖ Remover ${aRemover.length} (já não constam da escala deste mês): ${aRemover.map(a=>a.nome).join(', ')}\n\n`;
+  if(semEscala.length)msg+=`⚠️ Sem escala carregada para: ${semEscala.join(', ')} — esses colaboradores não são tocados.\n\n`;
+  msg+='Confirmar sincronização?';
+  if(!confirm(msg))return;
+
+  // PINs livres a partir do maior PIN numérico existente
+  let proxPin=1000;
+  Object.values(eqAtual||{}).forEach(v=>{const n=parseInt(v.pin);if(!isNaN(n)&&n>=proxPin)proxPin=n+1;});
+
+  for(const a of aAdicionar){
+    const obj={nome:a.nome,func:a.func,res:a.res,pin:String(proxPin++),turno:''};
+    await fbP('equipa',obj);
+  }
+  for(const r of aRemover){
+    await fbD('equipa/'+r._key);
+  }
+
+  const eqFinal=await fbG('equipa');
+  S.equipa=Object.entries(eqFinal||{}).map(([k,v])=>({...v,_key:k}));
+  toast(`<strong>🔄 Sincronizado!</strong><br>+${aAdicionar.length} adicionados, -${aRemover.length} removidos.`);
   rEquipa();
 }
 
