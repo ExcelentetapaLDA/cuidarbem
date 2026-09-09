@@ -1550,7 +1550,7 @@ body.is-adm .edt,body.is-encarregada .edt{display:inline-flex!important}
     <div class="mb">
       <div class="fg"><label class="fl">Resid.</label><select class="fc" id="egRes"></select></div>
       <div class="fg"><label class="fl">Utente</label>
-        <input type="text" class="fc" id="egUtente" placeholder="Nome do utente" list="egUtenteList" onchange="preencherContactoFamiliar(this.value)">
+        <input type="text" class="fc" id="egUtente" placeholder="Nome do utente" list="egUtenteList" oninput="preencherContactoFamiliar(this.value)" onchange="preencherContactoFamiliar(this.value)">
         <datalist id="egUtenteList"></datalist>
       </div>
       <div class="fg"><label class="fl">Nome de quem entrega (familiar)</label><input type="text" class="fc" id="egFamiliar" placeholder="Nome completo"></div>
@@ -4944,10 +4944,14 @@ let egCanvasCtx = null, egDesenhando = false, egTemAssinatura = false;
 
 function preencherContactoFamiliar(nome){
   nome = (nome||'').trim().toLowerCase();
+  if(!nome)return;
   const u = (S.utentes||[]).find(x=>x.nome.trim().toLowerCase()===nome);
-  if(u){
+  if(!u)return;
+  if(u.nomeResponsavel || u.emailResponsavel){
     if(u.nomeResponsavel) document.getElementById('egFamiliar').value = u.nomeResponsavel;
     if(u.emailResponsavel) document.getElementById('egEmailFamiliar').value = u.emailResponsavel;
+  } else {
+    console.warn('[CuidarBem] Sem contacto de família carregado para:', u.nome, '— id:', u.id);
   }
 }
 function abrirEntrega(){
