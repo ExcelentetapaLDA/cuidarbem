@@ -210,13 +210,13 @@ body.is-adm .edt,body.is-encarregada .edt{display:inline-flex!important}
 .snm{font-size:.84rem;font-weight:500;flex:1}
 
 /* UTENTES */
-.ug{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:.75rem;align-items:start}
+.ug{display:grid;grid-template-columns:repeat(auto-fill,240px);gap:.75rem;align-items:start;justify-content:start}
 .upisohdr{display:flex;align-items:center;gap:.55rem;margin:1.3rem 0 .75rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
 .upisohdr:first-child{margin-top:0}
 .upisodot{width:6px;height:22px;border-radius:3px;flex-shrink:0}
 .upisolbl{font-size:.95rem;font-weight:600;color:var(--gray-800)}
 .upisoct{font-size:.72rem;color:var(--gray-400)}
-.uc{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);transition:all .2s;cursor:pointer;display:flex}
+.uc{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);transition:all .2s;cursor:pointer;display:flex;width:240px;height:224px}
 .uc:active{opacity:.85;transform:scale(.98)}
 .uc-sel{box-shadow:0 0 0 3px rgba(14,165,233,.35)}
 .uc:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
@@ -226,13 +226,13 @@ body.is-adm .edt,body.is-encarregada .edt{display:inline-flex!important}
 .ucam{position:absolute;bottom:-4px;right:-4px;width:16px;height:16px;background:var(--primary);border-radius:50%;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:.48rem;cursor:pointer}
 .ucam input{position:absolute;inset:0;opacity:0;cursor:pointer;border-radius:50%;width:100%;height:100%}
 .uphoto{width:44px;height:44px;border-radius:10px;object-fit:cover;border:2px solid rgba(255,255,255,.9)}
-.ucbody{flex:1;min-width:0;padding:.78rem .85rem .68rem;border-radius:0 var(--radius-lg) var(--radius-lg) 0}
+.ucbody{flex:1;min-width:0;padding:.78rem .85rem .68rem;border-radius:0 var(--radius-lg) var(--radius-lg) 0;display:flex;flex-direction:column;overflow:hidden}
 .uch2{display:flex;justify-content:space-between;align-items:flex-start;gap:.4rem;margin-bottom:.55rem}
-.un{font-weight:600;font-size:.85rem;color:var(--gray-800);line-height:1.3}
+.un{font-weight:600;font-size:.85rem;color:var(--gray-800);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .us{font-size:.68rem;color:var(--gray-400);white-space:nowrap;margin-top:.1rem}
 .uno{font-size:.75rem;color:var(--gray-500);line-height:1.4;margin-bottom:.5rem}
-.ubg{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.62rem}
-.ucfoot{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;padding-top:.55rem;border-top:1px solid var(--gray-100,#F1EFE8)}
+.ubg{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.62rem;max-height:2.6rem;overflow:hidden}
+.ucfoot{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;padding-top:.55rem;border-top:1px solid var(--gray-100,#F1EFE8);margin-top:auto}
 .ucicon{flex-shrink:0;width:30px;padding:0!important;display:flex;align-items:center;justify-content:center}
 .ubadge{font-size:.62rem;font-weight:600;padding:.15rem .42rem;border-radius:6px;display:inline-block}
 .um{background:var(--orange-light);color:var(--orange)}.uf{background:var(--teal-light);color:var(--teal)}.uco{background:var(--primary-light);color:var(--primary-dark)}.uu{background:var(--red-light);color:var(--red)}.udb{background:#FDE8E8;color:#9B1C1C}.uins{background:#F3E8FF;color:#6B21A8}.uantic{background:#FEF2F2;color:#991B1B;border:1px solid #FECACA}
@@ -3086,9 +3086,19 @@ function rUtentes(){
       ${intAtivo?`<div class="uno" style="background:#FEE2E2;color:#DC2626;font-weight:600">🏥 Internado desde ${new Date(intAtivo.inicio+'T12:00:00').toLocaleDateString('pt-PT',{day:'numeric',month:'short'})}${intAtivo.nota?` — ${intAtivo.nota}`:''}</div>`:u.internado?`<div class="uno" style="background:#FEE2E2;color:#DC2626;font-weight:600">🏥 Internado${u.internadoDesde?` desde ${new Date(u.internadoDesde+'T12:00:00').toLocaleDateString('pt-PT',{day:'numeric',month:'short'})}`:''}</div>`:''}
       ${u.notas?`<div class="uno">${u.notas}</div>`:''}
       <div class="ubg">
-        ${(u.badges||[]).map(b=>{const ei=etiqInfo[b]||{cor:'#334155',bg:'#F1F5F9'};return `<span class="ubadge" style="background:${ei.bg};color:${ei.cor};border:1px solid ${ei.cor}33">${bLbl[b]||b}</span>`;}).join('')}
-        ${(u.tagsExtra||[]).map(t=>`<span class="ub" style="background:#F0FDF4;color:#166534;border:1px solid #BBF7D0">${t}</span>`).join('')}
-        ${!(u.badges||[]).length&&!(u.tagsExtra||[]).length?`<span style="font-size:.68rem;color:var(--gray-400);font-style:italic">Sem etiquetas clínicas</span>`:''}
+        ${(()=>{
+          const todas=[...(u.badges||[]).map(b=>({tipo:'b',v:b})),...(u.tagsExtra||[]).map(t=>({tipo:'t',v:t}))];
+          if(!todas.length)return `<span style="font-size:.68rem;color:var(--gray-400);font-style:italic">Sem etiquetas clínicas</span>`;
+          const MAX=3;
+          const visiveis=todas.slice(0,MAX);
+          const resto=todas.length-MAX;
+          let html=visiveis.map(x=>x.tipo==='b'
+            ?(()=>{const ei=etiqInfo[x.v]||{cor:'#334155',bg:'#F1F5F9'};return `<span class="ubadge" style="background:${ei.bg};color:${ei.cor};border:1px solid ${ei.cor}33">${bLbl[x.v]||x.v}</span>`;})()
+            :`<span class="ubadge" style="background:#F0FDF4;color:#166534;border:1px solid #BBF7D0">${x.v}</span>`
+          ).join('');
+          if(resto>0)html+=`<span class="ubadge" style="background:var(--gray-100,#F1EFE8);color:var(--gray-500)" title="Mais ${resto} etiqueta(s)">+${resto}</span>`;
+          return html;
+        })()}
       </div>
       <div class="ucfoot">
       <button class="btn btn-g btn-s" style="flex:1;min-width:0" onclick="abrirProcesso(${u.id})"><i class="ti ti-folder-open" style="margin-right:.3rem"></i>Processo</button>
