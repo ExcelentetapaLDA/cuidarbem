@@ -851,6 +851,7 @@ body.is-adm .edt,body.is-encarregada .edt{display:inline-flex!important}
         <div class="ph"><div><div class="ph-title">Colaboradores</div><div class="ph-sub">Gestão de acessos por residência</div></div>
 <div style="display:flex;gap:.4rem">
   <button class="btn btn-g btn-s" id="btnSeedEq" onclick="sementearEquipa()" style="background:#FEF3C7;color:#92400E;border-color:#FDE68A"><i class="ti ti-users-plus" style="margin-right:.3rem"></i>Importar Equipa da Escala</button>
+  <button class="btn btn-g btn-s" onclick="limparDuplicadosEquipa()" style="background:#FEE2E2;color:#991B1B;border-color:#FECACA"><i class="ti ti-trash-x" style="margin-right:.3rem"></i>Limpar Duplicados</button>
   <button class="btn btn-p" onclick="om('mC')">+ Novo Colaborador</button>
 </div></div>
         <div style="display:flex;gap:.38rem;margin-bottom:.95rem">
@@ -4095,6 +4096,30 @@ async function sementearEquipa(){
   rEquipa();
 }
 
+async function limparDuplicadosEquipa(){
+  const eq=await fbG('equipa');
+  if(!eq){toast('Sem colaboradores para verificar.');return;}
+  const entradas=Object.entries(eq); // [key, {nome,func,res,pin,turno}]
+  const porChave={}; // 'nome|res' -> primeira entrada mantida
+  let duplicados=0;
+  entradas.forEach(([k,v])=>{
+    const chave=(v.nome||'').trim().toLowerCase()+'|'+v.res;
+    if(porChave[chave]){duplicados++;}
+    else porChave[chave]={...v,_key:k};
+  });
+  if(duplicados===0){toast('<strong>✅ Sem duplicados encontrados.</strong>');return;}
+  if(!confirm(`Encontrei ${entradas.length} registos, dos quais ${duplicados} são duplicados (mesmo nome + residência).\n\nFicam ${entradas.length-duplicados} colaboradores únicos — os PINs e funções do primeiro registo de cada pessoa são mantidos.\n\nConfirmar limpeza?`))return;
+  const limpo={};
+  Object.values(porChave).forEach(v=>{
+    const {_key,...resto}=v;
+    limpo[_key]=resto;
+  });
+  await fbS('equipa',limpo);
+  S.equipa=Object.entries(limpo).map(([k,v])=>({...v,_key:k}));
+  toast(`<strong>🧹 ${duplicados} duplicados removidos!</strong><br>Ficam ${S.equipa.length} colaboradores.`);
+  rEquipa();
+}
+
 async function importarRotinasNoite(){
   if(!confirm('Importar as 20 rotinas do Turno da Noite para a Casa dos Sonhos?\n\nNão apaga as rotinas já existentes.'))return;
   const rotinas=[{"nome": "☕ Preparar café, leite, iogurtes, leite frio, manteiga, queijo, fiambre", "hora": "06:00", "res": "r2", "ic": "☕", "done": false, "turno": "N", "desc": "Não é quem chega que prepara — é a equipa da noite!"}, {"nome": "🍽️ Preparar mesas — pratos, talheres, copos, jarras, guardanapos, babetes, açúcar", "hora": "06:15", "res": "r2", "ic": "🍽️", "done": false, "turno": "N", "desc": "Antes do fim do turno. Preparar 3 mesas para peq. almoço com chávena, prato, colher de sobremesa, guardanapo e copo."}, {"nome": "💊 Medicação em jejum e no pequeno-almoço", "hora": "06:30", "res": "r2", "ic": "💊", "done": false, "turno": "N", "desc": "Lista por piso:\n• Piso 3: Arlete, Milu, Luísa Andrade\n• Piso 4: Antónia, Guiomar\n• Piso 5: Leonel, Adriano, Violeta, Coelho, Emília Simões\n• Piso 6: Carolina (inclui reforço de manhã)"}, {"nome": "🥣 Pequenos-almoços aos utentes com necessidade de reforço às 7h", "hora": "07:00", "res": "r2", "ic": "🥣", "done": false, "turno": "N", "desc": "Servir pequenos-almoços aos utentes que necessitam de apoio"}, {"nome": "🔄 Posicionamentos às 0h — luz de presença, nunca luz de teto", "hora": "00:00", "res": "r2", "ic": "🔄", "done": false, "turno": "N", "desc": "Usar apenas luz de presença, nunca a luz de teto.\nUtentes a posicionar: Beta, Maria José, Luísa Andrade, Arlete, Antónia, Aurora, Claudina, Violeta, Peres, Preciosa, Milu, Gracilda, Lisete, Piedade"}, {"nome": "🔄 Posicionamentos às 3h — luz de presença, nunca luz de teto", "hora": "03:00", "res": "r2", "ic": "🔄", "done": false, "turno": "N", "desc": "Usar apenas luz de presença, nunca a luz de teto.\nUtentes a posicionar: Beta, Maria José, Luísa Andrade, Arlete, Antónia, Aurora, Claudina, Violeta, Peres, Preciosa, Milu, Gracilda, Lisete, Piedade"}, {"nome": "🔄 Posicionamentos às 6h — luz de presença, nunca luz de teto", "hora": "06:00", "res": "r2", "ic": "🔄", "done": false, "turno": "N", "desc": "Usar apenas luz de presença, nunca a luz de teto.\nUtentes a posicionar: Beta, Maria José, Luísa Andrade, Arlete, Antónia, Aurora, Claudina, Violeta, Peres, Preciosa, Milu, Gracilda, Lisete, Piedade"}, {"nome": "🩱 Troca de material de incontinência às 0h", "hora": "00:00", "res": "r2", "ic": "🩱", "done": false, "turno": "N", "desc": "Todos os utentes com incontinência que não consigam usar o WC de forma autónoma"}, {"nome": "🩱 Troca de material de incontinência às 3h", "hora": "03:00", "res": "r2", "ic": "🩱", "done": false, "turno": "N", "desc": "Todos os utentes com incontinência que não consigam usar o WC de forma autónoma"}, {"nome": "🩱 Troca de material de incontinência às 6h", "hora": "06:00", "res": "r2", "ic": "🩱", "done": false, "turno": "N", "desc": "Todos os utentes com incontinência que não consigam usar o WC de forma autónoma"}, {"nome": "🧹 Limpeza Piso 0 — Sala estar e refeitório", "hora": "02:00", "res": "r2", "ic": "🧹", "done": false, "turno": "N", "desc": "• Limpar sofás com água e sabão neutro (bacia com pouco detergente neutro)\n• Limpar móveis de apoio e puxadores\n• Deixar elevador da comida limpo (interior e exterior — NÃO usar produtos corrosivos ex. lixívia/amoniacal nos inox)\n• Aspirar todo o pavimento Piso 0 incluindo debaixo dos móveis\n• Lavar todo o pavimento com água quente, lava-tudo e lixívia\n• Limpar a salinha de apoio à animação"}, {"nome": "🪑 Colocação de mesas — limpar e organizar para peq. almoço", "hora": "02:30", "res": "r2", "ic": "🪑", "done": false, "turno": "N", "desc": "• Colocar tudo limpo e sem vestígios de comida\n• Colocar jarro de água cheio com guardanapos por cima\n• Certificar que existem guardanapos e babetes para o turno seguinte"}, {"nome": "🚿 Casas de banho Piso 0 — limpeza completa", "hora": "03:00", "res": "r2", "ic": "🚿", "done": false, "turno": "N", "desc": "• Limpar loiças e chão com lixívia\n• Limpar caixotes do lixo com lixívia\n• Espelhos com limpa-vidros apenas"}, {"nome": "🏢 Recepção — limpeza", "hora": "03:30", "res": "r2", "ic": "🏢", "done": false, "turno": "N", "desc": "• Limpar balcão da entrada\n• Aspirar chão\n• Limpar vidros da recepção\n• Aspirar e limpar elevador (pano bem espremido com água e detergente da loiça — PROIBIDO uso de lixívia e amoniacal nos inox)"}, {"nome": "🥬 Cozinha — descascar legumes das bacias", "hora": "04:00", "res": "r2", "ic": "🥬", "done": false, "turno": "N", "desc": "Descascar todos os legumes separados deixados nas bacias da cozinha"}, {"nome": "🧹 Limpezas — Piso 7 (ginásio, arrecadação cozinha), Piso 2 (gabinetes, corredores, WCs, hall, sala pessoal), Piso -1 (hall)", "hora": "04:30", "res": "r2", "ic": "🧹", "done": false, "turno": "N"}, {"nome": "🚶 Rondas regulares aos utentes com maior fragilidade", "hora": "01:00", "res": "r2", "ic": "🚶", "done": false, "turno": "N", "desc": "Trabalho noturno a ser feito a dois — não dividir tarefas!\nSempre que uma campainha toque dirigir-se ao piso para perceber quem precisa de ajuda"}, {"nome": "👕 Fardamento — verificar e organizar", "hora": "06:45", "res": "r2", "ic": "👕", "done": false, "turno": "N", "desc": "Não deixar fardas mal passadas e penduradas"}, {"nome": "🗑️ Despejar todos os lixos do turno", "hora": "07:00", "res": "r2", "ic": "🗑️", "done": false, "turno": "N"}, {"nome": "📋 Passagem de turno — MySenior + presencial (Obrigatório)", "hora": "07:45", "res": "r2", "ic": "📋", "done": false, "turno": "N", "desc": "Referir alimentação, medicação e recusas alimentares.\nRegistar no MySenior E passar presencialmente."}];
@@ -6201,17 +6226,12 @@ fbG('config').then(cfg=>{
   if(cfg){if(cfg.res)S.res=cfg.res;if(cfg.aPin)S.aPin=cfg.aPin;}
   buildLogin();
 });
-fbG('equipa').then(async eq=>{
+fbG('equipa').then(eq=>{
   if(eq&&Object.keys(eq).length>0){
     S.equipa=Object.entries(eq).map(([k,v])=>({...v,_key:k}));
-  } else {
-    // Primeira vez — semear equipa da Casa dos Sonhos
-    const seed=[{"nome": "Sofia Costa", "func": "D.Técnica", "res": "r2", "pin": "1001", "turno": "M"}, {"nome": "Patricia", "func": "Animadora", "res": "r2", "pin": "1002", "turno": "M"}, {"nome": "Mariana", "func": "Fisioterapeuta", "res": "r2", "pin": "1003", "turno": "M"}, {"nome": "Rafael", "func": "Aux. Fisioterapia", "res": "r2", "pin": "1004", "turno": "M"}, {"nome": "MyCareForce", "func": "Enfermeiros", "res": "r2", "pin": "1005", "turno": "N"}, {"nome": "Prestadores", "func": "Enfermeiros", "res": "r2", "pin": "1006", "turno": "N"}, {"nome": "Amélia", "func": "Cozinheira", "res": "r2", "pin": "1007", "turno": "M"}, {"nome": "Ermelinda", "func": "Aux. Cozinheira", "res": "r2", "pin": "1008", "turno": "M"}, {"nome": "M.Teresa", "func": "Aux. Cozinheira", "res": "r2", "pin": "1009", "turno": "M"}, {"nome": "Marilia", "func": "Aux. Ser. Gerais", "res": "r2", "pin": "1010", "turno": "M"}, {"nome": "Arlete", "func": "Encarregada", "res": "r2", "pin": "1011", "turno": "M"}, {"nome": "Candida", "func": "A.A.Directa", "res": "r2", "pin": "1012", "turno": "M"}, {"nome": "Valeria", "func": "A.A.Directa", "res": "r2", "pin": "1013", "turno": "M"}, {"nome": "Joicilina", "func": "A.A.Directa", "res": "r2", "pin": "1014", "turno": "T"}, {"nome": "Helga", "func": "A.A.Directa", "res": "r2", "pin": "1015", "turno": "M"}, {"nome": "Manuela", "func": "A.A.Directa", "res": "r2", "pin": "1016", "turno": "M"}, {"nome": "Cibele", "func": "A.A.Directa", "res": "r2", "pin": "1017", "turno": "M"}, {"nome": "Teresa", "func": "A.A.Directa", "res": "r2", "pin": "1018", "turno": "M"}, {"nome": "Jorilda", "func": "A.A.Directa", "res": "r2", "pin": "1019", "turno": "M"}, {"nome": "Joaquina", "func": "A.A.Directa", "res": "r2", "pin": "1020", "turno": "M"}, {"nome": "Tatiane", "func": "A.A.Directa", "res": "r2", "pin": "1021", "turno": "T"}, {"nome": "Marcolina", "func": "A.A.Directa", "res": "r2", "pin": "1022", "turno": "T"}, {"nome": "Yolanda", "func": "A.A.Directa", "res": "r2", "pin": "1023", "turno": "M"}, {"nome": "Ines", "func": "A.A.Directa", "res": "r2", "pin": "1024", "turno": "M"}, {"nome": "Eunice", "func": "A.A.Directa", "res": "r2", "pin": "1025", "turno": "M"}, {"nome": "Solangela", "func": "A.A.Directa", "res": "r2", "pin": "1026", "turno": "M"}, {"nome": "Agnela", "func": "A.A.Directa", "res": "r2", "pin": "1027", "turno": "M"}, {"nome": "Heltina", "func": "A.A.Directa", "res": "r2", "pin": "1028", "turno": "M"}, {"nome": "Salima", "func": "A.A.Directa", "res": "r2", "pin": "1029", "turno": "M"}, {"nome": "Elisa", "func": "A.A.Directa", "res": "r2", "pin": "1030", "turno": "M"}, {"nome": "Beatriz", "func": "A.A.Directa", "res": "r2", "pin": "1031", "turno": "N"}, {"nome": "Ana Beatriz", "func": "Enfermeira", "res": "r2", "pin": "1032", "turno": "N"}];
-    for(const s of seed){
-      const k=await fbP('equipa',s);
-      if(k)S.equipa.push({...s,_key:k});
-    }
   }
+  // Sem auto-semear aqui: causava duplicação (corria em todos os logins).
+  // Usa o botão "Importar Equipa da Escala" (sementearEquipa) — esse já verifica duplicados.
 });
 
 // ===== IMPORTADOR ESCALA =====
