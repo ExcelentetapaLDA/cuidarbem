@@ -3260,6 +3260,30 @@ async function msPedirExportacao(){
   }catch(e){out.textContent='Erro: '+e.message;}
   btn.disabled=false;btn.textContent='📤 Pedir';
 }
+async function msDiffUtentes(){
+  const btn=document.getElementById('btnMSDiff');const out=document.getElementById('msResultado');
+  const pw=prompt('Password de admin do Hub (a mesma do portal de faturas):');
+  if(!pw)return;
+  btn.disabled=true;btn.textContent='A comparar...';
+  out.style.display='block';out.textContent='A comparar MySenior com o CuidarBem...';
+  try{
+    const r=await fetch(MS_BASE+'/api/mysenior/diff-utentes?pw='+encodeURIComponent(pw));
+    const data=await r.json();
+    if(!r.ok){out.textContent='Erro: '+(data.detail||r.status);}
+    else{
+      let txt=`Gerado em: ${data.gerado_em}\nMySenior (ativos): ${data.total_mysenior_ativos} | CuidarBem (CDS): ${data.total_cuidarbem_cds}\n\n`;
+      txt+=`➕ NOVOS NO MYSENIOR (${data.novos_no_mysenior.length}):\n`;
+      txt+=data.novos_no_mysenior.map(u=>`  ${u.nome} — Piso ${u.zona}, Q.${u.quarto}`).join('\n')||'  (nenhum)';
+      txt+=`\n\n🔄 MUDANÇAS DE QUARTO (${data.mudancas_de_quarto.length}):\n`;
+      txt+=data.mudancas_de_quarto.map(u=>`  ${u.nome} — CuidarBem Q.${u.quarto_cuidarbem} → MySenior Q.${u.quarto_mysenior} (Piso ${u.piso})`).join('\n')||'  (nenhuma)';
+      txt+=`\n\n➖ POSSÍVEIS SAÍDAS (${data.possiveis_saidas.length}):\n`;
+      txt+=data.possiveis_saidas.map(u=>`  ${u.nome} — Q.${u.quarto_cuidarbem} — ${u.motivo}`).join('\n')||'  (nenhuma)';
+      txt+=`\n\n(${data.nota})`;
+      out.textContent=txt;
+    }
+  }catch(e){out.textContent='Erro: '+e.message;}
+  btn.disabled=false;btn.textContent='🔍 Comparar';
+}
 async function msListarExtraidos(){
   const btn=document.getElementById('btnMSListar');const out=document.getElementById('msResultado');
   btn.disabled=true;btn.textContent='A verificar...';
@@ -3320,6 +3344,7 @@ function rConfig(){
     <div class="setS adm-only"><div class="setT">📦 Exportação MySenior (fotos e dados)</div><div class="setC">
       <div class="setR"><div><div class="setRL">Pedir exportação ao MySenior</div><div class="setRS">Demora alguns minutos a ficar pronta — inclui fotos, se existirem</div></div><button class="btn btn-d btn-s" id="btnMSPedir" onclick="msPedirExportacao()">📤 Pedir</button></div>
       <div class="setR"><div><div class="setRL">Ver ficheiros já extraídos</div><div class="setRS">Confirma o que chegou do MySenior</div></div><button class="btn btn-d btn-s" id="btnMSListar" onclick="msListarExtraidos()">📂 Ver</button></div>
+      <div class="setR"><div><div class="setRL">Comparar utentes com o CuidarBem</div><div class="setRS">Só diagnóstico — entradas, saídas e mudanças de quarto. Não altera nada.</div></div><button class="btn btn-d btn-s" id="btnMSDiff" onclick="msDiffUtentes()">🔍 Comparar</button></div>
       <pre id="msResultado" style="display:none;background:var(--gray-50,#F8FAFC);border:1px solid var(--border);border-radius:8px;padding:.75rem;font-size:.74rem;white-space:pre-wrap;word-break:break-word;margin-top:.5rem;max-height:280px;overflow:auto"></pre>
     </div></div>
     <div class="setS edt"><div class="setT" style="display:flex;align-items:center;gap:.5rem">📲 Estado dos Alertas por Funcionária <button class="btn btn-d btn-s" onclick="recarregarEstadoAlertas()" style="margin-left:auto">🔄 Actualizar</button></div>
