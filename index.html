@@ -2799,6 +2799,42 @@ async function assignMovTarefa(idx,campo,valor){
   await fbS('limpeza_sel/'+dateKey,DB.limpezaSel[dateKey]);
   rDist();
 }
+function hEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function _avulsasDateKey(){const hoje=new Date();hoje.setDate(hoje.getDate()+distDiaOffset);return hoje.toISOString().slice(0,10);}
+async function addAvulsa(){
+  const inp=document.getElementById('novaAvulsaTxt');
+  const val=(inp&&inp.value||'').trim();
+  if(!val)return;
+  const dateKey=_avulsasDateKey();
+  if(!DB.limpezaSel)DB.limpezaSel={};
+  if(!DB.limpezaSel[dateKey])DB.limpezaSel[dateKey]={};
+  let arr=(DB.limpezaSel[dateKey].avulsas&&DB.limpezaSel[dateKey].avulsas.length)?DB.limpezaSel[dateKey].avulsas.slice():[];
+  arr.push({t:val,quem:''});
+  DB.limpezaSel[dateKey].avulsas=arr;
+  await fbS('limpeza_sel/'+dateKey,DB.limpezaSel[dateKey]);
+  rDist();
+}
+async function editAvulsa(idx,campo,valor){
+  const dateKey=_avulsasDateKey();
+  if(!DB.limpezaSel)DB.limpezaSel={};
+  if(!DB.limpezaSel[dateKey])DB.limpezaSel[dateKey]={};
+  let arr=(DB.limpezaSel[dateKey].avulsas&&DB.limpezaSel[dateKey].avulsas.length)?DB.limpezaSel[dateKey].avulsas.slice():[];
+  if(!arr[idx])return;
+  arr[idx]=Object.assign({},arr[idx]);
+  arr[idx][campo]=valor;
+  DB.limpezaSel[dateKey].avulsas=arr;
+  await fbS('limpeza_sel/'+dateKey,DB.limpezaSel[dateKey]);
+  rDist();
+}
+async function delAvulsa(idx){
+  const dateKey=_avulsasDateKey();
+  if(!DB.limpezaSel||!DB.limpezaSel[dateKey])return;
+  let arr=(DB.limpezaSel[dateKey].avulsas||[]).slice();
+  arr.splice(idx,1);
+  DB.limpezaSel[dateKey].avulsas=arr;
+  await fbS('limpeza_sel/'+dateKey,DB.limpezaSel[dateKey]);
+  rDist();
+}
 function rDist(){
   const hoje=new Date();
   hoje.setDate(hoje.getDate()+distDiaOffset);
@@ -2846,7 +2882,9 @@ function rDist(){
     {e:'🌸',t:'Flores e plantas — quartos e corredores'},
     {e:'🪑',t:'Cadeiras de rodas — limpeza e desinfeção'},
     {e:'🧽',t:'Zona das cadeiras de rodas — limpeza a fundo do espaço'},
-    {e:'🖥️',t:'Mobiliário dos escritórios — limpeza total'}
+    {e:'🖥️',t:'Mobiliário dos escritórios — limpeza total'},
+    {e:'🍽️',t:'Arrumar recheio — 2ª feira à tarde'},
+    {e:'📦',t:'Arrumar Ortobest'}
   ];
   const POSTOS_COMUM=['Piso 3','Piso 4','Piso 5','Piso 6','Piso 3 — Tarde','Piso 4 — Tarde','Piso 5 — Tarde','Piso 6 — Tarde','Apoio 1','Apoio 2','Cozinha (8h-17h)','Cozinha (10h-20h)','Serviços Gerais'];
   const _dayIdx=Math.floor(Date.UTC(hoje.getFullYear(),hoje.getMonth(),hoje.getDate())/86400000);
@@ -2861,10 +2899,18 @@ function rDist(){
   // nada fica atribuído por omissão — só aparece no cartão depois de escolhido no painel
   const arrComum=(savedHoje.comum&&savedHoje.comum.length)?savedHoje.comum:new Array(EXTRA_COMUM.length).fill('');
   const arrMov=(savedHoje.mov&&savedHoje.mov.length)?savedHoje.mov:new Array(PISO_MOVEIS_LIST.length).fill(null);
+  const arrAvulsas=(savedHoje.avulsas&&savedHoje.avulsas.length)?savedHoje.avulsas:[];
   function extraComum(pN){
     let out='';
     arrComum.forEach((posto,idx)=>{
       if(posto===pN){const it=EXTRA_COMUM[idx];out+='<br><span style="color:#B45309">'+it.e+' <strong>Hoje:</strong> '+it.t+' 📸</span>';}
+    });
+    return out;
+  }
+  function extraAvulsa(pN){
+    let out='';
+    arrAvulsas.forEach(it=>{
+      if(it.quem===pN)out+='<br><span style="color:#DC2626">🆕 <strong>Extra hoje:</strong> '+hEsc(it.t)+' 📸</span>';
     });
     return out;
   }
@@ -2896,13 +2942,13 @@ function rDist(){
   ['Piso 3','Piso 4','Piso 5','Piso 6','Apoio 1','Apoio 2','Piso 3 — Tarde','Serviços Gerais'].forEach(k=>{
     if(funcs[k]===undefined)return;
     if(['Piso 3','Piso 4','Piso 5','Piso 6'].includes(k))funcs[k]+=pisoMoveisExtra(k);
-    funcs[k]+=extraComum(k);
+    funcs[k]+=extraComum(k)+extraAvulsa(k);
   });
-  const coz1f=coz1+extraComum('Cozinha (8h-17h)');
-  const coz2f=coz2+extraComum('Cozinha (10h-20h)');
-  const t4f=t4+extraComum('Piso 4 — Tarde');
-  const t5f=t5+extraComum('Piso 5 — Tarde');
-  const t6f=t6+extraComum('Piso 6 — Tarde');
+  const coz1f=coz1+extraComum('Cozinha (8h-17h)')+extraAvulsa('Cozinha (8h-17h)');
+  const coz2f=coz2+extraComum('Cozinha (10h-20h)')+extraAvulsa('Cozinha (10h-20h)');
+  const t4f=t4+extraComum('Piso 4 — Tarde')+extraAvulsa('Piso 4 — Tarde');
+  const t5f=t5+extraComum('Piso 5 — Tarde')+extraAvulsa('Piso 5 — Tarde');
+  const t6f=t6+extraComum('Piso 6 — Tarde')+extraAvulsa('Piso 6 — Tarde');
   const grupos=isSVA?SVA_GROUPS:[
     {titulo:'🌅 Turno da Manhã',postos:['Piso 3','Piso 4','Piso 5','Piso 6','Apoio 1','Apoio 2','Cozinha (8h-17h)','Cozinha (10h-20h)','Serviços Gerais','Encarregada','Manhã Geral']},
     {titulo:'🌆 Turno da Tarde',postos:['Piso 3 — Tarde','Piso 4 — Tarde','Piso 5 — Tarde','Piso 6 — Tarde']},
@@ -2920,7 +2966,9 @@ function rDist(){
       const v=arrMov[idx]||{quem:'',piso:''};
       return '<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #CCFBF1;flex-wrap:wrap"><span style="flex:1;min-width:140px;font-size:.74rem">'+it.e+' '+it.t+' <em style="color:#0D9488">(mobília)</em></span><select onchange="assignMovTarefa('+idx+',\'quem\',this.value)" style="font-size:.72rem;padding:3px 6px;border-radius:6px;border:1px solid #99F6E4;max-width:150px">'+quemOptHtml(v.quem)+'</select><select onchange="assignMovTarefa('+idx+',\'piso\',this.value)" style="font-size:.72rem;padding:3px 6px;border-radius:6px;border:1px solid #99F6E4;max-width:110px">'+pisoOptHtml(v.piso)+'</select></div>';
     }).join('');
-    html+='<details style="margin-bottom:1rem;background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:.6rem .8rem"><summary style="cursor:pointer;font-size:.78rem;font-weight:600;color:#92400E">🧹 Limpezas de hoje — ver tarefas e atribuir quem/onde</summary><div style="margin-top:.6rem">'+linhasComum+linhasMov+'</div></details>';
+    let linhasAvulsas=arrAvulsas.map((it,idx)=>'<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #FECACA;flex-wrap:wrap"><input type="text" value="'+hEsc(it.t)+'" onchange="editAvulsa('+idx+',\'t\',this.value)" style="flex:1;min-width:140px;font-size:.74rem;padding:4px 7px;border-radius:6px;border:1px solid #FCA5A5"><select onchange="editAvulsa('+idx+',\'quem\',this.value)" style="font-size:.72rem;padding:3px 6px;border-radius:6px;border:1px solid #FCA5A5;max-width:150px">'+quemOptHtml(it.quem)+'</select><button onclick="delAvulsa('+idx+')" style="border:none;background:none;color:#DC2626;cursor:pointer;font-size:.85rem;padding:2px 4px" title="Eliminar">🗑</button></div>').join('');
+    let addAvulsaRow='<div style="display:flex;align-items:center;gap:6px;padding:.55rem 0 0"><input type="text" id="novaAvulsaTxt" placeholder="Nova tarefa extra..." style="flex:1;min-width:140px;font-size:.74rem;padding:5px 8px;border-radius:6px;border:1px solid #FCA5A5" onkeydown="if(event.key===\'Enter\'){event.preventDefault();addAvulsa();}"><button class="btn btn-p btn-s" onclick="addAvulsa()">+ Adicionar</button></div>';
+    html+='<details style="margin-bottom:1rem;background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:.6rem .8rem"><summary style="cursor:pointer;font-size:.78rem;font-weight:600;color:#92400E">🧹 Limpezas de hoje — ver tarefas e atribuir quem/onde</summary><div style="margin-top:.6rem">'+linhasComum+linhasMov+'</div><div style="margin-top:.7rem;padding-top:.6rem;border-top:1px dashed #FDE68A"><div style="font-size:.75rem;font-weight:600;color:#B91C1C;margin-bottom:.3rem">🆕 Tarefas extra (avulsas) de hoje</div>'+linhasAvulsas+addAvulsaRow+'</div></details>';
   }
   grupos.forEach(g=>{
     const pp=g.postos.filter(p=>pm[p]&&pm[p].colab.length>0);
@@ -6903,7 +6951,9 @@ function exportarCartao(tipo){
     {e:'🌸',t:'Flores e plantas — quartos e corredores'},
     {e:'🪑',t:'Cadeiras de rodas — limpeza e desinfeção'},
     {e:'🧽',t:'Zona das cadeiras de rodas — limpeza a fundo'},
-    {e:'🖥️',t:'Mobiliário dos escritórios — limpeza total'}
+    {e:'🖥️',t:'Mobiliário dos escritórios — limpeza total'},
+    {e:'🍽️',t:'Arrumar recheio — 2ª feira à tarde'},
+    {e:'📦',t:'Arrumar Ortobest'}
   ];
   const POSTOS_COMUM=['Piso 3','Piso 4','Piso 5','Piso 6','Piso 3 — Tarde','Piso 4 — Tarde','Piso 5 — Tarde','Piso 6 — Tarde','Apoio 1','Apoio 2','Cozinha (8h-17h)','Cozinha (10h-20h)','Serviços Gerais'];
   const _dayIdx=Math.floor(Date.UTC(hoje.getFullYear(),hoje.getMonth(),hoje.getDate())/86400000);
@@ -6917,10 +6967,18 @@ function exportarCartao(tipo){
   const POSTOS_PISO=['Piso 3','Piso 4','Piso 5','Piso 6'];
   const arrComum=(savedHoje.comum&&savedHoje.comum.length)?savedHoje.comum:new Array(EXTRA_COMUM.length).fill('');
   const arrMov=(savedHoje.mov&&savedHoje.mov.length)?savedHoje.mov:new Array(PISO_MOVEIS_LIST.length).fill(null);
+  const arrAvulsas=(savedHoje.avulsas&&savedHoje.avulsas.length)?savedHoje.avulsas:[];
   function extraComum(pN){
     let out='';
     arrComum.forEach((posto,idx)=>{
       if(posto===pN){const it=EXTRA_COMUM[idx];out+='<br><span style="color:#B45309;font-size:9px;font-weight:600">'+it.e+' Hoje: '+it.t+' 📸</span>';}
+    });
+    return out;
+  }
+  function extraAvulsa(pN){
+    let out='';
+    arrAvulsas.forEach(it=>{
+      if(it.quem===pN)out+='<br><span style="color:#DC2626;font-size:9px;font-weight:600">🆕 Extra hoje: '+(typeof hEsc==='function'?hEsc(it.t):it.t)+' 📸</span>';
     });
     return out;
   }
@@ -6935,20 +6993,20 @@ function exportarCartao(tipo){
 
   const funcoes={
     'Encarregada':{cor:'#7C3AED',bg:'#F5F3FF',txt:'Recebe turno e passa informações do dia · Apoia peq. almoços e visitas · Supervisão das equipas · Gestão de ocorrências e urgências · Articulação com a direcção técnica · Apoio clínico de 1ª linha'},
-    'Piso 3':{cor:'#0EA5E9',bg:'#F8FAFC',txt:'Cuidados directos — higiene matinal · Lanche nas mesas · Levar utentes ao WC · Preparar mesas para o jantar · Repor produtos CdB Piso 0 e organizar carro · Limpar mesas dos lanches'+lenc34+pisoMoveisExtra('Piso 3')+extraComum('Piso 3')},
-    'Piso 4':{cor:'#0D9488',bg:'#F8FAFC',txt:'Cuidados directos — higiene matinal · Lanche dependentes à boca e aos que ficam nos pisos · Ajuda a sentar e a deitar utentes'+lenc56+pisoMoveisExtra('Piso 4')+extraComum('Piso 4')},
-    'Piso 5':{cor:'#C9973A',bg:'#F8FAFC',txt:'Cuidados directos — higiene matinal · Começa por limpar o Piso 2 · Assinar folhas de limpeza até hoje · Abrir camas dos 4 pisos — verificar colchões ligados, janelas fechadas, portas dos quartos fechadas'+pisoMoveisExtra('Piso 5')+extraComum('Piso 5')},
-    'Piso 6':{cor:'#7C3AED',bg:'#F8FAFC',txt:'Cuidados directos — higiene matinal · Avaliação de sinais vitais dos utentes e registar ❤️'+pisoMoveisExtra('Piso 6')+extraComum('Piso 6')},
-    'Apoio 1':{cor:'#1D4ED8',bg:'#F8FAFC',txt:'Cuidados directos Q9/15/21 · Higiene matinal · Medicação · Posicionamentos · Tarde: apoio alimentação dependentes · Ajuda a deitar utentes'+extraComum('Apoio 1')},
-    'Apoio 2':{cor:'#6D28D9',bg:'#F8FAFC',txt:'Cuidados directos Piso 3 (M3 e AP2 sempre juntos) · Lanche nas mesas · Levar utentes ao WC · Preparar mesas para jantar · Repor produtos CdB Piso 0 · Limpar mesas dos lanches'+extraComum('Apoio 2')},
-    'Cozinha (8h-17h)':{cor:'#EA580C',bg:'#FFF7ED',txt:'Peq. almoço · Almoço · Lanche · Preparação jantar · Distribuir refeições e orientar equipa sala sobre dietas · Recolha loiça + lavagem · Limpeza e organização posto 📸'+limpCoz+extraComum('Cozinha (8h-17h)')},
-    'Cozinha (10h-20h)':{cor:'#D97706',bg:'#FFF7ED',txt:'Almoço · Lanche · Jantar · Distribuir refeições e orientar equipa sala sobre dietas · Após jantar: retirar ceia, recolher loiça + lavagem · Limpeza geral cozinha · Registo fotográfico no fecho 📸'+limpCoz+extraComum('Cozinha (10h-20h)')},
-    'Serviços Gerais':{cor:'#16A34A',bg:'#F0FDF4',txt:'Supervisão lavandaria e atoalhados · Apoio sala e pisos nos peq. almoços · Limpeza WCs, corredores, zona dos sujos e hall · Assume lavandaria · Organiza roupas nos carros da rouparia'+extraComum('Serviços Gerais')},
+    'Piso 3':{cor:'#0EA5E9',bg:'#F8FAFC',txt:'Cuidados directos — higiene matinal · Lanche nas mesas · Levar utentes ao WC · Preparar mesas para o jantar · Repor produtos CdB Piso 0 e organizar carro · Limpar mesas dos lanches'+lenc34+pisoMoveisExtra('Piso 3')+extraComum('Piso 3')+extraAvulsa('Piso 3')},
+    'Piso 4':{cor:'#0D9488',bg:'#F8FAFC',txt:'Cuidados directos — higiene matinal · Lanche dependentes à boca e aos que ficam nos pisos · Ajuda a sentar e a deitar utentes'+lenc56+pisoMoveisExtra('Piso 4')+extraComum('Piso 4')+extraAvulsa('Piso 4')},
+    'Piso 5':{cor:'#C9973A',bg:'#F8FAFC',txt:'Cuidados directos — higiene matinal · Começa por limpar o Piso 2 · Assinar folhas de limpeza até hoje · Abrir camas dos 4 pisos — verificar colchões ligados, janelas fechadas, portas dos quartos fechadas'+pisoMoveisExtra('Piso 5')+extraComum('Piso 5')+extraAvulsa('Piso 5')},
+    'Piso 6':{cor:'#7C3AED',bg:'#F8FAFC',txt:'Cuidados directos — higiene matinal · Avaliação de sinais vitais dos utentes e registar ❤️'+pisoMoveisExtra('Piso 6')+extraComum('Piso 6')+extraAvulsa('Piso 6')},
+    'Apoio 1':{cor:'#1D4ED8',bg:'#F8FAFC',txt:'Cuidados directos Q9/15/21 · Higiene matinal · Medicação · Posicionamentos · Tarde: apoio alimentação dependentes · Ajuda a deitar utentes'+extraComum('Apoio 1')+extraAvulsa('Apoio 1')},
+    'Apoio 2':{cor:'#6D28D9',bg:'#F8FAFC',txt:'Cuidados directos Piso 3 (M3 e AP2 sempre juntos) · Lanche nas mesas · Levar utentes ao WC · Preparar mesas para jantar · Repor produtos CdB Piso 0 · Limpar mesas dos lanches'+extraComum('Apoio 2')+extraAvulsa('Apoio 2')},
+    'Cozinha (8h-17h)':{cor:'#EA580C',bg:'#FFF7ED',txt:'Peq. almoço · Almoço · Lanche · Preparação jantar · Distribuir refeições e orientar equipa sala sobre dietas · Recolha loiça + lavagem · Limpeza e organização posto 📸'+limpCoz+extraComum('Cozinha (8h-17h)')+extraAvulsa('Cozinha (8h-17h)')},
+    'Cozinha (10h-20h)':{cor:'#D97706',bg:'#FFF7ED',txt:'Almoço · Lanche · Jantar · Distribuir refeições e orientar equipa sala sobre dietas · Após jantar: retirar ceia, recolher loiça + lavagem · Limpeza geral cozinha · Registo fotográfico no fecho 📸'+limpCoz+extraComum('Cozinha (10h-20h)')+extraAvulsa('Cozinha (10h-20h)')},
+    'Serviços Gerais':{cor:'#16A34A',bg:'#F0FDF4',txt:'Supervisão lavandaria e atoalhados · Apoio sala e pisos nos peq. almoços · Limpeza WCs, corredores, zona dos sujos e hall · Assume lavandaria · Organiza roupas nos carros da rouparia'+extraComum('Serviços Gerais')+extraAvulsa('Serviços Gerais')},
     'Manhã Geral':{cor:'#0EA5E9',bg:'#F8FAFC',txt:'Trabalho Técnico'},
-    'Piso 3 — Tarde':{cor:'#0EA5E9',bg:'#F8FAFC',txt:'Fechar janelas dos quartos de todos os pisos · Arrumar carros de fraldas Pisos 3/4/5/6 (saco 100L dentro saco amarelo) 📸 · Organizar zona banho assistido 📸 · Posicionamentos às 16h · 18h · 20h 📸 · Descer ao Piso 0 às 16h45 · Verificar sistemas alimentação acamados às 20h 📸 · Ceias com colega T6'+extraComum('Piso 3 — Tarde')},
-    'Piso 4 — Tarde':{cor:'#0D9488',bg:'#F0FDFA',txt:'Arrumar roupa de todos os pisos — bem feito 📸 · Toalhas, lençóis e edredões nas rouparias 📸 · Descer às 17h30 para sentar utentes jantar · Após jantar: assume lavandaria · Aspirar as máquinas 📹'+rouExtra+extraComum('Piso 4 — Tarde')},
-    'Piso 5 — Tarde':{cor:'#C9973A',bg:'#FFFBEB',txt:'Fazer os cabides · Arrumar e organizar carrinhos de limpeza · Lavar os carrinhos e organizar correctamente · Ajuda nos posicionamentos · Descer às 17h — dar água e apoiar colega · Ajudar a sentar utentes para jantar · Medir as glicemias e registar 🩸 · Após deitar: assume a cozinha — deixar limpa e organizada'+extraComum('Piso 5 — Tarde')},
-    'Piso 6 — Tarde':{cor:'#7C3AED',bg:'#F5F3FF',txt:'Após deitar: limpar salas de estar de todos os pisos 📸 · Após deitar: limpar suportes de alimentação com água quente · Dar apoio nas ceias com a colega T3 · Sinais vitais ❤️'+extraT6+extraComum('Piso 6 — Tarde')},
+    'Piso 3 — Tarde':{cor:'#0EA5E9',bg:'#F8FAFC',txt:'Fechar janelas dos quartos de todos os pisos · Arrumar carros de fraldas Pisos 3/4/5/6 (saco 100L dentro saco amarelo) 📸 · Organizar zona banho assistido 📸 · Posicionamentos às 16h · 18h · 20h 📸 · Descer ao Piso 0 às 16h45 · Verificar sistemas alimentação acamados às 20h 📸 · Ceias com colega T6'+extraComum('Piso 3 — Tarde')+extraAvulsa('Piso 3 — Tarde')},
+    'Piso 4 — Tarde':{cor:'#0D9488',bg:'#F0FDFA',txt:'Arrumar roupa de todos os pisos — bem feito 📸 · Toalhas, lençóis e edredões nas rouparias 📸 · Descer às 17h30 para sentar utentes jantar · Após jantar: assume lavandaria · Aspirar as máquinas 📹'+rouExtra+extraComum('Piso 4 — Tarde')+extraAvulsa('Piso 4 — Tarde')},
+    'Piso 5 — Tarde':{cor:'#C9973A',bg:'#FFFBEB',txt:'Fazer os cabides · Arrumar e organizar carrinhos de limpeza · Lavar os carrinhos e organizar correctamente · Ajuda nos posicionamentos · Descer às 17h — dar água e apoiar colega · Ajudar a sentar utentes para jantar · Medir as glicemias e registar 🩸 · Após deitar: assume a cozinha — deixar limpa e organizada'+extraComum('Piso 5 — Tarde')+extraAvulsa('Piso 5 — Tarde')},
+    'Piso 6 — Tarde':{cor:'#7C3AED',bg:'#F5F3FF',txt:'Após deitar: limpar salas de estar de todos os pisos 📸 · Após deitar: limpar suportes de alimentação com água quente · Dar apoio nas ceias com a colega T3 · Sinais vitais ❤️'+extraT6+extraComum('Piso 6 — Tarde')+extraAvulsa('Piso 6 — Tarde')},
     'Noite — Piso 1-2':{cor:'#1E293B',bg:'#F8FAFC',txt:''},
     'Noite — Piso 3-4':{cor:'#334155',bg:'#F8FAFC',txt:''}
   };
