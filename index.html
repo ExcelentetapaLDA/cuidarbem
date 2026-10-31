@@ -2654,6 +2654,7 @@ async function carregarEscalaAtual(offset){
   const mesNome=nomes[mesIdx].normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   const rid=ses.admRes||ses.rid||'r2';
   const dados=await fbG(`escalas/${rid}/${ano}/${mesNome}`);
+  escalaDist.key=null;
   if(dados&&dados.staff&&dados.staff.length>0){
     escalaDados=dados;
     escalaDados._anoVer=ano;
@@ -2665,7 +2666,20 @@ async function carregarEscalaAtual(offset){
   }
   rEscala();
 }
-function navMes(dir){carregarEscalaAtual(dir);}const tLabel={'M':'Manhã (8h-17h)','T':'Tarde (15h-23h30)','N':'Noite (23h-8h)','D':'Descanso Comp.','F':'Folga','FERIAS':'Férias','BAIXA':'Baixa Médica','MSG':'Serv. Gerais','CE':'Encarregada','C1':'Cozinha (8h-17h)','C2':'Cozinha (10h-20h)','M 3':'Manhã — Piso 3','M 4':'Manhã — Piso 4','M 5':'Manhã — Piso 5','M 6':'Manhã — Piso 6','M AP1':'Manhã — Apoio 1','M AP2':'Manhã — Apoio 2','T 3':'Tarde — Piso 3','T 4':'Tarde — Piso 4','T 5':'Tarde — Piso 5','T 6':'Tarde — Piso 6','N1':'Noite — Piso 1-2','N2':'Noite — Piso 3-4'};
+function navMes(dir){carregarEscalaAtual(dir);}
+// Escala usada na Distribuição/Cartões: é sempre a do mês do DIA mostrado (Hoje/Amanhã...),
+// independentemente do mês que está aberto na página Escala.
+let escalaDist={key:null,staff:[]};
+async function carregarEscalaDist(){
+  const d=new Date();d.setDate(d.getDate()+distDiaOffset);
+  const nomes=['janeiro','fevereiro','marco','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const rid=ses.admRes||ses.rid||'r2';
+  const key=`${rid}/${d.getFullYear()}/${nomes[d.getMonth()]}`;
+  if(escalaDist.key===key)return;
+  let dados=null;
+  try{dados=await fbG(`escalas/${key}`);}catch(e){}
+  escalaDist={key,staff:(dados&&dados.staff)||[]};
+}const tLabel={'M':'Manhã (8h-17h)','T':'Tarde (15h-23h30)','N':'Noite (23h-8h)','D':'Descanso Comp.','F':'Folga','FERIAS':'Férias','BAIXA':'Baixa Médica','MSG':'Serv. Gerais','CE':'Encarregada','C1':'Cozinha (8h-17h)','C2':'Cozinha (10h-20h)','M 3':'Manhã — Piso 3','M 4':'Manhã — Piso 4','M 5':'Manhã — Piso 5','M 6':'Manhã — Piso 6','M AP1':'Manhã — Apoio 1','M AP2':'Manhã — Apoio 2','T 3':'Tarde — Piso 3','T 4':'Tarde — Piso 4','T 5':'Tarde — Piso 5','T 6':'Tarde — Piso 6','N1':'Noite — Piso 1-2','N2':'Noite — Piso 3-4'};
 function tIc(t){if(!t)return'?';if(t==='F'||t==='D')return'🏖';if(t==='FERIAS')return'✈️';if(t==='BAIXA')return'🏥';if(t.startsWith('M'))return'🌅';if(t.startsWith('T'))return'🌆';if(t.startsWith('N'))return'🌙';if(t.startsWith('C'))return'🍽️';if(t==='MSG')return'🧹';if(t==='CE')return'👑';return'📋';}
 function ecC(t){if(!t||t==='F')return'ec-F';if(t==='D')return'ec-D';if(t==='FERIAS')return'ec-FERIAS';if(t==='BAIXA')return'ec-BAIXA';if(t==='MSG')return'ec-MSG';if(t==='CE')return'ec-CE';if(t.startsWith('C'))return'ec-C';if(t.startsWith('N'))return'ec-N';if(t.startsWith('M'))return'ec-M';if(t.startsWith('T'))return'ec-T';return'ec-F';}
 function pT(c){
@@ -2835,7 +2849,8 @@ async function delAvulsa(idx){
   await fbS('limpeza_sel/'+dateKey,DB.limpezaSel[dateKey]);
   rDist();
 }
-function rDist(){
+function rDist(){carregarEscalaDist().then(_rDist);}
+function _rDist(){
   const hoje=new Date();
   hoje.setDate(hoje.getDate()+distDiaOffset);
   const di=hoje.getDate()-1;
@@ -2845,7 +2860,7 @@ function rDist(){
   const distDataEl=document.getElementById('distDiaData');
   if(distLbl)distLbl.textContent=distDiaOffset===0?'Hoje':distDiaOffset===1?'Amanhã':distDiaOffset===-1?'Ontem':diaSemana;
   if(distDataEl)distDataEl.textContent=hoje.toLocaleDateString('pt-PT',{weekday:'long',day:'numeric',month:'long'});
-  const staff=escalaDados.staff||[];
+  const staff=escalaDist.staff||[];
   const meuN=ses.nome?ses.nome.toUpperCase():'';
   const activeRes=ses.admRes||ses.rid||'r2';
   const isSVA=activeRes==='r1';
@@ -6650,6 +6665,7 @@ async function impGuardar(){
       const key=`escalas/${escala.res}/${escala.ano}/${mesNome}`;
       await fbS(key,{mes:`${escala.mes} ${escala.ano}`,diaInicio:escala.diaInicio,diasNoMes:escala.diasNoMes,res:escala.res,staff:escala.staff,updatedAt:new Date().toISOString()});
     }
+    escalaDist.key=null;
     impSetStatus('✅ Escala guardada! A app actualiza automaticamente.','ok');
     btn.innerHTML='<i class="ti ti-check" style="margin-right:.3rem"></i>Guardado!';
     btn.style.background='linear-gradient(135deg,#16A34A,#15803D)';
@@ -6928,7 +6944,8 @@ function exportarCartaoSVA(tipo,hoje,resNome,dataStr,di,staff){
   mostrarCartaoModal(titulo,html);
 }
 
-function exportarCartao(tipo){
+async function exportarCartao(tipo){await carregarEscalaDist();return _exportarCartao(tipo);}
+function _exportarCartao(tipo){
   const hoje=new Date();
   hoje.setDate(hoje.getDate()+distDiaOffset);
   const rid=ses.admRes||ses.rid||'r2';
@@ -6939,7 +6956,7 @@ function exportarCartao(tipo){
   const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   const dataStr=diasSemana[hoje.getDay()]+', '+hoje.getDate()+' de '+meses[hoje.getMonth()]+' '+hoje.getFullYear();
   const di=hoje.getDate()-1;
-  const staff=escalaDados.staff||[];
+  const staff=escalaDist.staff||[];
   const dw=hoje.getDay();
 
   if(isSVA)return exportarCartaoSVA(tipo,hoje,resNome,dataStr,di,staff);
