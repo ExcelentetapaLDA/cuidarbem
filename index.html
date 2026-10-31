@@ -2651,7 +2651,7 @@ async function carregarEscalaAtual(offset){
   }
   const ano=escalaMesVer.ano;
   const mesIdx=escalaMesVer.mes;
-  const mesNome=nomes[mesIdx];
+  const mesNome=nomes[mesIdx].normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   const rid=ses.admRes||ses.rid||'r2';
   const dados=await fbG(`escalas/${rid}/${ano}/${mesNome}`);
   if(dados&&dados.staff&&dados.staff.length>0){
@@ -4288,7 +4288,7 @@ async function configurarAutenticacaoReal(){
 async function sincronizarEquipaComEscala(){
   const hoje=new Date();
   const nomesMes=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
-  const ano=hoje.getFullYear(), mesNome=nomesMes[hoje.getMonth()], mesLabel=mesNome[0].toUpperCase()+mesNome.slice(1);
+  const ano=hoje.getFullYear(), mesLabel=nomesMes[hoje.getMonth()][0].toUpperCase()+nomesMes[hoje.getMonth()].slice(1), mesNome=nomesMes[hoje.getMonth()].normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 
   const eqAtual=await fbG('equipa');
   const equipaPorRes={r1:[],r2:[]};
@@ -6503,23 +6503,42 @@ function impHandleFile(file){
   }
 }
 
+// Lê o nome da sheet de forma tolerante: NOV, Nov, NOVEMBRO, NOV 2026, NOV-S, Novembro SVA, nov.26...
+function impInfoSheet(nome){
+  const FULL=['JANEIRO','FEVEREIRO','MARCO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+  const LBL=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const s=String(nome||'').trim().toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const tok=s.split(/[^A-Z0-9]+/).filter(Boolean);
+  if(!tok.length)return null;
+  const w=tok[0].replace(/\d+$/,'');
+  if(w.length<3)return null;
+  const idx=FULL.findIndex(f=>f.startsWith(w));
+  if(idx<0)return null;
+  const resto=tok.slice(1).concat(tok[0].slice(w.length)?[tok[0].slice(w.length)]:[]);
+  let ano=null;
+  for(const t of resto){if(/^20\d{2}$/.test(t))ano=+t;else if(/^\d{2}$/.test(t))ano=2000+(+t);}
+  if(!ano){const h=new Date(),cm=h.getMonth();ano=h.getFullYear();if(idx<cm&&((idx-cm+12)%12)<=3)ano++;}
+  const sva=resto.some(t=>['S','SVA','SOLAR','ARRUDA','R1'].includes(t));
+  return{mes:LBL[idx],n:idx+1,ano,dias:new Date(ano,idx+1,0).getDate(),res:sva?'r1':'r2'};
+}
+
 function impProcessar(file){
   const reader=new FileReader();
   reader.onload=function(e){
     try{
       const wb=XLSX.read(e.target.result,{type:'array'});
-      const sheets=wb.SheetNames.filter(s=>IMP_MESES[s]);
-      if(!sheets.length){impSetStatus('❌ Não encontrei sheets de escala (MAI, JUN, MAI-S...).','err');return;}
+      const sheets=wb.SheetNames.filter(s=>impInfoSheet(s));
+      if(!sheets.length){impSetStatus('❌ Não encontrei sheets de escala (ex.: NOV, NOVEMBRO, NOV 2026, NOV-S). Sheets encontradas: '+wb.SheetNames.join(', ')+'','err');return;}
       const resultados=[];
       for(const sheetName of sheets){
-        const info=IMP_MESES[sheetName];
+        const info=impInfoSheet(sheetName);
         const ws=wb.Sheets[sheetName];
         const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
         const staff=info.res==='r1'?impParseScheduleSVA(raw,info):impParseSchedule(raw,info);
         if(staff&&staff.length>0){
           // Calculate what day of week the 1st falls on (0=Sun,1=Mon,...,6=Sat)
-          const primeiroDia=new Date(2026,info.n-1,1).getDay();
-          resultados.push({sheet:sheetName,mes:info.mes,ano:2026,res:info.res,diasNoMes:info.dias,diaInicio:primeiroDia,staff});
+          const primeiroDia=new Date(info.ano,info.n-1,1).getDay();
+          resultados.push({sheet:sheetName,mes:info.mes,ano:info.ano,res:info.res,diasNoMes:info.dias,diaInicio:primeiroDia,staff});
         }
       }
       if(!resultados.length){impSetStatus('⚠️ Ficheiro lido mas sem dados de funcionários.','err');return;}
@@ -6527,7 +6546,7 @@ function impProcessar(file){
       impSetStatus('✅ Ficheiro lido com sucesso!','ok');
       document.getElementById('impResultRows').innerHTML=resultados.map(r=>`
         <div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid #F1F5F9;font-size:.82rem">
-          <span style="color:#64748B">${r.mes} 2026 — ${r.res==='r2'?'Casa dos Sonhos':'Solar Villa Arruda'}</span>
+          <span style="color:#64748B">${r.mes} ${r.ano} (sheet "${r.sheet}") — ${r.res==='r2'?'Casa dos Sonhos':'Solar Villa Arruda'}</span>
           <span style="font-weight:600">${r.staff.length} funcionários</span>
         </div>`).join('');
       document.getElementById('impResult').style.display='block';
@@ -6634,7 +6653,7 @@ async function impGuardar(){
     impSetStatus('✅ Escala guardada! A app actualiza automaticamente.','ok');
     btn.innerHTML='<i class="ti ti-check" style="margin-right:.3rem"></i>Guardado!';
     btn.style.background='linear-gradient(135deg,#16A34A,#15803D)';
-    toast('<strong>📅 Escala importada!</strong><br>Vai à página da Escala para ver.');
+    toast('<strong>📅 Escala guardada: '+impDados.map(e=>e.mes+' '+e.ano).join(', ')+'</strong><br>Na página Escala usa a seta › para ver o mês seguinte. A distribuição diária muda sozinha no dia 1.');
     carregarEscalaAtual();
   }catch(err){
     impSetStatus('❌ Erro ao guardar: '+err.message,'err');
